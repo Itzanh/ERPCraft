@@ -1,0 +1,36 @@
+div#loginScreen {
+    height: 100%;
+    width: 100%;
+    display: block;
+}
+
+    div#loginScreen img {
+        max-height: 100%;
+        max-width: 100%;
+    }
+
+    div#loginScreen div#loginScreenModal h5#loginScreenModalLabel {
+        width: 50%;
+    }
+
+        div#loginScreen div#loginScreenModal h5#loginScreenModalLabel div.row div.col:nth-child(1) {
+            max-width: 26% !important;
+        }
+
+        div#loginScreen div#loginScreenModal h5#loginScreenModalLabel div.row div.col:nth-child(2) {
+            max-width: 80% !important;
+        }
+
+    div#loginScreen div#loginScreenModal button#loginModalSubmit img {
+        height: 30px;
+        padding-right: 5px;
+    }
+
+    div#loginScreen div#loginScreenModal div.modal-footer {
+        justify-content: space-between !important;
+    }
+
+        div#loginScreen div#loginScreenModal div.modal-footer h6 {
+            color: red;
+            visibility: hidden;
+        }

@@ -1,0 +1,266 @@
+/* DRONES MENU */
+
+div#tabDrones div.busqueda {
+    max-width: 25%;
+    margin-left: 70%;
+    margin-bottom: 20px;
+}
+
+div#tabDrones h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#tabDrones table#tableTabDrones {
+    margin-top: 8px;
+}
+
+    div#tabDrones table#tableTabDrones tbody#renderDrones tr th:nth-child(1) {
+        width: 5%;
+    }
+
+    div#tabDrones table#tableTabDrones tbody#renderDrones tr td:nth-child(3) {
+        width: 20%;
+        font-family: MONOSPACE;
+        font-size: 16px;
+    }
+
+    div#tabDrones table#tableTabDrones tbody#renderDrones tr td:nth-child(4) {
+        width: 13%;
+    }
+
+    div#tabDrones table#tableTabDrones tbody#renderDrones tr td:nth-child(5) {
+        width: 10%;
+        padding: 0;
+    }
+
+        div#tabDrones table#tableTabDrones tbody#renderDrones tr td:nth-child(5) img {
+            height: 50px;
+        }
+
+    div#tabDrones table#tableTabDrones tbody#renderDrones tr td:nth-child(6) {
+        width: 10%;
+    }
+
+    div#tabDrones table#tableTabDrones tbody#renderDrones tr td:nth-child(7) {
+        width: 10%;
+    }
+
+/* DRONE FORM */
+
+div#editDrone div#droneTitle img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#editDrone div#droneTitle h3 {
+    display: inline;
+    vertical-align: middle;
+}
+
+div#editDrone div#droneTitle p {
+    display: inline;
+    float: right;
+    margin-right: 20px;
+}
+
+div#editDrone div#detallesBasicos div:nth-child(2) input {
+    font-family: MONOSPACE;
+    font-size: 16px;
+}
+
+div#editDrone div#detallesBasicos div:nth-child(3) {
+    max-width: 10%;
+}
+
+div#editDrone div#detallesEnergia div.col:nth-child(1) {
+    max-width: 200px;
+}
+
+div#editDrone div#detallesEnergia div.col:nth-child(2) {
+    max-width: 200px;
+}
+
+div#editDrone div#detallesEnergia div.col:nth-child(3) {
+    margin-left: 1%;
+    margin-right: 1%;
+    padding-top: 2%;
+}
+
+    div#editDrone div#detallesEnergia div.col:nth-child(3) div.progress {
+        height: 2rem !important;
+        font-family: 'Minecraft';
+        font-size: 18px;
+    }
+
+div#editDrone div#detallesEnergia div.col:nth-child(4) {
+    max-width: 200px;
+    padding-top: 2%;
+}
+
+div#editDrone div#detallesEnergia div.col:nth-child(5) {
+    max-width: 260px;
+}
+
+div#editDrone div#panelCentral {
+    margin-top: 20px;
+}
+
+    div#editDrone div#panelCentral div#inventarioDetallesBasicos div.col {
+        max-width: 200px;
+    }
+
+    div#editDrone div#panelCentral div#inventarioContenido {
+        margin-left: 1px;
+        margin-right: 1px;
+        margin-top: 10px;
+    }
+
+        div#editDrone div#panelCentral div#inventarioContenido div.card {
+            max-width: 24%;
+            margin: 1px;
+        }
+
+            div#editDrone div#panelCentral div#inventarioContenido div.card h5 {
+                color: black;
+            }
+
+    div#editDrone div#panelCentral div#gpsDetallesBasicos {
+        margin-bottom: 20px;
+    }
+
+        div#editDrone div#panelCentral div#gpsDetallesBasicos div.col:nth-child(1) {
+            min-width: 175px;
+        }
+
+    div#editDrone div#panelCentral textarea {
+        width: 100%;
+        height: 50%;
+    }
+
+div#editDrone div#botonesInferiores {
+    overflow: hidden;
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    left: 10px;
+}
+
+    div#editDrone div#botonesInferiores button {
+        margin-right: 10px;
+    }
+
+        div#editDrone div#botonesInferiores button:nth-child(3) {
+            margin-right: 2%;
+        }
+
+div#editDrone div#droneGpsContainer thead {
+    width: 100%;
+    display: block;
+}
+
+    div#editDrone div#droneGpsContainer thead tr {
+        width: 100%;
+        display: block;
+    }
+
+        div#editDrone div#droneGpsContainer thead tr th:nth-child(1) {
+            width: 500px;
+        }
+
+        div#editDrone div#droneGpsContainer thead tr th:nth-child(2) {
+            width: 17%;
+        }
+
+        div#editDrone div#droneGpsContainer thead tr th:nth-child(3) {
+            width: 17%;
+        }
+
+        div#editDrone div#droneGpsContainer thead tr th:nth-child(4) {
+            width: 17%;
+        }
+
+div#editDrone div#droneGpsContainer tbody {
+    display: block;
+    height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+    div#editDrone div#droneGpsContainer tbody tr {
+        width: 100%;
+        display: block;
+    }
+
+        div#editDrone div#droneGpsContainer tbody tr th:nth-child(1) {
+            width: 500px;
+        }
+
+        div#editDrone div#droneGpsContainer tbody tr td:nth-child(2) {
+            width: 17%;
+        }
+
+        div#editDrone div#droneGpsContainer tbody tr td:nth-child(3) {
+            width: 17%;
+        }
+
+        div#editDrone div#droneGpsContainer tbody tr td:nth-child(4) {
+            width: 17%;
+        }
+
+div#editDrone div#droneRecordDetails {
+    margin-top: 10px;
+}
+
+    div#editDrone div#droneRecordDetails input[type="text"] {
+        width: 50%;
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    div#editDrone div#droneRecordDetails div.form-row:nth-child(1) {
+        height: 50px;
+    }
+
+    div#editDrone div#droneRecordDetails div.form-row div.col:nth-child(3) {
+        max-width: 20%;
+    }
+
+/* ROBOT INVENTARIO */
+
+div#editDrone div#inventarioContenido div.card div.form-row div.col:nth-child(1) {
+    max-width: 25%;
+}
+
+    div#editDrone div#inventarioContenido div.card div.form-row div.col:nth-child(1) img {
+        max-height: 50px;
+        margin-top: 40%;
+    }
+
+/* ROBOT LOGS */
+
+div#editDrone div#renderDroneFormModal div#robotLogs table tbody#renderRobotLogs tr th {
+    width: 17%;
+}
+
+div#editDrone div#renderDroneFormModal div#robotLogs table tbody#renderRobotLogs tr td:nth-child(1) {
+    width: 20%;
+}
+
+div#editDrone div#renderDroneFormModal div#robotLogs div.modal-body {
+    display: block;
+    height: 700px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+div#editDrone div#renderDroneFormModal div#robotLogs div.modal-body {
+    width: 100%;
+    display: block;
+}
+
+div#editDrone div#renderDroneFormModal div#robotLogs thead tr th:nth-child(2) {
+    width: 20%;
+}

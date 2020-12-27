@@ -1,0 +1,75 @@
+/* ARTICULOS MENU */
+
+div#tabArticulos div.busqueda {
+    max-width: 25%;
+    margin-left: 70%;
+    margin-bottom: 20px;
+}
+
+div#tabArticulos h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr th:nth-child(1) {
+    width: 5%;
+}
+
+div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(2) {
+    width: 2.5%;
+}
+
+    div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(2) img {
+        max-height: 32px;
+    }
+
+div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(3) {
+    width: 67.5%;
+}
+
+div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(4) {
+    width: 20%;
+}
+
+div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(5) {
+    width: 5%;
+}
+
+/* ARTICULO MODAL */
+
+div#addArticuloModal div.form-row div.col:nth-child(3) {
+    max-width: 10%;
+}
+
+div#editArticuloModal div#editArtMainForm div#editArtDetails div.form-row div.col:nth-child(3) {
+    max-width: 10%;
+}
+
+div#editArticuloModal div#editArtMainForm div.col:nth-child(1) {
+    max-width: 20%;
+}
+
+    div#editArticuloModal div#editArtMainForm div.col:nth-child(1) img {
+        width: 100%;
+    }
+
+    div#editArticuloModal div#editArtMainForm div.col:nth-child(1) button {
+        margin-top: 10%;
+    }
+
+        div#editArticuloModal div#editArtMainForm div.col:nth-child(1) button.btn-danger {
+            margin-right: 5%;
+        }
+
+div#editArticuloModal textarea {
+    margin-left: 5px;
+    margin-right: 5px;
+    width: 100%;
+    height: 100px;
+    margin-top: 5px;
+}
+
+div#editArticuloModal input#artImgFile {
+    display: none;
+}

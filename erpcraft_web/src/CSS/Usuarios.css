@@ -1,0 +1,58 @@
+div#tabUsuarios div.busqueda {
+    max-width: 25%;
+    margin-left: 70%;
+    margin-bottom: 20px;
+}
+
+div#tabUsuarios table#tableTabUsuarios {
+    width: 100%;
+}
+
+    div#tabUsuarios table#tableTabUsuarios thead tr th:nth-child(2n+1) {
+        width: 5%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios thead tr th:nth-child(2) {
+        width: 60%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios thead tr th:nth-child(3) {
+        width: 15%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios thead tr th:nth-child(4) {
+        width: 10%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios thead tr th:nth-child(5) {
+        width: 10%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios tbody tr td:nth-child(1) {
+        width: 5%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios tbody tr td:nth-child(2) {
+        width: 60%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios tbody tr td:nth-child(3) {
+        width: 15%;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios tbody tr td:nth-child(4) {
+        width: 10%;
+        font-weight: bold;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios tbody tr td.on:nth-child(4) {
+        color: green;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios tbody tr td.off:nth-child(4) {
+        color: red;
+    }
+
+    div#tabUsuarios table#tableTabUsuarios tbody tr td:nth-child(5) {
+        width: 10%;
+    }

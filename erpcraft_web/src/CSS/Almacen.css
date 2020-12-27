@@ -1,0 +1,38 @@
+div#tabAlmacenes h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#tabAlmacenes div#almColumnas > div.col:nth-child(1) {
+    max-width: 25%;
+}
+
+div#tabAlmacenes div#almColumnas > div.col:nth-child(2) {
+    border-left-style: solid;
+    border-left-color: black;
+    border-left-width: 5px;
+}
+
+div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen {
+    margin-left: 10px;
+    margin-right: 0;
+}
+
+    div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen div.card {
+        max-width: 24%;
+        margin: 1px;
+    }
+
+        div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen div.card div.form-row div.col:nth-child(1) {
+            max-width: 25%;
+        }
+
+            div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen div.card div.form-row div.col:nth-child(1) img {
+                max-height: 50px;
+                margin-top: 40%;
+            }
+
+        div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen div.card h5 {
+            color: black;
+        }

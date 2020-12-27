@@ -1,0 +1,132 @@
+/* RED ELECTRICA MENU */
+
+div#tabRedElectrica div.busqueda {
+    max-width: 25%;
+    margin-left: 70%;
+    margin-bottom: 20px;
+}
+
+div#tabRedElectrica h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#tabRedElectrica table#tableTabRedElectrica tbody#renderRedElectrica tr th:nth-child(1) {
+    width: 5%;
+}
+
+div#tabRedElectrica table#tableTabRedElectrica tbody#renderRedElectrica tr td:nth-child(3) {
+    width: 5%;
+}
+
+div#tabRedElectrica table#tableTabRedElectrica tbody#renderRedElectrica tr td:nth-child(4) {
+    width: 5%;
+}
+
+div#tabRedElectrica table#tableTabRedElectrica tbody#renderRedElectrica tr td:nth-child(5) {
+    width: 25%;
+}
+
+/* RED ELECTRICA FORM */
+
+div#redElectricaForm div#redElectricaTitle img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#redElectricaForm div#redElectricaTitle h3 {
+    display: inline;
+    vertical-align: middle;
+}
+
+div#redElectricaForm div#redElectricaTitle p {
+    display: inline;
+    float: right;
+    margin-right: 20px;
+}
+
+div#redElectricaForm div#redElectricaContenido h3 {
+    text-align: center;
+}
+
+div#redElectricaForm div#redElectricaContenido table#redElectricaGeneradores tbody tr td:nth-child(3) {
+    font-family: MONOSPACE;
+}
+
+div#redElectricaForm div#redElectricaContenido table#redElectricaBaterias tbody tr td:nth-child(3) {
+    font-family: MONOSPACE;
+}
+
+div#redElectricaForm div#redElectricaContenido table#redElectricaBaterias tbody tr td:nth-child(6) img {
+    height: 32px;
+}
+
+div#redElectricaForm div#botonesInferiores {
+    overflow: hidden;
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    left: 10px;
+}
+
+    div#redElectricaForm div#botonesInferiores button {
+        margin-right: 10px;
+    }
+
+/* RED ELECTRICA GENERADOR */
+
+div#redElectricaForm div#renderRedElectricaModal div#generadorModal div#generadorDetallesBasicos label {
+    display: inline-block;
+    width: 20%;
+}
+
+div#redElectricaForm div#renderRedElectricaModal div#generadorModal div#generadorDetallesBasicos input {
+    display: inline-block;
+    width: 80%;
+}
+
+div#redElectricaForm div#renderRedElectricaModal div#generadorModal div.form-row div.col:nth-child(1) {
+    max-width: 25%;
+}
+
+div#redElectricaForm div#renderRedElectricaModal div#generadorModal div.form-row div.col:nth-child(2) {
+    max-width: 25%;
+    padding-top: 8%;
+}
+
+/* RED ELECTRICA BATERIA */
+
+div#redElectricaForm div#renderRedElectricaModal div#bateriaModal div#bateriaDetallesBasicos label {
+    display: inline-block;
+    width: 20%;
+}
+
+div#redElectricaForm div#renderRedElectricaModal div#bateriaModal div#bateriaDetallesBasicos input {
+    display: inline-block;
+    width: 80%;
+}
+
+div#redElectricaForm div#renderRedElectricaModal div#bateriaModal h5#bateriaModalLabel img {
+    height: 64px;
+}
+
+div#redElectricaForm div#renderRedElectricaModal div#bateriaModal div.progress {
+    border-radius: 0;
+    height: 2rem;
+}
+
+/* RED ELECTRICA BATERIA HISTORIAL */
+
+div#redElectricaForm div#renderRedElectricaModal div#bateriaHistorialModal div.modal-body {
+    display: block;
+    height: 700px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+div#redElectricaForm div#renderRedElectricaModal div#bateriaHistorialModal canvas {
+    width: 1100px !important;
+    height: 600px !important;
+}

@@ -1,0 +1,192 @@
+/* ÓRDENES DE MINADO MENU */
+
+div#tabOrdenesMinado div#OrdenesMinadoBusqueda div.col {
+    max-width: 10%;
+}
+
+    div#tabOrdenesMinado div#OrdenesMinadoBusqueda div.col:nth-child(5) {
+        max-width: 25%;
+    }
+
+        div#tabOrdenesMinado div#OrdenesMinadoBusqueda div.col:nth-child(5) input[type="number"] {
+            max-width: 20%;
+            margin-left: 1%;
+            display: inline-block;
+        }
+
+        div#tabOrdenesMinado div#OrdenesMinadoBusqueda div.col:nth-child(5) input[type="text"] {
+            max-width: 50%;
+            margin-left: 1%;
+            display: inline-block;
+        }
+
+        div#tabOrdenesMinado div#OrdenesMinadoBusqueda div.col:nth-child(5) img {
+            margin-left: 1%;
+            height: 40px;
+            background-color: #17a2b8;
+            padding: 2px;
+            border-radius: .25rem;
+        }
+
+div#tabOrdenesMinado div#OrdenesMinadoBusqueda input[type="checkbox"] {
+    height: 50%;
+    display: inline-block;
+    width: 10%;
+    vertical-align: middle;
+}
+
+div#tabOrdenesMinado h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr th:nth-child(1) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(2) {
+    width: 30%;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(3) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(4) {
+    width: 17%;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(5) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(6) {
+    width: 15%;
+    padding: 0;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(7) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(8) {
+    width: 8%;
+}
+
+/* ROBOT LOCALIZADOR */
+
+div#robotLocalizador div.modal-body div.form-row div.col:nth-child(1) {
+    max-width: 25%;
+}
+
+div#robotLocalizador table {
+    margin-top: 5px;
+}
+
+    div#robotLocalizador table tbody#renderRobotsLocalizador tr th:nth-child(1) {
+        width: 10%;
+    }
+
+    div#robotLocalizador table tbody#renderRobotsLocalizador tr td:nth-child(2) {
+        width: 45%;
+    }
+
+    div#robotLocalizador table tbody#renderRobotsLocalizador tr td:nth-child(3) {
+        width: 45%;
+        font-family: monospace;
+        font-size: 16px;
+    }
+
+/* ORDEN DE MINADO FORMULARIO */
+
+div#tabOrdenesMinado div#ordenMinadoModal div#detallesBasicos div.col:nth-child(1) {
+    max-width: 20%;
+}
+
+div#tabOrdenesMinado div#ordenMinadoModal div#detallesBasicos div.col:nth-child(3) {
+    max-width: 20%;
+}
+
+div#tabOrdenesMinado div#ordenMinadoModal div#detallesRobot div.col:nth-child(1) {
+    min-width: 70%;
+}
+
+    div#tabOrdenesMinado div#ordenMinadoModal div#detallesRobot div.col:nth-child(1) label {
+        display: block;
+    }
+
+    div#tabOrdenesMinado div#ordenMinadoModal div#detallesRobot div.col:nth-child(1) input[type="number"] {
+        max-width: 20%;
+        margin-left: 1%;
+        display: inline-block;
+    }
+
+    div#tabOrdenesMinado div#ordenMinadoModal div#detallesRobot div.col:nth-child(1) input[type="text"] {
+        max-width: 65%;
+        margin-left: 1%;
+        display: inline-block;
+    }
+
+    div#tabOrdenesMinado div#ordenMinadoModal div#detallesRobot div.col:nth-child(1) img {
+        margin-left: 1%;
+        height: 40px;
+        background-color: #17a2b8;
+        padding: 2px;
+        border-radius: .25rem;
+    }
+
+div#tabOrdenesMinado div#ordenMinadoModal div#shutdown.col input {
+    margin-top: 15%;
+}
+
+div#tabOrdenesMinado div#ordenMinadoModal div#shutdown.col label {
+    margin-top: 15%;
+}
+
+div#tabOrdenesMinado div#ordenMinadoModal div#ordenRobotParams {
+    margin-top: 10px;
+}
+
+    div#tabOrdenesMinado div#ordenMinadoModal div#ordenRobotParams div.col:nth-child(1) input[type="number"] {
+        max-width: 50%;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 10px;
+    }
+
+    div#tabOrdenesMinado div#ordenMinadoModal div#ordenRobotParams div.col:nth-child(2) img {
+        width: 35px;
+    }
+
+div.tooltipOrdenMinado {
+    text-align: justify;
+}
+
+div.tooltip-inner {
+    max-width: 400px;
+}
+
+div#tabOrdenesMinado div#ordenMinadoModal div#inventarioOrdenMinadoContenido {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+    div#tabOrdenesMinado div#ordenMinadoModal div#inventarioOrdenMinadoContenido div.card {
+        min-width: 225px;
+        max-width: 24%;
+        margin: 1px;
+    }
+
+        div#tabOrdenesMinado div#ordenMinadoModal div#inventarioOrdenMinadoContenido div.card h5 {
+            color: black;
+        }
+
+        div#tabOrdenesMinado div#ordenMinadoModal div#inventarioOrdenMinadoContenido div.card div.form-row div.col:nth-child(1) {
+            max-width: 25%;
+        }
+
+            div#tabOrdenesMinado div#ordenMinadoModal div#inventarioOrdenMinadoContenido div.card div.form-row div.col:nth-child(1) img {
+                max-height: 50px;
+                margin-top: 40%;
+            }

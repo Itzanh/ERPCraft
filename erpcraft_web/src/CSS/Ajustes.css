@@ -1,0 +1,79 @@
+/* AJUSTES MENU */
+
+div#tabAjustes div.busqueda {
+    max-width: 25%;
+    margin-left: 70%;
+    margin-bottom: 20px;
+}
+
+div#tabAjustes h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+div#tabAjustes div.form-row div.col:nth-child(1) {
+    max-width: 25%;
+}
+
+div#tabAjustes div#renderAjuste div#ajusteForm {
+    background-color: #282c34;
+    padding: 10px;
+}
+
+    div#tabAjustes div#renderAjuste div#ajusteForm div#ajustesTitle img {
+        height: 50px;
+        margin-right: 10px;
+        margin-left: 25px;
+    }
+
+    div#tabAjustes div#renderAjuste div#ajusteForm div#ajustesTitle h3 {
+        display: inline;
+        vertical-align: middle;
+    }
+
+    div#tabAjustes div#renderAjuste div#ajusteForm div#ajustesTitle p {
+        display: inline;
+        float: right;
+        margin-right: 20px;
+    }
+
+    div#tabAjustes div#renderAjuste div#ajusteForm div.row div.col.checkContainer {
+        padding-top: 2.5%;
+    }
+
+        div#tabAjustes div#renderAjuste div#ajusteForm div.row div.col.checkContainer label {
+            display: inline;
+        }
+
+    div#tabAjustes div#renderAjuste div#ajusteForm button {
+        margin-left: 10px;
+    }
+
+/* API KEYS */
+
+div#tabApiKeys div.busqueda {
+    max-width: 25%;
+    margin-left: 70%;
+    margin-bottom: 20px;
+}
+
+div#tabApiKeys h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+/* SERVERS */
+
+div#tabServers div.busqueda {
+    max-width: 25%;
+    margin-left: 70%;
+    margin-bottom: 20px;
+}
+
+div#tabServers h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
