@@ -1175,25 +1175,25 @@ function deleteGeneradorRedElectrica(idRed, idGenerador) {
 
 // bateria
 
-function addBateriaRedElectrica(generador) {
+function addBateriaRedElectrica(bateria) {
     return new Promise((resolve) => {
-        client.emit('electrico', 'addBateria', JSON.stringify(generador), (_, response) => {
+        client.emit('electrico', 'addBateria', JSON.stringify(bateria), (_, response) => {
             resolve(parseInt(response));
         });
     });
 };
 
-function updateBateriaRedElectrica(generador) {
+function updateBateriaRedElectrica(bateria) {
     return new Promise((resolve) => {
-        client.emit('electrico', 'updateBateria', JSON.stringify(generador), (_, response) => {
+        client.emit('electrico', 'updateBateria', JSON.stringify(bateria), (_, response) => {
             resolve(response == "OK");
         });
     });
 };
 
-function deleteBateriaRedElectrica(idRed, idGenerador) {
+function deleteBateriaRedElectrica(idRed, idBateria) {
     return new Promise((resolve) => {
-        client.emit('electrico', 'deleteBateria', JSON.stringify({ redElectrica: idRed, id: idGenerador }), (_, response) => {
+        client.emit('electrico', 'deleteBateria', JSON.stringify({ redElectrica: idRed, id: idBateria }), (_, response) => {
             resolve(response == "OK");
         });
     });

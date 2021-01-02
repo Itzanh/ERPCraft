@@ -7,7 +7,6 @@ C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\K4os.Compression.
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\K4os.Compression.LZ4.Streams.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\K4os.Hash.xxHash.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Microsoft.Bcl.AsyncInterfaces.dll
-C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\MySql.Data.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Newtonsoft.Json.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Npgsql.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Renci.SshNet.dll
@@ -20,15 +19,12 @@ C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Text.Json.
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Threading.Channels.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Threading.Tasks.Extensions.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.ValueTuple.dll
-C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Ubiety.Dns.Core.dll
-C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Zstandard.Net.dll
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Google.Protobuf.pdb
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Google.Protobuf.xml
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\K4os.Compression.LZ4.xml
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\K4os.Compression.LZ4.Streams.xml
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\K4os.Hash.xxHash.xml
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Microsoft.Bcl.AsyncInterfaces.xml
-C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\MySql.Data.xml
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Newtonsoft.Json.xml
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Npgsql.xml
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\Renci.SshNet.xml
@@ -46,3 +42,9 @@ C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\obj\Release\ERPCraft Server.c
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\obj\Release\ERPCraft Server.csproj.CopyComplete
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\obj\Release\ERPCraft Server.exe
 C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\obj\Release\ERPCraft Server.pdb
+C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Collections.Immutable.dll
+C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Interactive.Async.dll
+C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Linq.Async.dll
+C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Collections.Immutable.xml
+C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Interactive.Async.xml
+C:\Users\Itzan\Desktop\C#\ERPCraft\ERPCraft Server\bin\Release\System.Linq.Async.xml

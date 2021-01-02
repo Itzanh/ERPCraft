@@ -1824,6 +1824,13 @@ namespace ERPCraft_Server.Storage
                 return false;
             }
 
+            sql = "UPDATE redes_electricas SET cap_ele = cap_ele - @cap_ele, carga_act = carga_act - @carga_act WHERE id = @id";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", idRed);
+            cmd.Parameters.AddWithValue("@cap_ele", bat.capacidadElectrica);
+            cmd.Parameters.AddWithValue("@carga_act", bat.cargaActual);
+            cmd.ExecuteNonQuery();
+
             Program.websocketPubSub.onPush("bateria", serverHashes.SubscriptionChangeType.delete, idRed, JsonConvert.SerializeObject(bat));
             return true;
         }
