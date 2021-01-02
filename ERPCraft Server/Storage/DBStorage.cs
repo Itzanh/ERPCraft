@@ -10,6 +10,7 @@ using ERPCraft_Server.Models.DB.Almacen;
 using ERPCraft_Server.Models.DB.Drones;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace ERPCraft_Server.Storage
 {
@@ -89,7 +90,7 @@ namespace ERPCraft_Server.Storage
         /// </summary>
         public void createDB()
         {
-            string sql = "SELECT COUNT(*) FROM information_schema.tables WHERE  table_schema = 'public'";
+            string sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
             rdr.Read();
@@ -130,7 +131,7 @@ namespace ERPCraft_Server.Storage
             {
                 string sql = "DELETE FROM public.rob_gps WHERE id < @tim";
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@tim", time.AddDays(-Program.ajuste.horasRobotGps));
+                cmd.Parameters.AddWithValue("@tim", time.AddHours(-Program.ajuste.horasRobotGps));
                 cmd.ExecuteNonQuery();
 
             }
@@ -138,7 +139,7 @@ namespace ERPCraft_Server.Storage
             {
                 string sql = "DELETE FROM public.rob_logs WHERE id < @tim";
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@tim", time.AddDays(-Program.ajuste.horasRobotLogs));
+                cmd.Parameters.AddWithValue("@tim", time.AddHours(-Program.ajuste.horasRobotLogs));
                 cmd.ExecuteNonQuery();
             }
             // Drone
@@ -146,7 +147,7 @@ namespace ERPCraft_Server.Storage
             {
                 string sql = "DELETE FROM public.drn_gps WHERE id < @tim";
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@tim", time.AddDays(-Program.ajuste.horasDroneGps));
+                cmd.Parameters.AddWithValue("@tim", time.AddHours(-Program.ajuste.horasDroneGps));
                 cmd.ExecuteNonQuery();
 
             }
@@ -154,7 +155,7 @@ namespace ERPCraft_Server.Storage
             {
                 string sql = "DELETE FROM public.drn_logs WHERE id < @tim";
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@tim", time.AddDays(-Program.ajuste.horasDroneLogs));
+                cmd.Parameters.AddWithValue("@tim", time.AddHours(-Program.ajuste.horasDroneLogs));
                 cmd.ExecuteNonQuery();
             }
             // Red electrica
@@ -162,7 +163,7 @@ namespace ERPCraft_Server.Storage
             {
                 string sql = "DELETE FROM public.bat_historial WHERE tim < @tim";
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@tim", time.AddDays(-Program.ajuste.horasBateriaHistorial));
+                cmd.Parameters.AddWithValue("@tim", time.AddHours(-Program.ajuste.horasBateriaHistorial));
                 cmd.ExecuteNonQuery();
             }
             // VACUUM
@@ -175,9 +176,8 @@ namespace ERPCraft_Server.Storage
             // REINDEX
             if (Program.ajuste.reindexLimpiar)
             {
-                string sql = "REINDEX DATABASE @dbname";
+                string sql = "REINDEX DATABASE \"" + Program.config.dbname + "\"";
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@dbname", Program.config.dbname);
                 cmd.ExecuteNonQuery();
             }
         }
@@ -291,6 +291,9 @@ namespace ERPCraft_Server.Storage
             if (cmd.ExecuteNonQuery() == 0)
                 return false;
 
+            if (Program.ajuste.id == ajuste.id)
+                Program.ajuste = Program.db.getAjuste(ajuste.id);
+
             Program.websocketPubSub.onPush("config", serverHashes.SubscriptionChangeType.update, ajuste.id, JsonConvert.SerializeObject(getAjuste(ajuste.id)));
             return true;
         }
@@ -315,7 +318,7 @@ namespace ERPCraft_Server.Storage
             if (cmd.ExecuteNonQuery() == 0)
                 return false;
 
-            Ajuste ajuste = getAjuste(id);
+            Ajuste ajuste = Program.db.getAjuste(id);
             Program.ajuste = ajuste;
             if (Program.websocketPubSub != null)
                 Program.websocketPubSub.onPush("config", serverHashes.SubscriptionChangeType.update, id, JsonConvert.SerializeObject(ajuste));
@@ -732,10 +735,53 @@ namespace ERPCraft_Server.Storage
 
         /* ARTÍCULOS */
 
-        public List<ArticuloHead> getArticulos()
+        public List<Articulo> getArticulos()
+        {
+            List<Articulo> articulos = new List<Articulo>();
+            string sql = "SELECT id, name, mine_id, cant, dsc FROM articulos ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+            {
+                articulos.Add(new Articulo(rdr));
+            }
+            rdr.Close();
+            return articulos;
+        }
+
+        public List<Articulo> searchArticulos(string texto)
+        {
+            try
+            {
+                List<Articulo> articulos = new List<Articulo>();
+                string sql;
+                if (texto.IndexOf(':') >= 0)
+                {
+                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE mine_id = @txt ORDER BY id ASC";
+                }
+                else
+                {
+                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE name @@ to_tsquery(@txt) ORDER BY id ASC";
+                }
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@txt", texto);
+                NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    articulos.Add(new Articulo(rdr));
+                }
+                rdr.Close();
+                return articulos;
+            }
+            catch (Exception) { return getArticulos(); }
+        }
+
+        public List<ArticuloHead> localizarArticulos()
         {
             List<ArticuloHead> articulos = new List<ArticuloHead>();
-            string sql = "SELECT id, name, mine_id, cant FROM articulos ORDER BY id ASC";
+            string sql = "SELECT id, name, mine_id FROM articulos ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -745,34 +791,6 @@ namespace ERPCraft_Server.Storage
             }
             rdr.Close();
             return articulos;
-        }
-
-        public List<ArticuloHead> searchArticulos(string texto)
-        {
-            try
-            {
-                List<ArticuloHead> articulos = new List<ArticuloHead>();
-                string sql;
-                if (texto.IndexOf(':') >= 0)
-                {
-                    sql = "SELECT id, name, mine_id, cant FROM articulos WHERE mine_id = @txt ORDER BY id ASC";
-                }
-                else
-                {
-                    sql = "SELECT id, name, mine_id, cant FROM articulos WHERE name @@ to_tsquery(@txt) ORDER BY id ASC";
-                }
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@txt", texto);
-                NpgsqlDataReader rdr = cmd.ExecuteReader();
-
-                while (rdr.Read())
-                {
-                    articulos.Add(new ArticuloHead(rdr));
-                }
-                rdr.Close();
-                return articulos;
-            }
-            catch (Exception) { return getArticulos(); }
         }
 
         public Articulo getArticulo(short id)
@@ -791,6 +809,24 @@ namespace ERPCraft_Server.Storage
             Articulo articulo = new Articulo(rdr);
             rdr.Close();
             return articulo;
+        }
+
+        public string getArticuloName(short id)
+        {
+            string sql = "SELECT name FROM articulos WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return "";
+            }
+            rdr.Read();
+            string name = rdr.GetString(0);
+            rdr.Close();
+            return name;
         }
 
         public ArticuloSlot getArticuloSlot(short id)
@@ -961,19 +997,19 @@ namespace ERPCraft_Server.Storage
         public List<Robot> getRobots(RobotQuery query)
         {
             List<Robot> robots = new List<Robot>();
-            string sql = "SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z FROM robots";
+            StringBuilder sql = new StringBuilder("SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z FROM robots");
 
             if (query.off && (!query.text.Equals(string.Empty)))
-                sql += " WHERE (uuid::text @@ to_tsquery(@text)) OR name ILIKE @textq";
+                sql.Append(" WHERE (uuid::text @@ to_tsquery(@text)) OR name ILIKE @textq");
             else if (!query.off)
             {
-                sql += " WHERE off = false";
+                sql.Append(" WHERE off = false");
                 if (!query.text.Equals(string.Empty))
-                    sql += " AND (uuid::text @@ to_tsquery(@text) OR name ILIKE @textq)";
+                    sql.Append(" AND (uuid::text @@ to_tsquery(@text) OR name ILIKE @textq)");
             }
 
-            sql += " ORDER BY id ASC";
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            sql.Append(" ORDER BY id ASC");
+            NpgsqlCommand cmd = new NpgsqlCommand(sql.ToString(), conn);
             if (!query.text.Equals(string.Empty))
                 cmd.Parameters.AddWithValue("text", query.text);
             cmd.Parameters.AddWithValue("textq", query.text + "%");
@@ -1971,28 +2007,29 @@ namespace ERPCraft_Server.Storage
         public List<OrdenMinado> getOrdenesDeMinado(char[] estado, short robot)
         {
             List<OrdenMinado> ordenes = new List<OrdenMinado>();
-            string sql = "SELECT id,name,size,rob,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,num_items,date_add,date_upd,date_inicio,date_fin,dsc,estado,recarga_unidad,energia_recarga,modo_minado,shutdown FROM public.ordenes_minado";
+            StringBuilder sql = new StringBuilder("SELECT id,name,size,rob,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,num_items,date_add,date_upd,date_inicio,date_fin,dsc,estado,recarga_unidad,energia_recarga,modo_minado,shutdown FROM public.ordenes_minado");
             if (estado.Length > 0 || robot > 0)
-                sql += " WHERE ";
+                sql.Append(" WHERE ");
 
             if (estado.Length > 0)
-                sql += "(";
+                sql.Append("(");
             for (int i = 0; i < estado.Length; i++)
             {
                 if (i > 0)
-                    sql += " OR";
-                sql += " estado = @estado" + i;
+                    sql.Append(" OR");
+                sql.Append(" estado = @estado");
+                sql.Append(i);
             }
             if (estado.Length > 0)
-                sql += ")";
+                sql.Append(")");
 
             if (robot > 0)
             {
                 if (estado.Length > 0)
-                    sql += " AND";
-                sql += " rob = @rob";
+                    sql.Append(" AND");
+                sql.Append(" rob = @rob");
             }
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlCommand cmd = new NpgsqlCommand(sql.ToString(), conn);
             for (int i = 0; i < estado.Length; i++)
                 cmd.Parameters.AddWithValue("@estado" + i, estado[i]);
             if (robot > 0)
@@ -2236,24 +2273,8 @@ namespace ERPCraft_Server.Storage
             int id = rdr.GetInt32(0);
             rdr.Close();
 
-            Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.update, 0, JsonConvert.SerializeObject(getOrdenMinado(id)));
+            Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.update, id, JsonConvert.SerializeObject(getOrdenMinado(id)));
 
-        }
-
-        public bool updateEstadoOrdenMinado(OrdenMinado orden)
-        {
-            string sql = "UPDATE public.ordenes_minado SET date_inicio=@date_inicio,date_fin=@date_fin,estado=@estado WHERE id=@id";
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", orden.id);
-            cmd.Parameters.AddWithValue("@date_inicio", orden.dateInicio);
-            cmd.Parameters.AddWithValue("@date_fin", orden.dateFin);
-            cmd.Parameters.AddWithValue("@estado", orden.estado);
-            bool ok = cmd.ExecuteNonQuery() > 0;
-
-            if (ok)
-                Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.update, orden.id, JsonConvert.SerializeObject(orden));
-
-            return ok;
         }
 
         public bool deleteOrdenesDeMinado(int id)
@@ -2346,6 +2367,19 @@ namespace ERPCraft_Server.Storage
                 }
             }
 
+            // acumular el total de ítems minados en la órden de minado
+            short cantidad = 0;
+            foreach (OrdenMinadoInventarioSet set in setInventario)
+            {
+                cantidad += set.cant;
+            }
+            string sqlOrden = "UPDATE ordenes_minado SET num_items = num_items + @cantidad WHERE id = @id";
+            NpgsqlCommand cmdOrden = new NpgsqlCommand(sqlOrden, conn);
+            cmdOrden.Parameters.AddWithValue("@cantidad", cantidad);
+            cmdOrden.ExecuteNonQuery();
+
+            // enviar actualizaciones a la web
+            Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.update, idOrden, JsonConvert.SerializeObject(getOrdenMinado(idOrden)));
             Program.websocketPubSub.onPush("ordenMinadoInventario", serverHashes.SubscriptionChangeType.update, idOrden, JsonConvert.SerializeObject(getOrdenMinadoInventario(idOrden)));
         }
 
@@ -2354,7 +2388,7 @@ namespace ERPCraft_Server.Storage
         public List<Almacen> getAlmacenes()
         {
             List<Almacen> almacenes = new List<Almacen>();
-            string sql = "SELECT id,name,dsc,slots,items,off,uuid FROM almacenes ORDER BY id ASC";
+            string sql = "SELECT id,name,dsc,slots,items,off,uuid,date_add,date_inv_upd FROM almacenes ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -2366,9 +2400,29 @@ namespace ERPCraft_Server.Storage
             return almacenes;
         }
 
+        public List<AlmacenHead> localizarAlmacenes()
+        {
+            List<AlmacenHead> almacenes = new List<AlmacenHead>();
+            string sql = "SELECT id,name,uuid FROM almacenes ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+            {
+                almacenes.Add(new AlmacenHead(rdr));
+            }
+            rdr.Close();
+            return almacenes;
+        }
+
+        /// <summary>
+        /// Obtener el ID del almacén por el UUID de su controlador. Esto solo debe de funcionar si es almacén no está desactivado.
+        /// </summary>
+        /// <param name="uuid">UUID del controlador</param>
+        /// <returns></returns>
         public short getAlmacenId(Guid uuid)
         {
-            string sql = "SELECT id FROM almacenes WHERE uuid = @uuid";
+            string sql = "SELECT id FROM almacenes WHERE uuid = @uuid AND off = false";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@uuid", uuid);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -2383,7 +2437,33 @@ namespace ERPCraft_Server.Storage
             rdr.Read();
             id = rdr.GetInt16(0);
             rdr.Close();
+
+            sql = "UPDATE almacenes SET date_inv_upd = CURRENT_TIMESTAMP(3) WHERE id = @id";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+
             return id;
+        }
+
+        public string getAlmacenName(short id)
+        {
+            string sql = "SELECT name FROM almacenes WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return "";
+            }
+
+            string name;
+            rdr.Read();
+            name = rdr.GetString(0);
+            rdr.Close();
+            return name;
         }
 
         public bool addAlmacen(Almacen almacen)
@@ -2471,26 +2551,96 @@ namespace ERPCraft_Server.Storage
         public void setInventarioAlmacen(short idAlmacen, List<AlmacenInventarioSet> inventario)
         {
             NpgsqlTransaction trans = conn.BeginTransaction();
-            // set el stock a 0, los artículos que no están en este array se deben eliminar.
-            // al final se eliminarán los que sigan a 0 después de recorrer el array
-            string sql = "UPDATE alm_inventario SET cant = 0 WHERE alm = @alm";
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@alm", idAlmacen);
-            cmd.ExecuteNonQuery();
-
-            for (int i = 0; i < inventario.Count; i++)
+            // obtener los IDs de los artículos, si no se encuentra el ID en la base de datos, eliminar del array
+            for (int i = (inventario.Count - 1); i >= 0; i--)
             {
                 AlmacenInventarioSet slot = inventario[i];
                 short articulo = getArticulo(slot.articulo);
                 if (articulo == 0)
+                {
+                    inventario.RemoveAt(i);
                     continue;
+                }
+                else
+                {
+                    slot.articuloId = articulo;
+                }
+            }
 
-                // existe este artículo en este almacén
-                sql = "SELECT art,cant FROM alm_inventario WHERE alm = @alm AND art = @art";
+            string sql = "SELECT art, cant FROM alm_inventario WHERE alm = @alm";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            // guardar todo el inventario como copia, para ir eliminando los artículos encontrados
+            // al final, solo quedarán los slots del almacén que no tienen lugar en el inventario recibido
+            List<AlmacenInventarioSet> slots = new List<AlmacenInventarioSet>(inventario);
+            List<AlmacenInventarioSet> slotsNoEncotrados = new List<AlmacenInventarioSet>();
+            while (rdr.Read())
+            {
+                short articulo = rdr.GetInt16(0);
+                bool found = false;
+
+                // buscar el slot del inventario en el nuevo inventario recibido
+                for (int i = (slots.Count - 1); i >= 0; i--)
+                {
+                    AlmacenInventarioSet slot = slots[i];
+                    if (slot.articuloId == articulo)
+                    {
+                        slots.RemoveAt(i);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    slotsNoEncotrados.Add(new AlmacenInventarioSet(articulo, rdr.GetInt32(1)));
+                }
+
+            }
+            rdr.Close();
+
+            for (int i = 0; i < slotsNoEncotrados.Count; i++)
+            {
+                AlmacenInventarioSet slot = slotsNoEncotrados[i];
+                // ya no queda de este artículo en este inventario. hacer movimiento de salida de todo el artículo y eliminar slot
+                int cantidad = slot.cantidad;
+                // crear un movimiento de almacén automático para guardar el cambio
+                sql = "INSERT INTO mov_inventario(alm, art, cant) VALUES (@alm, @art, @cant)";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                cmd.Parameters.AddWithValue("@art", slot.articuloId);
+                cmd.Parameters.AddWithValue("@cant", -cantidad);
+                cmd.ExecuteNonQuery();
+
+                // actualizar el artículo
+                sql = "UPDATE articulos SET cant = cant - @cant WHERE id = @id";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", slot.articuloId);
+                cmd.Parameters.AddWithValue("@cant", cantidad);
+                cmd.ExecuteNonQuery();
+
+                // eliminar el slot
+                sql = "DELETE FROM alm_inventario WHERE alm = @alm AND art = @art";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                cmd.Parameters.AddWithValue("@art", slot.articuloId);
+                cmd.ExecuteNonQuery();
+            }
+
+            // modificar las cantidades de los slots que ya existen
+            for (int i = 0; i < inventario.Count; i++)
+            {
+                AlmacenInventarioSet slot = inventario[i];
+                short articulo = slot.articuloId;
+
+                // ¿existe este artículo en este almacén?
+                sql = "SELECT id,cant FROM alm_inventario WHERE alm = @alm AND art = @art";
                 cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@alm", idAlmacen);
                 cmd.Parameters.AddWithValue("@art", articulo);
-                NpgsqlDataReader rdr = cmd.ExecuteReader();
+                rdr = cmd.ExecuteReader();
 
                 if (rdr.HasRows) // ya existe un slot para este artículo
                 {
@@ -2498,6 +2648,16 @@ namespace ERPCraft_Server.Storage
                     short almSlotId = rdr.GetInt16(0);
                     rdr.Close();
 
+                    // cantidad anterior del artículo
+                    sql = "SELECT cant FROM articulos WHERE id = @id";
+                    cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@id", articulo);
+                    rdr = cmd.ExecuteReader();
+                    rdr.Read();
+                    int cantidadAnterior = rdr.GetInt32(0);
+                    rdr.Close();
+
+                    // modificar el slot del inventario
                     sql = "UPDATE alm_inventario SET cant = @cant WHERE alm = @alm AND id = @id";
                     cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@cant", slot.cantidad);
@@ -2505,10 +2665,47 @@ namespace ERPCraft_Server.Storage
                     cmd.Parameters.AddWithValue("@alm", idAlmacen);
                     cmd.ExecuteNonQuery();
 
+                    // actualizar la cantidad del artículo
+                    int cantidadDiferencia = slot.cantidad - cantidadAnterior;
+                    if (cantidadDiferencia != 0)
+                    {
+                        sql = "UPDATE articulos SET cant = cant + @cant WHERE id = @id";
+                        cmd = new NpgsqlCommand(sql, conn);
+                        cmd.Parameters.AddWithValue("@id", articulo);
+                        cmd.Parameters.AddWithValue("@cant", cantidadDiferencia);
+                        cmd.ExecuteNonQuery();
+
+                        // crear un movimiento de almacén automático para guardar el cambio
+                        sql = "INSERT INTO mov_inventario(alm, art, cant) VALUES (@alm, @art, @cant)";
+                        cmd = new NpgsqlCommand(sql, conn);
+                        cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                        cmd.Parameters.AddWithValue("@art", articulo);
+                        cmd.Parameters.AddWithValue("@cant", cantidadDiferencia);
+                        cmd.ExecuteNonQuery();
+                    }
+
                 }
                 else // no existe un slot para este artículo
                 {
+                    rdr.Close();
+
+                    // crear el slot para el artículo
                     sql = "INSERT INTO alm_inventario (alm,art,cant) VALUES (@alm,@art,@cant)";
+                    cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                    cmd.Parameters.AddWithValue("@art", articulo);
+                    cmd.Parameters.AddWithValue("@cant", slot.cantidad);
+                    cmd.ExecuteNonQuery();
+
+                    // actualizar la cantidad del artículo
+                    sql = "UPDATE articulos SET cant = cant + @cant WHERE id = @id";
+                    cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@id", articulo);
+                    cmd.Parameters.AddWithValue("@cant", slot.cantidad);
+                    cmd.ExecuteNonQuery();
+
+                    // crear un movimiento de almacén automático para guardar el cambio
+                    sql = "INSERT INTO mov_inventario(alm, art, cant) VALUES (@alm, @art, @cant)";
                     cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@alm", idAlmacen);
                     cmd.Parameters.AddWithValue("@art", articulo);
@@ -2517,15 +2714,108 @@ namespace ERPCraft_Server.Storage
                 }
             }
 
-            sql = "DELETE FROM alm_inventario WHERE alm = @alm AND cant = 0";
-            cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@alm", idAlmacen);
-            cmd.ExecuteNonQuery();
-
             trans.Commit();
 
             Program.websocketPubSub.addTopic("almacenInv#" + idAlmacen);
             Program.websocketPubSub.onPush("almacenInv#" + idAlmacen, serverHashes.SubscriptionChangeType.update, 0, JsonConvert.SerializeObject(getInventarioAlmacen(idAlmacen)));
+        }
+
+        /* MOVIMIENTOS DE ALMACÉN */
+
+        public List<MovimientoAlmacen> getMovimientosAlmacen()
+        {
+            List<MovimientoAlmacen> movimientoAlmacen = new List<MovimientoAlmacen>();
+            string sql = "SELECT alm, id, art, cant, origen, date_add, dsc FROM mov_inventario ORDER BY date_add DESC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                movimientoAlmacen.Add(new MovimientoAlmacen(rdr));
+            rdr.Close();
+
+            return movimientoAlmacen;
+        }
+
+        public List<MovimientoAlmacen> getMovimientosAlmacen(MovimientoAlmacenQuery query)
+        {
+            if (query.isDefault())
+                return getMovimientosAlmacen();
+            List<MovimientoAlmacen> movimientoAlmacen = new List<MovimientoAlmacen>();
+            StringBuilder sql = new StringBuilder("SELECT alm, id, art, cant, origen, date_add, dsc FROM mov_inventario WHERE");
+
+            bool primerParametro = false;
+            if (query.almacen > 0)
+            {
+                if (!primerParametro)
+                    primerParametro = true;
+                sql.Append(" alm = @alm");
+            }
+            if (query.articulo > 0)
+            {
+                if (!primerParametro)
+                    primerParametro = true;
+                else
+                    sql.Append(" AND");
+                sql.Append(" art = @art");
+            }
+            if (query.dateInicio != DateTime.MinValue)
+            {
+                if (!primerParametro)
+                    primerParametro = true;
+                else
+                    sql.Append(" AND");
+                sql.Append(" date_add >= @dateInicio");
+            }
+            if (query.dateFin != DateTime.MinValue)
+            {
+                if (primerParametro)
+                    sql.Append(" AND");
+                sql.Append(" date_add <= @dateFin");
+            }
+
+            sql.Append(" ORDER BY date_add DESC");
+
+            NpgsqlCommand cmd = new NpgsqlCommand(sql.ToString(), conn);
+
+            if (query.almacen > 0)
+                cmd.Parameters.AddWithValue("@alm", query.almacen);
+            if (query.articulo > 0)
+                cmd.Parameters.AddWithValue("@art", query.articulo);
+            if (query.dateInicio != DateTime.MinValue)
+                cmd.Parameters.AddWithValue("@dateInicio", query.dateInicio);
+            if (query.dateFin != DateTime.MinValue)
+                cmd.Parameters.AddWithValue("@dateFin", query.dateFin);
+
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                movimientoAlmacen.Add(new MovimientoAlmacen(rdr));
+            rdr.Close();
+
+            return movimientoAlmacen;
+        }
+
+        public bool addMovimientoAlmacen(MovimientoAlmacen movimiento)
+        {
+            string sql = "INSERT INTO public.mov_inventario(alm, art, cant, origen, date_add, dsc) VALUES (@alm, @art, @cant, @origen, @date_add, @dsc)";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", movimiento.almacen);
+            cmd.Parameters.AddWithValue("@art", movimiento.articulo);
+            cmd.Parameters.AddWithValue("@cant", movimiento.cantidad);
+            cmd.Parameters.AddWithValue("@origen", movimiento.origen);
+            cmd.Parameters.AddWithValue("@date_add", movimiento.dateAdd);
+            cmd.Parameters.AddWithValue("@dsc", movimiento.descripcion);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool updateMovimientoAlmacen(MovimientoAlmacen movimiento)
+        {
+            string sql = "UPDATE mov_inventario SET dsc = @dsc WHERE alm = @alm AND id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", movimiento.id);
+            cmd.Parameters.AddWithValue("@alm", movimiento.almacen);
+            cmd.Parameters.AddWithValue("@dsc", movimiento.descripcion);
+            return cmd.ExecuteNonQuery() > 0;
         }
 
         /* DRONES */

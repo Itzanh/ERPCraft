@@ -16,7 +16,7 @@ div#mainScreen nav div#navbarNav ul li:nth-child(2) img {
 }
 
 div#mainScreen nav div#navbarNav ul li:nth-child(3) img {
-    height: 25px;
+    height: 30px;
     margin-right: 5px;
 }
 
@@ -31,16 +31,22 @@ div#mainScreen nav div#navbarNav ul li:nth-child(5) img {
 }
 
 div#mainScreen nav div#navbarNav ul li:nth-child(6) img {
-    height: 25px;
+    height: 30px;
+    margin: -10px;
     margin-right: 5px;
 }
 
 div#mainScreen nav div#navbarNav ul li:nth-child(7) img {
-    height: 40px;
-    margin: -10px;
+    height: 25px;
+    margin-right: 5px;
 }
 
 div#mainScreen nav div#navbarNav ul li:nth-child(8) img {
     height: 25px;
     margin-right: 5px;
+}
+
+div#mainScreen nav div#navbarNav ul li:nth-child(8) div.dropdown-menu a:nth-child(1) img {
+    height: 40px;
+    margin: -10px;
 }

@@ -38,9 +38,6 @@ class Login extends Component {
                                     </div>
                                 </div>
                             </h5>
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
                         </div>
                         <div className="modal-body">
                             <div className="form-group">

@@ -36,6 +36,14 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return deleteArticuloImg(db, message);
                     }
+                case "name":
+                    {
+                        return nameArticulo(db, message);
+                    }
+                case "localizar":
+                    {
+                        return localizarArticulos(db);
+                    }
             }
 
             return "ERR";
@@ -72,6 +80,25 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 return "ERR";
 
             return db.deleteArticuloImg(id) ? "OK" : "ERR";
+        }
+
+        private static string nameArticulo(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return ""; }
+            if (id <= 0)
+                return "";
+
+            return db.getArticuloName(id);
+        }
+
+        private static string localizarArticulos(DBStorage db)
+        {
+            return JsonConvert.SerializeObject(db.localizarArticulos());
         }
 
         public static void getArticuloImg(NetEventIO client, string message)

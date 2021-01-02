@@ -78,6 +78,11 @@ namespace ERPCraft_Server.Controller
                 callback(DroneController.droneCommands(sender.db, msg.message.command, msg.message.message));
             });
 
+            clientIO.on("movAlmacen", (NetEventIO sender, OnMessageEventArgs msg, NetEventIO.Callback callback) =>
+            {
+                callback(MovimientosAlmacenController.movimientosAlmacenCommands(sender.db, msg.message.command, msg.message.message));
+            });
+
         }
 
         

@@ -8,13 +8,14 @@ import Ajuste from "./Ajuste";
 import AjusteForm from "./AjusteForm";
 
 class Ajustes extends Component {
-    constructor({ handleGet, handleAdd, handleUpdate, handleActivar, handleEliminar, tabAjustesPush }) {
+    constructor({ handleGet, handleAdd, handleUpdate, handleActivar, handleLimpiar, handleEliminar, tabAjustesPush }) {
         super();
 
         this.handleGet = handleGet;
         this.handleAdd = handleAdd;
         this.handleUpdate = handleUpdate;
         this.handleActivar = handleActivar;
+        this.handleLimpiar = handleLimpiar;
         this.handleEliminar = handleEliminar;
         this.tabAjustesPush = tabAjustesPush;
 
@@ -109,6 +110,7 @@ class Ajustes extends Component {
             ajuste={ajuste}
             handleUpdate={this.handleUpdate}
             handleActivar={this.handleActivar}
+            handleLimpiar={this.handleLimpiar}
             handleEliminar={this.handleEliminar}
         />, document.getElementById("renderAjuste"));
     }

@@ -31,6 +31,10 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return activarAjuste(db, message);
                     }
+                case "limpiar":
+                    {
+                        return ejecutarLimpieza(db);
+                    }
             }
 
             return "ERR";
@@ -99,6 +103,12 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 return "ERR";
 
             Program.ajuste = db.getAjuste();
+            return "OK";
+        }
+
+        private static string ejecutarLimpieza(DBStorage db)
+        {
+            db.limpiar();
             return "OK";
         }
 

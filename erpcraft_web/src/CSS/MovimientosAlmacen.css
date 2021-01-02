@@ -1,0 +1,58 @@
+/* MOVIMIENTOS DE ALMACÉN MENÚ */
+
+div#tabMovimientoAlmacen h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+/* MOVIMIENTOS DE ALMACÉN TABLA */
+
+div#tabMovimientoAlmacen table tbody#renderMovimientos td:nth-child(1) {
+    width: 10%;
+}
+
+div#tabMovimientoAlmacen table tbody#renderMovimientos td:nth-child(2) {
+    width: 10%;
+}
+
+div#tabMovimientoAlmacen table tbody#renderMovimientos td:nth-child(4) {
+    width: 15%;
+}
+
+div#tabMovimientoAlmacen table tbody#renderMovimientos td:nth-child(5) {
+    width: 15%;
+}
+
+    div#tabMovimientoAlmacen table tbody#renderMovimientos td:nth-child(5) img {
+        height: 40px;
+        margin: -10px;
+        margin-left: initial;
+        margin-right: 10px;
+    }
+
+div#tabMovimientoAlmacen table tbody#renderMovimientos td:nth-child(6) {
+    width: 15%;
+}
+
+/* MOVIMIENTOS DE ALMACÉN FORMULARIO */
+
+div#tabMovimientoAlmacen div.localizador img {
+    margin-left: 1%;
+    height: 40px;
+    background-color: #17a2b8;
+    padding: 2px;
+    border-radius: .25rem;
+}
+
+div#tabMovimientoAlmacen div.localizador input[type="number"] {
+    max-width: 20%;
+    margin-left: 1%;
+    display: inline-block;
+}
+
+div#tabMovimientoAlmacen div.localizador input[type="text"] {
+    max-width: 50%;
+    margin-left: 1%;
+    display: inline-block;
+}

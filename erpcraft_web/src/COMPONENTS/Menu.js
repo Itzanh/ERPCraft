@@ -2,9 +2,10 @@ import { Component } from "react";
 
 import robotIco from './../IMG/robot.png';
 import articulosIco from './../IMG/articulos.png';
+import inventarioIco from './../IMG/inventario.png';
 import electricoIco from './../IMG/electrico.svg';
 import minandoIco from './../IMG/robot_estado/minando.png';
-import stockIco from './../IMG/stock.svg';
+import movimientosIco from './../IMG/movimientos.png';
 import droneIco from './../IMG/drone.png';
 import usersIco from './../IMG/users.svg';
 import settingsIco from './../IMG/settings.svg';
@@ -15,12 +16,13 @@ import logo from './../logo.png';
 import './../CSS/Menu.css';
 
 class Menu extends Component {
-    constructor({ handleInicio, handleRobots, handleArticulos, handleUsuarios, handleRedesElectricas, handleOrdenesMinado, handleConfiguraciones, handleApiKey, handleServidores, handleAlmacen, handleDrones }) {
+    constructor({ handleInicio, handleRobots, handleArticulos, handleMovimientosAlmacen, handleUsuarios, handleRedesElectricas, handleOrdenesMinado, handleConfiguraciones, handleApiKey, handleServidores, handleAlmacen, handleDrones }) {
         super();
 
         this.handleInicio = handleInicio;
         this.handleRobots = handleRobots;
         this.handleArticulos = handleArticulos;
+        this.handleMovimientosAlmacen = handleMovimientosAlmacen;
         this.handleUsuarios = handleUsuarios;
         this.handleRedesElectricas = handleRedesElectricas;
         this.handleOrdenesMinado = handleOrdenesMinado;
@@ -44,19 +46,19 @@ class Menu extends Component {
                             <a className="nav-link" href="#" onClick={this.handleArticulos}><img src={articulosIco} />Articulos</a>
                         </li>
                         <li className="nav-item">
+                            <a className="nav-link" href="#" onClick={this.handleMovimientosAlmacen}><img src={movimientosIco} />Movimientos de almac&eacute;n</a>
+                        </li>
+                        <li className="nav-item">
                             <a className="nav-link" href="#" onClick={this.handleRedesElectricas}><img src={electricoIco} />Redes el&eacute;ctricas</a>
                         </li>
                         <li className="nav-item">
                             <a className="nav-link" href="#" onClick={this.handleOrdenesMinado}><img src={minandoIco} />&Oacute;rdenes de minado</a>
                         </li>
                         <li className="nav-item">
-                            <a className="nav-link" href="#" onClick={this.handleAlmacen}><img src={stockIco} />Almac&eacute;n</a>
+                            <a className="nav-link" href="#" onClick={this.handleAlmacen}><img src={inventarioIco} />Almac&eacute;n</a>
                         </li>
                         <li className="nav-item">
                             <a className="nav-link" href="#" onClick={this.handleDrones}><img src={droneIco} />Drones</a>
-                        </li>
-                        <li className="nav-item">
-                            <a className="nav-link" href="#" onClick={this.handleUsuarios}><img src={usersIco} />Usuarios</a>
                         </li>
                         <li className="nav-item">
                             <div className="dropdown">
@@ -64,6 +66,7 @@ class Menu extends Component {
                                     Ajustes
                                 </button>
                                 <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a className="dropdown-item" href="#" onClick={this.handleUsuarios}><img src={usersIco} />Usuarios</a>
                                     <a className="dropdown-item" href="#" onClick={this.handleConfiguraciones}><img src={settingsIco} />Configuraciones</a>
                                     <a className="dropdown-item" href="#" onClick={this.handleApiKey}><img src={keyIco} />Claves de API</a>
                                     <a className="dropdown-item" href="#" onClick={this.handleServidores}><img src={serverIco} />Servidores</a>

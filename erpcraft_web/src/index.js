@@ -37,6 +37,9 @@ import DroneForm from './COMPONENTS/Drones/DroneForm';
 import DroneFormSlotInventario from './COMPONENTS/Drones/DroneFormSlotInventario';
 import DroneFormGPS from './COMPONENTS/Drones/DroneFormGPS';
 import DroneLog from './COMPONENTS/Drones/DroneLog';
+import MovimientosAlmacen from './COMPONENTS/Almacen/MovimientosAlmacen';
+import MovimientoAlmacen from './COMPONENTS/Almacen/MovimientoAlmacen';
+import MovimientosAlmacenFormDetails from './COMPONENTS/Almacen/MovimientosAlmacenFormDetails';
 
 /**
  * Object that represents the WebSocket data connection with the server
@@ -143,6 +146,7 @@ function printMenu() {
         handleInicio={inicio}
         handleRobots={tabRobots}
         handleArticulos={tabArticulos}
+        handleMovimientosAlmacen={tabMovimientoAlmacen}
         handleUsuarios={tabUsuarios}
         handleRedesElectricas={tabRedElectrica}
         handleOrdenesMinado={tabOrdenesMinado}
@@ -1347,10 +1351,19 @@ async function tabAjustes() {
         handleAdd={addAjustes}
         handleUpdate={updateAjustes}
         handleActivar={activarAjustes}
+        handleLimpiar={ajustesEjecutarLimpieza}
         handleEliminar={deleteAjustes}
         tabAjustesPush={tabAjustesPush}
     />, document.getElementById('renderTab'));
 
+};
+
+function ajustesEjecutarLimpieza() {
+    return new Promise((resolve) => {
+        client.emit('ajustes', 'limpiar', '', (_, response) => {
+            resolve();
+        });
+    });
 };
 
 function getAjustes() {
@@ -1947,6 +1960,137 @@ function clearDroneLogs(idDrone) {
 function deleteDroneLogs(idDrone, start, end) {
     client.emit('drone', 'clearLogsBetween', JSON.stringify({ idDrone, start, end }), (_, response) => {
 
+    });
+};
+
+/* MOVIMIENTOS DE ALMACÉN */
+
+async function tabMovimientoAlmacen() {
+    client.unsubscribeAll();
+
+    await ReactDOM.unmountComponentAtNode(document.getElementById('renderTab'));
+    await ReactDOM.render(<MovimientosAlmacen
+        getAlmacenes={localizarAlmacenes}
+        getArticulos={localizarArticulos}
+        handleBuscar={searchMovimientosAlmacen}
+        addMovimientoAlmacen={addMovimientoAlmacen}
+    />, document.getElementById('renderTab'));
+
+    getMovimientosAlmacen();
+};
+
+function getMovimientosAlmacen() {
+    client.emit('movAlmacen', 'get', '', (_, response) => {
+        renderMovimientosAlmacen(JSON.parse(response));
+    });
+};
+
+function searchMovimientosAlmacen(query) {
+    client.emit('movAlmacen', 'search', JSON.stringify(query), (_, response) => {
+        renderMovimientosAlmacen(JSON.parse(response));
+    });
+};
+
+async function renderMovimientosAlmacen(movimientos) {
+    ReactDOM.unmountComponentAtNode(document.getElementById('renderMovimientos'));
+    await ReactDOM.render(movimientos.map((element, i) => {
+        return <MovimientoAlmacen
+            key={i}
+
+            movimiento={element}
+            handleSelect={() => {
+                editMovimientoAlmacen(element);
+            }}
+        />
+    }), document.getElementById('renderMovimientos'));
+
+    const almNameCache = {};
+    for (let i = 0; i < movimientos.length; i++) {
+        if (almNameCache[movimientos[i].almacen]) {
+            movimientos[i].almacenName = almNameCache[movimientos[i].almacen];
+        } else {
+            const name = await getAlmacenName(movimientos[i].almacen);
+            almNameCache[movimientos[i].almacen] = name;
+            movimientos[i].almacenName = name;
+        }
+    }
+
+    const artNameCache = {};
+    for (let i = 0; i < movimientos.length; i++) {
+        if (artNameCache[movimientos[i].articulo]) {
+            movimientos[i].articuloName = artNameCache[movimientos[i].articulo];
+        } else {
+            const name = await getArticuloName(movimientos[i].articulo);
+            artNameCache[movimientos[i].articulo] = name;
+            movimientos[i].articuloName = name;
+        }
+    }
+
+    ReactDOM.render(movimientos.map((element, i) => {
+        return <MovimientoAlmacen
+            key={i}
+
+            movimiento={element}
+            handleSelect={() => {
+                editMovimientoAlmacen(element);
+            }}
+        />
+    }), document.getElementById('renderMovimientos'));
+};
+
+function editMovimientoAlmacen(movimiento) {
+    ReactDOM.unmountComponentAtNode(document.getElementById('renderMovimientoModal'));
+    ReactDOM.render(<MovimientosAlmacenFormDetails
+        movimiento={movimiento}
+        updateMovimientoAlmacen={updateMovimientoAlmacen}
+    />, document.getElementById('renderMovimientoModal'));
+};
+
+function updateMovimientoAlmacen(movimiento) {
+    return new Promise((resolve) => {
+        client.emit('movAlmacen', 'update', JSON.stringify(movimiento), (_, response) => {
+            resolve(response);
+        });
+    });
+};
+
+function getArticuloName(id) {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'name', '' + id, (_, response) => {
+            resolve(response);
+        });
+    });
+};
+
+function getAlmacenName(id) {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'name', '' + id, (_, response) => {
+            resolve(response);
+        });
+    });
+};
+
+function localizarArticulos() {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'localizar', '', (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function localizarAlmacenes() {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'localizar', '', (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function addMovimientoAlmacen(movAlmacen) {
+    return new Promise((resolve) => {
+        client.emit('movAlmacen', 'add', JSON.stringify(movAlmacen), (_, response) => {
+            resolve(response);
+        });
     });
 };
 

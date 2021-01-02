@@ -4,18 +4,20 @@ import ReactDOM from 'react-dom';
 import settingsIco from './../../IMG/settings.svg';
 
 class AjusteForm extends Component {
-    constructor({ ajuste, handleAdd, handleUpdate, handleActivar, handleEliminar }) {
+    constructor({ ajuste, handleAdd, handleUpdate, handleActivar, handleLimpiar, handleEliminar }) {
         super();
 
         this.ajuste = ajuste;
         this.handleAdd = handleAdd;
         this.handleUpdate = handleUpdate;
         this.handleActivar = handleActivar;
+        this.handleLimpiar = handleLimpiar;
         this.handleEliminar = handleEliminar;
 
         this.guardar = this.guardar.bind(this);
         this.borrar = this.borrar.bind(this);
         this.activar = this.activar.bind(this);
+        this.limpiar = this.limpiar.bind(this);
     }
 
     guardar() {
@@ -78,6 +80,18 @@ class AjusteForm extends Component {
             return;
         }
         this.handleActivar(this.ajuste.id);
+    }
+
+    async limpiar() {
+        if (this.ajuste == null) {
+            return;
+        }
+        await ReactDOM.unmountComponentAtNode(document.getElementById("ajusteFormModal"));
+        await ReactDOM.render(<AjusteFormLimpieza
+        />, document.getElementById("ajusteFormModal"));
+
+        await this.handleLimpiar();
+        await ReactDOM.unmountComponentAtNode(document.getElementById("ajusteFormModal"));
     }
 
     render() {
@@ -189,6 +203,7 @@ class AjusteForm extends Component {
             <button type="button" className="btn btn-success" onClick={this.guardar}>Guardar</button>
             <button type="button" className="btn btn-danger" onClick={this.borrar}>Borrar</button>
             <button type="button" className="btn btn-warning" onClick={this.activar}>Activar</button>
+            <button type="button" className="btn btn-danger" onClick={this.limpiar}>Limpiar!</button>
 
         </div>
     }
@@ -255,6 +270,33 @@ class AjusteFormDeleteConfirm extends Component {
                     <div className="modal-footer">
                         <button type="button" className="btn btn-danger" onClick={this.borrar}>Eliminar</button>
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
+
+class AjusteFormLimpieza extends Component {
+    componentDidMount() {
+        window.$('#ajusteFormLimpieza').modal({ show: true });
+    }
+
+    componentWillUnmount() {
+        window.$('#ajusteFormLimpieza').modal('hide');
+    }
+
+    render() {
+        return <div className="modal fade" id="ajusteFormLimpieza" tabIndex="-1" role="dialog" aria-labelledby="ajusteFormLimpiezaLabel" aria-hidden="true">
+            <div className="modal-dialog" role="document">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="ajusteFormLimpiezaLabel">Ejecutando limpieza</h5>
+                    </div>
+                    <div className="modal-body">
+                        <p>Se est&aacute; ejecutando la limpieza seg&uacute;n los ajustes activos actuales. Por favor, espere...</p>
+                    </div>
+                    <div className="modal-footer">
                     </div>
                 </div>
             </div>

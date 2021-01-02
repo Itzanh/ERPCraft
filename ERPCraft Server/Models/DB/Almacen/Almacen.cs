@@ -12,6 +12,8 @@ namespace ERPCraft_Server.Models.DB.Almacen
         public int items;
         public bool off;
         public Guid uuid;
+        public DateTime dateAdd;
+        public DateTime dateLastUpdate;
 
         public Almacen()
         {
@@ -26,6 +28,8 @@ namespace ERPCraft_Server.Models.DB.Almacen
             this.items = rdr.GetInt32(4);
             this.off = rdr.GetBoolean(5);
             this.uuid = rdr.GetGuid(6);
+            this.dateAdd = rdr.GetDateTime(7);
+            this.dateLastUpdate = rdr.GetDateTime(8);
         }
 
         public bool isValid()
@@ -69,12 +73,33 @@ namespace ERPCraft_Server.Models.DB.Almacen
     public class AlmacenInventarioSet
     {
         public string articulo;
+        public short articuloId;
         public int cantidad;
 
         public AlmacenInventarioSet(string articulo, int cantidad)
         {
             this.articulo = articulo;
             this.cantidad = cantidad;
+        }
+
+        public AlmacenInventarioSet(short articuloId, int cantidad)
+        {
+            this.articuloId = articuloId;
+            this.cantidad = cantidad;
+        }
+    }
+
+    public class AlmacenHead
+    {
+        public short id;
+        public string name;
+        public Guid uuid;
+
+        public AlmacenHead(NpgsqlDataReader rdr)
+        {
+            this.id = rdr.GetInt16(0);
+            this.name = rdr.GetString(1);
+            this.uuid = rdr.GetGuid(2);
         }
     }
 }

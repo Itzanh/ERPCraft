@@ -29,6 +29,9 @@ Control in real time your IndustrialCraft 2 battery levels and generators' statu
 ### Organize the mining jobs
 Add and manage mining orders for your robots, control what resources are being used, and what resources you are getting.
 
+### Watch your inventories
+Keep control of all your storages and monitor the stock of your items, all in one place. A history will be recorded automatically with the changes of your stock.
+
 ## How to install
 
 ### Install PostgreSQL

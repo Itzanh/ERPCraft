@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 
 import './../../CSS/Almacen.css';
 
-import stockIco from './../../IMG/stock.svg';
+import inventarioIco from './../../IMG/inventario.png';
 
 class Almacenes extends Component {
     constructor({ getAlmacenes, getAlmacenInventario, almacenInventarioPush, getArticuloImg, tabAlmacenPush, handleAdd, handleEdit, handleDelete }) {
@@ -166,7 +166,7 @@ class Almacenes extends Component {
     render() {
         return <div id="tabAlmacenes">
             <div ref="renderModal" />
-            <h3><img src={stockIco} />Almac&eacute;n</h3>
+            <h3><img src={inventarioIco} />Almac&eacute;n</h3>
             <div className="form-row" id="almColumnas">
                 <div className="col">
                     <button type="button" className="btn btn-primary" onClick={this.crear}>Crear</button>
@@ -247,6 +247,16 @@ class AlmacenForm extends Component {
         window.$('#almacenModal').modal('hide');
     }
 
+    formatearFechaTiempo(fechaTiempo) {
+        const fecha = new Date(fechaTiempo);
+        return fecha.getDate() + '/'
+            + (fecha.getMonth() + 1) + '/'
+            + fecha.getFullYear() + ' '
+            + fecha.getHours() + ':'
+            + fecha.getMinutes() + ':'
+            + fecha.getSeconds();
+    }
+
     render() {
         return <div className="modal fade" id="almacenModal" tabIndex="-1" role="dialog" aria-labelledby="almacenModalLabel" aria-hidden="true">
             <div className="modal-dialog" role="document">
@@ -280,6 +290,17 @@ class AlmacenForm extends Component {
 
                         <input type="checkbox" defaultChecked={this.almacen != null && this.almacen.off} ref="off" />
                         <label>&iquest;Desactivado?</label>
+
+                        <div className="form-row">
+                            <div className="col">
+                                <label>Fecha de creaci&oacute;n</label>
+                                <input type="text" className="form-control" defaultValue={this.almacen != null ? this.formatearFechaTiempo(this.almacen.dateAdd) : ''} readOnly={true} />
+                            </div>
+                            <div className="col">
+                                <label>Fecha de &uacute;ltima actualizaci&oacute;n del inventario</label>
+                                <input type="text" className="form-control" defaultValue={this.almacen != null ? this.formatearFechaTiempo(this.almacen.dateLastUpdate) : ''} readOnly={true} />
+                            </div>
+                        </div>
 
                     </div>
                     <div className="modal-footer">

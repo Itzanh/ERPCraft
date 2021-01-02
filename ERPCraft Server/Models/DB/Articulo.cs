@@ -50,14 +50,12 @@ namespace ERPCraft_Server.Models.DB
         public short id;
         public string name;
         public string minecraftID;
-        public short cantidad;
 
         public ArticuloHead(NpgsqlDataReader rdr)
         {
             this.id = rdr.GetInt16(0);
             this.name = rdr.GetString(1);
             this.minecraftID = rdr.GetString(2);
-            this.cantidad = rdr.GetInt16(3);
         }
     }
 

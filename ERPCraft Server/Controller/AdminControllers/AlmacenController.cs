@@ -31,6 +31,14 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return getInventario(db, message);
                     }
+                case "name":
+                    {
+                        return nameAlmacen(db, message);
+                    }
+                case "localizar":
+                    {
+                        return localizarAlmacen(db);
+                    }
             }
 
             return "ERR";
@@ -95,6 +103,25 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 return "ERR";
 
             return JsonConvert.SerializeObject(db.getInventarioAlmacen(idAlmacen));
+        }
+
+        private static string nameAlmacen(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return db.getAlmacenName(id);
+        }
+
+        private static string localizarAlmacen(DBStorage db)
+        {
+            return JsonConvert.SerializeObject(db.localizarAlmacenes());
         }
     }
 }
