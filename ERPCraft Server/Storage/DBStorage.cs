@@ -2218,8 +2218,8 @@ namespace ERPCraft_Server.Storage
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", orden.name);
             cmd.Parameters.AddWithValue("@size", orden.size);
-            if (orden.robot == 0 || orden.robot == null)
-                cmd.Parameters.AddWithValue("@rob", null);
+            if (orden.robot == null || orden.robot == 0)
+                cmd.Parameters.AddWithValue("@rob", DBNull.Value);
             else
                 cmd.Parameters.AddWithValue("@rob", orden.robot);
             cmd.Parameters.AddWithValue("@gps_x", orden.posX);
@@ -2234,8 +2234,8 @@ namespace ERPCraft_Server.Storage
             rdr.Read();
             int id = rdr.GetInt32(0);
             rdr.Close();
-            orden.id = id;
-            Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.insert, 0, JsonConvert.SerializeObject(orden));
+
+            Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.insert, 0, JsonConvert.SerializeObject(getOrdenMinado(id)));
             return true;
         }
 
@@ -2246,8 +2246,8 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@id", orden.id);
             cmd.Parameters.AddWithValue("@name", orden.name);
             cmd.Parameters.AddWithValue("@size", orden.size);
-            if (orden.robot == 0 || orden.robot == null)
-                cmd.Parameters.AddWithValue("@rob", null);
+            if (orden.robot == null || orden.robot == 0)
+                cmd.Parameters.AddWithValue("@rob", DBNull.Value);
             else
                 cmd.Parameters.AddWithValue("@rob", orden.robot);
             cmd.Parameters.AddWithValue("@gps_x", orden.posX);
@@ -2261,7 +2261,7 @@ namespace ERPCraft_Server.Storage
             bool ok = cmd.ExecuteNonQuery() > 0;
 
             if (ok)
-                Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.update, orden.id, JsonConvert.SerializeObject(orden));
+                Program.websocketPubSub.onPush("ordenMinado", serverHashes.SubscriptionChangeType.update, orden.id, JsonConvert.SerializeObject(getOrdenMinado(orden.id)));
 
             return ok;
         }

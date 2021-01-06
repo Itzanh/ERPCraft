@@ -55,6 +55,10 @@ class OrdenesMinado extends Component {
         }), document.getElementById("renderOrdenesMinado"));
 
         for (var i = 0; i < ordenes.length; i++) {
+            if (ordenes[i].robot == null || ordenes[i].robot == 0) {
+                continue;
+            }
+
             const name = await this.getRobotName(ordenes[i].robot);
             ordenes[i].robotName = name;
             ReactDOM.render(ordenes.map((element, i) => {

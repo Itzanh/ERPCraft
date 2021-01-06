@@ -7,9 +7,11 @@ class RobotLocalizador extends Component {
 
         this.getRobots = getRobots;
         this.handleSelect = handleSelect;
+        this.robots = [];
 
         this.select = this.select.bind(this);
         this.cancelar = this.cancelar.bind(this);
+        this.filtrar = this.filtrar.bind(this);
     }
 
     componentDidMount() {
@@ -19,18 +21,20 @@ class RobotLocalizador extends Component {
 
     async renderRobots() {
         const robots = await this.getRobots();
+        this.robots = robots;
 
+        await this.printRobots();
+    }
+
+    async printRobots() {
         await ReactDOM.unmountComponentAtNode(document.getElementById("renderRobotsLocalizador"));
-        ReactDOM.render(robots.map((element, i) => {
+        ReactDOM.render(this.robots.map((element, i) => {
             return <RobotLocalizadorRobot
                 key={i}
-
                 id={element.id}
                 name={element.name}
                 uuid={element.uuid}
-
-                handleSelect={this.select}
-            />
+                handleSelect={this.select} />;
         }), document.getElementById("renderRobotsLocalizador"));
     }
 
@@ -42,6 +46,56 @@ class RobotLocalizador extends Component {
     cancelar() {
         this.handleSelect(0, '');
         window.$('#robotLocalizador').modal('hide');
+    }
+
+    async filtrar() {
+        // texto de la búsqueda como stirng
+        const txt = this.refs.txt.value;
+        // no hacer búsqueda por defecto
+        if (txt === '')
+            return this.printRobots();
+        // C = Código, N = Nombre, U = UUID
+        const tipoFiltro = this.refs.fil.value;
+        // si se busca por código pero no es un número, no buscar
+        if (tipoFiltro === 'C' && isNaN(txt))
+            return;
+
+        // establecer el callback dependiendo del filtro
+        var callback;
+        switch (tipoFiltro) {
+            case "C": {
+                const id = parseInt(txt);
+                callback = (element) => {
+                    return element.id === id;
+                };
+                break;
+            }
+            case "N": {
+                callback = (element) => {
+                    return element.name.startsWith(txt);
+                };
+                break;
+            }
+            case "U": {
+                callback = (element) => {
+                    return element.uuid.startsWith(txt);
+                };
+                break;
+            }
+        }
+
+        await ReactDOM.unmountComponentAtNode(document.getElementById("renderRobotsLocalizador"));
+        ReactDOM.render(this.robots.filter(callback).map((element, i) => {
+            return <RobotLocalizadorRobot
+                key={i}
+
+                id={element.id}
+                name={element.name}
+                uuid={element.uuid}
+
+                handleSelect={this.select}
+            />
+        }), document.getElementById("renderRobotsLocalizador"));
     }
 
     render() {
@@ -57,14 +111,14 @@ class RobotLocalizador extends Component {
                     <div className="modal-body">
                         <div className="form-row">
                             <div className="col">
-                                <select className="form-control">
-                                    <option>C&oacute;digo</option>
-                                    <option>Nombre</option>
-                                    <option>UUID</option>
+                                <select className="form-control" onChange={this.filtrar} ref="fil">
+                                    <option value="C">C&oacute;digo</option>
+                                    <option value="N">Nombre</option>
+                                    <option value="U">UUID</option>
                                 </select>
                             </div>
                             <div className="col">
-                                <input type="text" className="form-control" placeholder="Introducir dato" />
+                                <input type="text" className="form-control" placeholder="Introducir dato" ref="txt" onChange={this.filtrar} />
                             </div>
                         </div>
 

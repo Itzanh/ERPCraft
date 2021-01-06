@@ -47,7 +47,9 @@ class OrdenMinado extends Component {
             <th scope="row">{this.ordenMinado.id}</th>
             <td>{this.ordenMinado.name}</td>
             <td>{this.ordenMinado.size}</td>
-            <td>{this.ordenMinado.robotName == null ? this.ordenMinado.robot : this.ordenMinado.robotName}</td>
+            <td style={this.ordenMinado.robot == null || this.ordenMinado.robot == 0 ? { 'color': '#dc3545' } : {}}>
+                {this.ordenMinado.robot == null || this.ordenMinado.robot == 0 ? 'El primer robot disponible.' :
+                (this.ordenMinado.robotName == null ? this.ordenMinado.robot : this.ordenMinado.robotName)}</td>
             <td>{this.ordenMinado.posX}x{this.ordenMinado.posY}x{this.ordenMinado.posZ}:{this.ordenMinado.facing}</td>
             <td><img src={this.estadoImg} />{this.estado}</td>
             <td>{this.dateAdd}</td>
