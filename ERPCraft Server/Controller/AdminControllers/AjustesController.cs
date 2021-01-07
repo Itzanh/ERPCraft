@@ -202,6 +202,10 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return deleteServer(db, message);
                     }
+                case "pwd":
+                    {
+                        return changePwdServer(db, message);
+                    }
             }
 
             return "ERR";
@@ -250,6 +254,23 @@ namespace ERPCraft_Server.Controller.AdminControllers
             catch (Exception) { return "ERR"; }
 
             return db.deleteServer(guid) ? "OK" : "ERR";
+        }
+
+        private static string changePwdServer(DBStorage db, string message)
+        {
+            ServerPwd server;
+            try
+            {
+                server = (ServerPwd)JsonConvert.DeserializeObject(message, typeof(ServerPwd));
+            }
+            catch (Exception) { return "ERR"; }
+            if (server == null || server.uuid == null || server.pwd == null || server.pwd.Length == 0)
+                return "ERR";
+
+            string salt = Usuario.generateSalt();
+            string hash = Usuario.hash(salt + server.pwd, Program.ajuste.hashIteraciones);
+
+            return db.updateServer(server.uuid, hash, salt, Program.ajuste.hashIteraciones) ? "OK" : "ERR";
         }
     }
 }

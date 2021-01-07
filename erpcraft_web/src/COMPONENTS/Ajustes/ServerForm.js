@@ -1,16 +1,18 @@
 import { Component } from "react";
 
 class ServerForm extends Component {
-    constructor({ server, handleAdd, handleUpdate, handleDelete }) {
+    constructor({ server, handleAdd, handleUpdate, handleDelete, handlePwd }) {
         super();
 
         this.server = server;
         this.handleAdd = handleAdd;
         this.handleUpdate = handleUpdate;
         this.handleDelete = handleDelete;
+        this.handlePwd = handlePwd;
 
         this.aceptar = this.aceptar.bind(this);
         this.delete = this.delete.bind(this);
+        this.pwd = this.pwd.bind(this);
     }
 
     componentDidMount() {
@@ -30,6 +32,7 @@ class ServerForm extends Component {
         server.uuid = this.refs.uuid.value;
         server.name = this.refs.name.value;
         server.descripcion = this.refs.dsc.value;
+        server.permitirAutoregistro = this.refs.permitirAutoregistro.checked;
 
         await this.handleAdd(server);
         window.$('#serverModal').modal('hide');
@@ -40,6 +43,7 @@ class ServerForm extends Component {
         server.uuid = this.refs.uuid.value;
         server.name = this.refs.name.value;
         server.descripcion = this.refs.dsc.value;
+        server.permitirAutoregistro = this.refs.permitirAutoregistro.checked;
 
         await this.handleUpdate(server);
         window.$('#serverModal').modal('hide');
@@ -48,6 +52,10 @@ class ServerForm extends Component {
     async delete() {
         await this.handleDelete(this.refs.uuid.value);
         window.$('#serverModal').modal('hide');
+    }
+
+    pwd() {
+        this.handlePwd(this.server.uuid);
     }
 
     render() {
@@ -67,8 +75,11 @@ class ServerForm extends Component {
                         <input type="text" className="form-control" id="serverName" ref="name" placeholder="Nombre" defaultValue={this.server != null ? this.server.name : ''} />
                         <label>Descripcion</label>
                         <textarea className="form-control" ref="dsc" defaultValue={this.server != null ? this.server.descripcion : ''}></textarea>
+                        <input type="checkbox" defaultChecked={this.server != null ? this.server.permitirAutoregistro : false} ref="permitirAutoregistro" />
+                        <label>&iquest;Permitir autoregistrarse?</label>
                     </div>
                     <div className="modal-footer">
+                        <button type="button" class="btn btn-warning" onClick={this.pwd}>Contrase&ntilde;a autoreg.</button>
                         <button type="button" className="btn btn-danger" onClick={this.delete}>Eliminar</button>
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                         <button type="button" className="btn btn-primary" onClick={this.aceptar}>Aceptar</button>

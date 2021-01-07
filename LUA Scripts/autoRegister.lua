@@ -23,20 +23,32 @@ SOFTWARE.
 
 
 local component = require("component")
+local computer = require("computer")
+local robot = require("robot")
 
 local m = component.modem
-local bat = component.ic2_te_mfsu
 
 SERVER_ADDR = "086c88d8-6dbc-4ae2-9136-311bdd180482"
 SERVER_PORT = 32325
 
--- Inicializar la batería
 
-m.send(SERVER_ADDR, SERVER_PORT, "batInit--" .. math.floor(bat.getCapacity()) .. "@" .. math.floor(bat.getEnergy()))
 
--- Ir enviando el estado de la batería
+print("Introduce la contraseña de autoregistro del servidor")
+server_pwd = io.read()
 
-while true do
-  m.send(SERVER_ADDR, SERVER_PORT, "batSet--" .. math.floor(bat.getEnergy()))
-  os.sleep(1)
+str = server_pwd .. ";" .. robot.name() .. ";" .. math.floor(robot.inventorySize()) .. ";" .. math.floor(computer.energy()) .. ";" .. math.floor(computer.maxEnergy())
+
+if component.isAvailable("generator") then
+  str = str .. ";1;" .. math.floor(component.generator.count())
+else
+  str = str .. ";0;0"
 end
+
+if component.isAvailable("navigation") then
+  local posX, posY, posZ = component.navigation.getPosition()
+  str = str .. ";1;" .. math.floor(posX) .. ";" .. math.floor(posY) .. ";" .. math.floor(posZ)
+else
+  str = str .. ";0;0;0;0"
+end
+
+m.send(SERVER_ADDR, SERVER_PORT, "robRegister--" .. str)

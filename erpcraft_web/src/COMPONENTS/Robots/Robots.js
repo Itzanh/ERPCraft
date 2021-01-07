@@ -1,6 +1,7 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 import RobotForm from './RobotForm.js';
+import RobotAutoregister from "./RobotAutoregister.js";
 
 import robotIco from './../../IMG/robot.png';
 import singularIco from './../../IMG/singular.svg';
@@ -10,7 +11,7 @@ import otrasTablasIco from './../../IMG/otras_tablas.svg';
 import './../../CSS/Robots.css';
 
 class Robots extends Component {
-    constructor({ handleRobots, handleBuscar, handleAddRobot, handleEditRobot, handleEliminar, handleLogs, handleRender }) {
+    constructor({ handleRobots, handleBuscar, handleAddRobot, handleEditRobot, handleEliminar, handleLogs, handleRender, getServidores }) {
         super();
 
         this.handleRobots = handleRobots;
@@ -20,8 +21,10 @@ class Robots extends Component {
         this.handleEliminar = handleEliminar;
         this.handleLogs = handleLogs;
         this.handleRender = handleRender;
+        this.getServidores = getServidores;
 
         this.nuevoRobot = this.nuevoRobot.bind(this);
+        this.autoregistroRobot = this.autoregistroRobot.bind(this);
         this.buscar = this.buscar.bind(this);
     }
 
@@ -35,6 +38,13 @@ class Robots extends Component {
         />, document.getElementById('renderTab'));
     }
 
+    autoregistroRobot() {
+        ReactDOM.unmountComponentAtNode(this.refs.renderRobotModal);
+        ReactDOM.render(<RobotAutoregister
+            getServidores={this.getServidores}
+        />, this.refs.renderRobotModal);
+    }
+
     buscar() {
         const query = {};
         query.text = this.refs.name.value;
@@ -45,6 +55,7 @@ class Robots extends Component {
 
     render() {
         return <div id="tabRobots">
+            <div ref="renderRobotModal"></div>
             <h3><img src={robotIco} />Robots</h3>
             <div className="input-group busqueda">
                 <input type="text" className="form-control" ref="name" />
@@ -73,6 +84,7 @@ class Robots extends Component {
                 </div>
             </div>
             <button type="button" className="btn btn-primary" onClick={this.nuevoRobot}>A&ntilde;adir robot</button>
+            <button type="button" className="btn btn-primary" onClick={this.autoregistroRobot}>Registrar autom&aacute;ticamente</button>
             <div id="robotTabla"></div>
         </div>;
     }

@@ -281,6 +281,11 @@ namespace ERPCraft_Server.Controller
                         break;
                     }
                 /*  ROBOTS */
+                case "robRegister":
+                    {
+                        comandoRobRegister(server.uuid, uuid, msg, server.db);
+                        break;
+                    }
                 case "robOnline":
                     {
                         comandoRobOnline(uuid, msg, server.db);
@@ -379,6 +384,22 @@ namespace ERPCraft_Server.Controller
         }
 
         /*  ROBOTS */
+
+        private static void comandoRobRegister(Guid serveruuid, string uuid, string mensaje, DBStorage db)
+        {
+            // server_password;name;num_slots;energia_act;total_ene;generador_upgrade;generador_items;gps_upgrade;pos_x;pos_y;pos_z
+            Console.WriteLine("uuid " + uuid + " msg " + mensaje);
+            string[] data = mensaje.Split(';');
+            if (data.Length != 11)
+                return;
+
+            try
+            {
+                db.autoRegisterRobot(serveruuid, data[0], uuid, data[1], Int16.Parse(data[2]), Int16.Parse(data[3]), Int16.Parse(data[4]), data[5].Equals("1"),
+                    Int16.Parse(data[6]), data[7].Equals("1"), Int16.Parse(data[8]), Int16.Parse(data[9]), Int16.Parse(data[10]));
+            }
+            catch (Exception) { return; }
+        }
 
         private static void comandoRobOnline(string uuid, string mensaje, DBStorage db)
         {

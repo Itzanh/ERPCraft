@@ -30,9 +30,15 @@ local thread = require("thread")
 
 local m = component.modem
 local inv = component.inventory_controller
+local gpsEnabled = component.isAvailable("navigation")
 
 SERVER_ADDR = "086c88d8-6dbc-4ae2-9136-311bdd180482"
 SERVER_PORT = 32325
+
+if not component.isAvailable("robot") then
+  io.stderr:write("can only run on robots")
+  return
+end
 
 --[[ ERPCraft ]]--
 
@@ -93,6 +99,9 @@ end
 
 --- Envía la posición GPS actual dle robot al servidor
 local function setRobotGps()
+  if not gpsEnabled then
+    return
+  end
   local posX, posY, posZ = component.navigation.getPosition()
   local str = "robGPS--" .. math.floor(posX) .. "@" .. math.floor(posY) .. "@" .. math.floor(posZ)
   
@@ -135,10 +144,7 @@ end)
 
 --[[ /ERPCraft ]]--
 
-if not component.isAvailable("robot") then
-  io.stderr:write("can only run on robots")
-  return
-end
+
 
 local options = {}
 local size = 0

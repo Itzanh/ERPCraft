@@ -6,7 +6,7 @@ import Server from "./Server";
 import ServerForm from "./ServerForm";
 
 class Servers extends Component {
-    constructor({ getServers, handleApiKeysChange, handleAdd, handleUpdate, handleDelete }) {
+    constructor({ getServers, handleApiKeysChange, handleAdd, handleUpdate, handleDelete, handlePwd }) {
         super();
 
         this.getServers = getServers;
@@ -14,6 +14,7 @@ class Servers extends Component {
         this.handleAdd = handleAdd;
         this.handleUpdate = handleUpdate;
         this.handleDelete = handleDelete;
+        this.handlePwd = handlePwd;
 
         this.crear = this.crear.bind(this);
         this.editar = this.editar.bind(this);
@@ -103,6 +104,7 @@ class Servers extends Component {
             server={server}
             handleUpdate={this.update}
             handleDelete={this.delete}
+            handlePwd={this.handlePwd}
         />, document.getElementById("renderServersModal"));
     }
 

@@ -185,6 +185,7 @@ async function tabRobots() {
         handleRender={(view) => {
             renderRobots(robots, view);
         }}
+        getServidores={getServidores}
     />, document.getElementById('renderTab'));
 
     client.emit('robot', 'get', '', (_, message) => {
@@ -1480,6 +1481,7 @@ function tabServidores() {
         handleAdd={addServer}
         handleUpdate={updateServer}
         handleDelete={deleteServer}
+        handlePwd={pwdAutoregServer}
     />, document.getElementById('renderTab'));
 };
 
@@ -1517,6 +1519,17 @@ function deleteServer(uuid) {
         client.emit('server', 'delete', uuid, (_, response) => {
             resolve();
         });
+    });
+};
+
+function pwdAutoregServer(uuid) {
+    const pwd = prompt('Introduce la nueva contraseña');
+    if (pwd == null || pwd.length == 0)
+        return;
+
+    console.log({ uuid, pwd });
+    client.emit('server', 'pwd', JSON.stringify({ uuid, pwd }), (_, response) => {
+        console.log(response);
     });
 };
 

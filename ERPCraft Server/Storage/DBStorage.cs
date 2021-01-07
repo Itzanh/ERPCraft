@@ -460,7 +460,7 @@ namespace ERPCraft_Server.Storage
         public List<Server> getServers()
         {
             List<Server> servers = new List<Server>();
-            string sql = "SELECT uuid,name,dsc,online,ultima_con FROM servers";
+            string sql = "SELECT uuid,name,dsc,online,ultima_con,autoreg,pwd,salt,iteraciones FROM servers";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -475,7 +475,7 @@ namespace ERPCraft_Server.Storage
 
         public Server getServer(Guid uuid)
         {
-            string sql = "SELECT uuid,name,dsc,online,ultima_con FROM servers WHERE uuid = @uuid";
+            string sql = "SELECT uuid,name,dsc,online,ultima_con,autoreg,pwd,salt,iteraciones FROM servers WHERE uuid = @uuid";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@uuid", uuid);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -488,11 +488,12 @@ namespace ERPCraft_Server.Storage
 
         public bool addServer(Server server)
         {
-            string sql = "INSERT INTO public.servers(uuid,name,dsc) VALUES (@uuid,@name,@dsc)";
+            string sql = "INSERT INTO public.servers(uuid,name,dsc,autoreg) VALUES (@uuid,@name,@dsc,@autoreg)";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@uuid", server.uuid);
             cmd.Parameters.AddWithValue("@name", server.name);
             cmd.Parameters.AddWithValue("@dsc", server.descripcion);
+            cmd.Parameters.AddWithValue("@autoreg", server.permitirAutoregistro);
             try
             {
                 if (cmd.ExecuteNonQuery() == 0)
@@ -508,11 +509,12 @@ namespace ERPCraft_Server.Storage
 
         public bool updateServer(Server server)
         {
-            string sql = "UPDATE public.servers SET name=@name,dsc=@dsc WHERE uuid=@uuid";
+            string sql = "UPDATE public.servers SET name=@name,dsc=@dsc,autoreg=@autoreg WHERE uuid=@uuid";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@uuid", server.uuid);
             cmd.Parameters.AddWithValue("@name", server.name);
             cmd.Parameters.AddWithValue("@dsc", server.descripcion);
+            cmd.Parameters.AddWithValue("@autoreg", server.permitirAutoregistro);
             try
             {
                 if (cmd.ExecuteNonQuery() == 0)
@@ -523,6 +525,27 @@ namespace ERPCraft_Server.Storage
             catch (Exception) { return false; }
 
             Program.websocketPubSub.onPush("servers", serverHashes.SubscriptionChangeType.update, 0, JsonConvert.SerializeObject(getServer(server.uuid)));
+            return true;
+        }
+
+        public bool updateServer(Guid uuid, string pwd, string salt, int iteraciones)
+        {
+            string sql = "UPDATE public.servers SET pwd=@pwd,salt=@salt,iteraciones=@iteraciones WHERE uuid=@uuid";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@uuid", uuid);
+            cmd.Parameters.AddWithValue("@pwd", pwd);
+            cmd.Parameters.AddWithValue("@salt", salt);
+            cmd.Parameters.AddWithValue("@iteraciones", iteraciones);
+            try
+            {
+                if (cmd.ExecuteNonQuery() == 0)
+                {
+                    return false;
+                }
+            }
+            catch (Exception) { return false; }
+
+            Program.websocketPubSub.onPush("servers", serverHashes.SubscriptionChangeType.update, 0, JsonConvert.SerializeObject(getServer(uuid)));
             return true;
         }
 
@@ -1202,6 +1225,58 @@ namespace ERPCraft_Server.Storage
             rdr.Close();
 
             Program.websocketPubSub.onPush("robots", serverHashes.SubscriptionChangeType.update, id, JsonConvert.SerializeObject(getRobot(id)));
+        }
+
+        public void autoRegisterRobot(Guid serveruuid, string serverpwd, string uuid, string name, short num_slots, short energiaActual, short totalEnergia, bool generatorUpgrade, short numItems, bool gpsUpgrade, short posX, short posY, short posZ)
+        {
+            // autentificar por el servidor
+            string sql = "SELECT pwd,salt,iteraciones FROM servers WHERE uuid = @uuid AND autoreg = true";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@uuid", serveruuid);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return;
+            }
+            rdr.Read();
+            string pwd = rdr.GetString(0);
+            string salt = rdr.GetString(1);
+            int iteraciones = rdr.GetInt32(2);
+            rdr.Close();
+            if (!Usuario.verifyHash(pwd, salt + serverpwd, iteraciones))
+                return;
+
+            // insertar robot con los atributos obtenidos
+            sql = "INSERT INTO robots (name,uuid,num_slots,total_energia,energia_actual,pos_x,pos_y,pos_z,upgrade_gen,items_gen,upgrade_gps) VALUES (@name,@uuid,@num_slots,@total_energia,@energia_actual,@pos_x,@pos_y,@pos_z,@upgrade_gen,@items_gen,@upgrade_gps) RETURNING id";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", name);
+            cmd.Parameters.AddWithValue("@uuid", Guid.Parse(uuid));
+            cmd.Parameters.AddWithValue("@num_slots", num_slots);
+            cmd.Parameters.AddWithValue("@total_energia", totalEnergia);
+            cmd.Parameters.AddWithValue("@energia_actual", energiaActual);
+            cmd.Parameters.AddWithValue("@pos_x", posX);
+            cmd.Parameters.AddWithValue("@pos_y", posY);
+            cmd.Parameters.AddWithValue("@pos_z", posZ);
+            cmd.Parameters.AddWithValue("upgrade_gen", generatorUpgrade);
+            cmd.Parameters.AddWithValue("items_gen", numItems);
+            cmd.Parameters.AddWithValue("upgrade_gps", gpsUpgrade);
+            try
+            {
+                rdr = cmd.ExecuteReader();
+            }
+            catch (Exception) { return; }
+
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return;
+            }
+            rdr.Read();
+            short id = rdr.GetInt16(0);
+            rdr.Close();
+
+            Program.websocketPubSub.onPush("robots", serverHashes.SubscriptionChangeType.insert, id, JsonConvert.SerializeObject(getRobot(id)));
         }
 
         public void updateRobotOffline(string uuid)

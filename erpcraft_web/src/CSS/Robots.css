@@ -247,6 +247,18 @@ div#editRobot div#robotRecordDetails {
         max-width: 20%;
     }
 
+div#editRobot div#panelCentral div#inventarioContenido {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+div#editRobot div#panelCentral textarea {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    height: 256px;
+}
+
 /* ROBOT INVENTARIO */
 
 div#editRobot div#inventarioContenido div.card div.form-row div.col:nth-child(1) {
@@ -400,4 +412,27 @@ div#robotComposicionModal div.slot {
 
 div#robotComposicionModal table#robotComposicionComponentes img {
     height: 50px;
+}
+
+/* ROBOT AUTOREGISTRO */
+
+div#robotAutoregister div#pantallaPrincipal.form-row > div.col:nth-child(2) {
+    max-width: 20%;
+}
+
+    div#robotAutoregister div#pantallaPrincipal.form-row > div.col:nth-child(2) img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+div#robotAutoregister div#pantallaPrincipal.form-row table tbody tr th:nth-child(1) {
+    width: 60%;
+}
+
+div#robotAutoregister div#robotRegResult code {
+    display: block;
+    background-color: black;
+    color: white;
+    padding-left: 20px;
 }
