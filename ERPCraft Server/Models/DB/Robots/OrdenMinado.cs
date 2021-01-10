@@ -54,11 +54,11 @@ namespace ERPCraft_Server.Models.DB.Robots
             if (rdr.IsDBNull(14))
                 this.dateInicio = null;
             else
-                this.dateUpd = rdr.GetDateTime(14);
+                this.dateInicio = rdr.GetDateTime(14);
             if (rdr.IsDBNull(15))
-                this.dateInicio = null;
+                this.dateFin = null;
             else
-                this.dateUpd = rdr.GetDateTime(15);
+                this.dateFin = rdr.GetDateTime(15);
             this.descripcion = rdr.GetString(16);
             this.estado = rdr.GetChar(17);
             this.unidadRecarga = rdr.GetChar(18);
@@ -91,9 +91,6 @@ namespace ERPCraft_Server.Models.DB.Robots
 
         public bool isValid()
         {
-            if (estado != 'Q' && estado != 'R' && estado != 'E' && estado != 'O')
-                return false;
-
             if (unidadRecarga != '%' && unidadRecarga != '=')
                 return false;
 

@@ -46,21 +46,21 @@ div#editArticuloModal div#editArtMainForm div#editArtDetails div.form-row div.co
     max-width: 10%;
 }
 
-div#editArticuloModal div#editArtMainForm div.col:nth-child(1) {
-    max-width: 20%;
+div#editArticuloModal div#editArtMainForm > div.col:nth-child(1) {
+    max-width: 15%;
 }
 
-    div#editArticuloModal div#editArtMainForm div.col:nth-child(1) img {
+    div#editArticuloModal div#editArtMainForm > div.col:nth-child(1) img {
         width: 100%;
     }
 
-    div#editArticuloModal div#editArtMainForm div.col:nth-child(1) button {
-        margin-top: 10%;
-    }
+div#editArticuloModal div#editArtMainForm div.col:nth-child(1) button {
+    margin-top: 10%;
+}
 
-        div#editArticuloModal div#editArtMainForm div.col:nth-child(1) button.btn-danger {
-            margin-right: 5%;
-        }
+    div#editArticuloModal div#editArtMainForm div.col:nth-child(1) button.btn-danger {
+        margin-right: 5%;
+    }
 
 div#editArticuloModal textarea {
     margin-left: 5px;

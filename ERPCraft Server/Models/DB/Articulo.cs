@@ -29,7 +29,7 @@ namespace ERPCraft_Server.Models.DB
             if (this.name == null || this.name.Equals(string.Empty))
                 return false;
 
-            if (this.minecraftID == null || (this.minecraftID.Length > 0 && this.minecraftID.IndexOf(':') < 0))
+            if (this.minecraftID == null || this.minecraftID.Length == 0 || this.minecraftID.IndexOf(':') < 0)
                 return false;
 
             if (cantidad < 0)

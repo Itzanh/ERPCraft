@@ -1,6 +1,8 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
+import FormAlert from "../FormAlert";
+
 // IMG
 import generadorIco from './../../IMG/generador_tipo/generador.png';
 import geothermalIco from './../../IMG/generador_tipo/geothermal.png';
@@ -38,6 +40,17 @@ class GeneradorForm extends Component {
 
     componentDidMount() {
         window.$('#generadorModal').modal({ show: true });
+    }
+
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderRedElectricaModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderRedElectricaModalAlert'));
+    }
+
+    isValidUUID(uuid) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
     }
 
     cambioTipoGenerador() {
@@ -87,8 +100,25 @@ class GeneradorForm extends Component {
         generador.activado = this.refs.act.checked;
         generador.descripcion = this.refs.dsc.value;
 
-        this.handleAdd(generador).then(() => {
-            window.$('#generadorModal').modal('hide');
+        if (generador.name == null || generador.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return;
+        }
+        if (generador.uuid == null || generador.uuid.length == 0) {
+            this.showAlert("Debes escribir un UUID valido.");
+            return;
+        }
+        if (generador.euTick <= 0) {
+            this.showAlert("El generador debe tener los EU/Tick que genera (superior a 0).");
+            return;
+        }
+
+        this.handleAdd(generador).then((id) => {
+            if (id > 0) {
+                window.$('#generadorModal').modal('hide');
+            } else {
+                this.showAlert("No se ha podido guardar el generador.");
+            }
         });
     }
 
@@ -103,8 +133,23 @@ class GeneradorForm extends Component {
         generador.activado = this.refs.act.checked;
         generador.descripcion = this.refs.dsc.value;
 
+        if (generador.name == null || generador.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return;
+        }
+        if (generador.uuid == null || generador.uuid.length == 0) {
+            this.showAlert("Debes escribir un UUID valido.");
+            return;
+        }
+        if (generador.euTick <= 0) {
+            this.showAlert("El generador debe tener los EU/Tick que genera (superior a 0).");
+            return;
+        }
+
         this.handleUpdate(generador).then(() => {
             window.$('#generadorModal').modal('hide');
+        }, () => {
+            this.showAlert("No se ha podido guardar el generador.");
         });
     }
 

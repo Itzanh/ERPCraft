@@ -674,14 +674,19 @@ namespace ERPCraft_Server.Storage
 
         public bool addUsuario(Usuario usuario)
         {
-            string sql = "INSERT INTO usuarios (name,pwd,salt,iteraciones,ultima_con) VALUES(@username,@pwd,@salt,@iteraciones,@ultima_con)";
+            string sql = "INSERT INTO usuarios (name,pwd,salt,iteraciones,ultima_con) VALUES(@username,@pwd,@salt,@iteraciones,@ultima_con) RETURNING id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@username", usuario.name);
             cmd.Parameters.AddWithValue("@pwd", usuario.pwd);
             cmd.Parameters.AddWithValue("@salt", usuario.salt);
             cmd.Parameters.AddWithValue("@iteraciones", usuario.iteraciones);
             cmd.Parameters.AddWithValue("@ultima_con", usuario.ultima_con);
-            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            NpgsqlDataReader rdr;
+            try
+            {
+                rdr = cmd.ExecuteReader();
+            }
+            catch (Exception) { return false; }
             if (!rdr.HasRows)
             {
                 rdr.Close();
@@ -692,8 +697,7 @@ namespace ERPCraft_Server.Storage
             short id = rdr.GetInt16(0);
             rdr.Close();
 
-            usuario.id = id;
-            Program.websocketPubSub.onPush("usuarios", serverHashes.SubscriptionChangeType.insert, id, JsonConvert.SerializeObject(usuario));
+            Program.websocketPubSub.onPush("usuarios", serverHashes.SubscriptionChangeType.insert, id, JsonConvert.SerializeObject(getUsuario(id)));
             return true;
         }
 
@@ -705,7 +709,13 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@username", usuario.name);
             cmd.Parameters.AddWithValue("@dsc", usuario.descripcion);
             cmd.Parameters.AddWithValue("@off", usuario.off);
-            if (cmd.ExecuteNonQuery() == 0)
+            bool ok;
+            try
+            {
+                ok = cmd.ExecuteNonQuery() == 0;
+            }
+            catch (Exception) { return false; }
+            if (ok)
             {
                 return false;
             }
@@ -781,14 +791,14 @@ namespace ERPCraft_Server.Storage
                 string sql;
                 if (texto.IndexOf(':') >= 0)
                 {
-                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE mine_id = @txt ORDER BY id ASC";
+                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE mine_id ILIKE @txt ORDER BY id ASC";
                 }
                 else
                 {
-                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE name @@ to_tsquery(@txt) ORDER BY id ASC";
+                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE name ILIKE @txt ORDER BY id ASC";
                 }
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@txt", texto);
+                cmd.Parameters.AddWithValue("@txt", "%" + texto + "%");
                 NpgsqlDataReader rdr = cmd.ExecuteReader();
 
                 while (rdr.Read())
@@ -1023,19 +1033,18 @@ namespace ERPCraft_Server.Storage
             StringBuilder sql = new StringBuilder("SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z FROM robots");
 
             if (query.off && (!query.text.Equals(string.Empty)))
-                sql.Append(" WHERE (uuid::text @@ to_tsquery(@text)) OR name ILIKE @textq");
+                sql.Append(" WHERE (uuid::text ILIKE @text OR name ILIKE @text)");
             else if (!query.off)
             {
                 sql.Append(" WHERE off = false");
                 if (!query.text.Equals(string.Empty))
-                    sql.Append(" AND (uuid::text @@ to_tsquery(@text) OR name ILIKE @textq)");
+                    sql.Append(" AND (uuid::text ILIKE @text OR name ILIKE @text)");
             }
 
             sql.Append(" ORDER BY id ASC");
             NpgsqlCommand cmd = new NpgsqlCommand(sql.ToString(), conn);
             if (!query.text.Equals(string.Empty))
-                cmd.Parameters.AddWithValue("text", query.text);
-            cmd.Parameters.AddWithValue("textq", query.text + "%");
+                cmd.Parameters.AddWithValue("text", "%" + query.text + "%");
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
@@ -1143,14 +1152,13 @@ namespace ERPCraft_Server.Storage
             short id = rdr.GetInt16(0);
             rdr.Close();
 
-            r.id = id;
-            Program.websocketPubSub.onPush("robots", serverHashes.SubscriptionChangeType.insert, id, JsonConvert.SerializeObject(r));
+            Program.websocketPubSub.onPush("robots", serverHashes.SubscriptionChangeType.insert, id, JsonConvert.SerializeObject(getRobot(id)));
             return id;
         }
 
         public bool updateRobot(Robot r)
         {
-            string sql = "UPDATE robots SET name=@name, uuid=@uuid, tier=@tier, num_slots=@num_slots, total_energia=@total_energia, energia_actual=@energia_actual, upgrade_gen=@upgrade_gen, items_gen=@items_gen, dsc=@dsc, upgrade_gps=@upgrade_gps, pos_x=@pos_x, pos_y=@pos_y, pos_z=@pos_z, complejidad=@complejidad, off = @off, off_pos_x = @off_pos_x, off_pos_y = @off_pos_y, off_pos_z = @off_pos_z WHERE id = @id";
+            string sql = "UPDATE robots SET name=@name, uuid=@uuid, tier=@tier, num_slots=@num_slots, total_energia=@total_energia, energia_actual=@energia_actual, upgrade_gen=@upgrade_gen, items_gen=@items_gen, dsc=@dsc, upgrade_gps=@upgrade_gps, pos_x=@pos_x, pos_y=@pos_y, pos_z=@pos_z, complejidad=@complejidad, off = @off, off_pos_x = @off_pos_x, off_pos_y = @off_pos_y, off_pos_z = @off_pos_z, date_upd = CURRENT_TIMESTAMP(3) WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("id", r.id);
             cmd.Parameters.AddWithValue("name", r.name);
@@ -1181,7 +1189,7 @@ namespace ERPCraft_Server.Storage
             }
             catch (Exception) { return false; }
 
-            Program.websocketPubSub.onPush("robots", serverHashes.SubscriptionChangeType.update, r.id, JsonConvert.SerializeObject(r));
+            Program.websocketPubSub.onPush("robots", serverHashes.SubscriptionChangeType.update, r.id, JsonConvert.SerializeObject(getRobot(r.id)));
             return true;
         }
 
@@ -2316,7 +2324,7 @@ namespace ERPCraft_Server.Storage
 
         public bool updateOrdenesDeMinado(OrdenMinado orden)
         {
-            string sql = "UPDATE public.ordenes_minado SET name=@name,size=@size,rob=@rob,gps_x=@gps_x,gps_y=@gps_y,gps_z=@gps_z,dsc=@dsc,recarga_unidad=@recarga_unidad,energia_recarga=@energia_recarga,modo_minado=@modo_minado,shutdown=@shutdown WHERE id=@id";
+            string sql = "UPDATE public.ordenes_minado SET name=@name,size=@size,rob=@rob,gps_x=@gps_x,gps_y=@gps_y,gps_z=@gps_z,dsc=@dsc,recarga_unidad=@recarga_unidad,energia_recarga=@energia_recarga,modo_minado=@modo_minado,shutdown=@shutdown,date_upd = CURRENT_TIMESTAMP(3) WHERE id=@id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", orden.id);
             cmd.Parameters.AddWithValue("@name", orden.name);
@@ -2556,7 +2564,12 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@dsc", almacen.descripcion);
             cmd.Parameters.AddWithValue("@off", almacen.off);
             cmd.Parameters.AddWithValue("@uuid", almacen.uuid);
-            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            NpgsqlDataReader rdr;
+            try
+            {
+                rdr = cmd.ExecuteReader();
+            }
+            catch (Exception) { return false; }
             if (!rdr.HasRows)
             {
                 rdr.Close();
@@ -2581,7 +2594,13 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@dsc", almacen.descripcion);
             cmd.Parameters.AddWithValue("@off", almacen.off);
             cmd.Parameters.AddWithValue("@uuid", almacen.uuid);
-            if (cmd.ExecuteNonQuery() == 0)
+            bool ok;
+            try
+            {
+                ok = cmd.ExecuteNonQuery() == 0;
+            }
+            catch (Exception) { return false; }
+            if (!ok)
             {
                 return false;
             }
@@ -2918,10 +2937,9 @@ namespace ERPCraft_Server.Storage
         public List<Drone> searchDrones(string text)
         {
             List<Drone> drones = new List<Drone>();
-            string sql = "SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z FROM drones WHERE (uuid::text @@ to_tsquery(@text) OR name ILIKE @textq) ORDER BY id ASC";
+            string sql = "SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z FROM drones WHERE (uuid::text ILIKE @text OR name ILIKE @text) ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("text", text);
-            cmd.Parameters.AddWithValue("textq", text + "%");
+            cmd.Parameters.AddWithValue("text", "%" + text + "%");
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
@@ -2992,7 +3010,7 @@ namespace ERPCraft_Server.Storage
 
         public bool updateDrone(Drone d)
         {
-            string sql = "UPDATE drones SET name=@name, uuid=@uuid, tier=@tier, num_slots=@num_slots, total_energia=@total_energia, energia_actual=@energia_actual, upgrade_gen=@upgrade_gen, items_gen=@items_gen, dsc=@dsc, upgrade_gps=@upgrade_gps, pos_x=@pos_x, pos_y=@pos_y, pos_z=@pos_z, complejidad=@complejidad, off = @off, off_pos_x = @off_pos_x, off_pos_y = @off_pos_y, off_pos_z = @off_pos_z WHERE id = @id";
+            string sql = "UPDATE drones SET name=@name, uuid=@uuid, tier=@tier, num_slots=@num_slots, total_energia=@total_energia, energia_actual=@energia_actual, upgrade_gen=@upgrade_gen, items_gen=@items_gen, dsc=@dsc, upgrade_gps=@upgrade_gps, pos_x=@pos_x, pos_y=@pos_y, pos_z=@pos_z, complejidad=@complejidad, off = @off, off_pos_x = @off_pos_x, off_pos_y = @off_pos_y, off_pos_z = @off_pos_z, date_upd = CURRENT_TIMESTAMP(3) WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("id", d.id);
             cmd.Parameters.AddWithValue("name", d.name);

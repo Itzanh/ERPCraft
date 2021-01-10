@@ -1,6 +1,7 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
+import FormAlert from "../FormAlert";
 import keyIco from './../../IMG/key.svg';
 import ApiKey from "./ApiKey";
 
@@ -118,6 +119,7 @@ class ApiKeys extends Component {
     render() {
         return <div id="tabApiKeys">
             <div id="renderApiKeysModal"></div>
+            <div id="renderApiKeysModalAlert"></div>
             <h3><img src={keyIco} />API Keys</h3>
             <button type="button" className="btn btn-primary" onClick={this.crear}>Crear</button>
             <div className="form-row">
@@ -155,9 +157,23 @@ class ApiKeyPrompt extends Component {
         window.$('#apiKeyPromptModal').modal({ show: true });
     }
 
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderApiKeysModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderApiKeysModalAlert'));
+    }
+
     aceptar() {
+        const name = this.refs.name.value;
+
+        if (name == null || name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return;
+        }
+
+        this.handleAceptar(name);
         window.$('#apiKeyPromptModal').modal('hide');
-        this.handleAceptar(this.refs.name.value);
     }
 
     render() {

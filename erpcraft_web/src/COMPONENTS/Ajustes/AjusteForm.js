@@ -1,6 +1,7 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
+import FormAlert from "../FormAlert";
 import settingsIco from './../../IMG/settings.svg';
 
 class AjusteForm extends Component {
@@ -18,6 +19,13 @@ class AjusteForm extends Component {
         this.borrar = this.borrar.bind(this);
         this.activar = this.activar.bind(this);
         this.limpiar = this.limpiar.bind(this);
+    }
+
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('ajusteFormModal'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('ajusteFormModal'));
     }
 
     guardar() {
@@ -43,7 +51,11 @@ class AjusteForm extends Component {
         ajuste.puertoOC = parseInt(this.refs.puertoOC.value);
         ajuste.hashIteraciones = parseInt(this.refs.hashIteraciones.value);
 
-        console.log(ajuste);
+        if (ajuste.name == null || ajuste.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio");
+            return;
+        }
+
         if (this.ajuste == null) {
             this.handleAdd(ajuste).then((id) => {
                 ajuste.id = id;
@@ -126,7 +138,7 @@ class AjusteForm extends Component {
                 </div>
                 <div className="col">
                     <label>Iteraciones del hash de las contrase&ntilde;as de los usuarios</label>
-                    <input type="number" className="form-control" min="1" max="500000" placeholder="Iteraciones del hash de las contrase&ntilde;as de los usuarios" ref="hashIteraciones" defaultValue={this.ajuste != null ? this.ajuste.hashIteraciones : 5000} />
+                    <input type="number" className="form-control" min="1" max="1000000" placeholder="Iteraciones del hash de las contrase&ntilde;as de los usuarios" ref="hashIteraciones" defaultValue={this.ajuste != null ? this.ajuste.hashIteraciones : 5000} />
                 </div>
             </div>
 

@@ -1,4 +1,7 @@
 import { Component } from "react";
+import ReactDOM from 'react-dom';
+
+import FormAlert from "../FormAlert";
 
 class ServerForm extends Component {
     constructor({ server, handleAdd, handleUpdate, handleDelete, handlePwd }) {
@@ -19,6 +22,17 @@ class ServerForm extends Component {
         window.$('#serverModal').modal({ show: true });
     }
 
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderServersModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderServersModalAlert'));
+    }
+
+    isValidUUID(uuid) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+    }
+
     aceptar() {
         if (this.server == null) {
             this.add();
@@ -34,6 +48,15 @@ class ServerForm extends Component {
         server.descripcion = this.refs.dsc.value;
         server.permitirAutoregistro = this.refs.permitirAutoregistro.checked;
 
+        if (server.uuid == null || server.uuid.length == 0 || !this.isValidUUID(server.uuid)) {
+            this.showAlert("Se debe escribir un UUID valido.");
+            return false;
+        }
+        if (server.name == null || server.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return false;
+        }
+
         await this.handleAdd(server);
         window.$('#serverModal').modal('hide');
     }
@@ -45,6 +68,11 @@ class ServerForm extends Component {
         server.descripcion = this.refs.dsc.value;
         server.permitirAutoregistro = this.refs.permitirAutoregistro.checked;
 
+        if (server.name == null || server.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return false;
+        }
+
         await this.handleUpdate(server);
         window.$('#serverModal').modal('hide');
     }
@@ -55,7 +83,12 @@ class ServerForm extends Component {
     }
 
     pwd() {
-        this.handlePwd(this.server.uuid);
+        ReactDOM.unmountComponentAtNode(document.getElementById("renderServersPwdModal"));
+        ReactDOM.render(<ServerFormPwd
+            handlePwd={(pwd) => {
+                this.handlePwd(this.server.uuid, pwd);
+            }}
+        />, document.getElementById("renderServersPwdModal"));
     }
 
     render() {
@@ -83,6 +116,53 @@ class ServerForm extends Component {
                         <button type="button" className="btn btn-danger" onClick={this.delete}>Eliminar</button>
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                         <button type="button" className="btn btn-primary" onClick={this.aceptar}>Aceptar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
+
+class ServerFormPwd extends Component {
+    constructor({ handlePwd }) {
+        super();
+
+        this.handlePwd = handlePwd;
+
+        this.aceptar = this.aceptar.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#serverModalPwd').modal({ show: true });
+    }
+
+    aceptar() {
+        const pwd = this.refs.pwd.value;
+        if (pwd.length == 0)
+            return;
+
+        this.handlePwd(pwd);
+        window.$('#serverModalPwd').modal('hide');
+    }
+
+    render() {
+        return <div className="modal fade" id="serverModalPwd" tabIndex="-1" role="dialog" aria-labelledby="serverModalPwdLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="serverModalPwdLabel">Contrase&ntilde;a de autoregistro</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>La contrase&ntilde;a de autoregistro permite a que se registren dispositivos nuevos desde el juego sin necesidad de introducir sus datos y su UUID manualmente, usando una contrase&ntilde;a que se ha de configurar.</p>
+                        <label>Contrase&ntilde;a</label>
+                        <input type="password" className="form-control" id="serverPwd" ref="pwd" placeholder="Contrase&ntilde;a" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onClick={this.aceptar}>OK</button>
                     </div>
                 </div>
             </div>

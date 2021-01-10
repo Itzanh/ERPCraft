@@ -1,5 +1,7 @@
 import { Component } from "react";
+import ReactDOM from 'react-dom';
 
+import FormAlert from "../FormAlert";
 import photoICO from './../../IMG/photo.svg';
 
 class EditArticulo extends Component {
@@ -26,6 +28,13 @@ class EditArticulo extends Component {
 
     componentDidMount() {
         window.$('#editArticuloModal').modal({ show: true });
+    }
+
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderArticulosModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderArticulosModalAlert'));
     }
 
     seleccionarImagen() {
@@ -55,8 +64,20 @@ class EditArticulo extends Component {
         articulo.minecraftID = this.refs.minecraftID.value;
         articulo.descripcion = this.refs.descripcion.value;
 
-        this.handleEdit(articulo);
-        window.$('#editArticuloModal').modal('hide');
+        if (articulo.name == null || articulo.name.length == "") {
+            this.showAlert("El nombre del articulo no puede estar vacío.");
+            return;
+        }
+        if (articulo.minecraftID == null || articulo.minecraftID.length == "") {
+            this.showAlert("El ID de Minecraft del articulo no puede estar vacío.");
+            return;
+        }
+
+        this.handleEdit(articulo).then(() => {
+            window.$('#editArticuloModal').modal('hide');
+        }, () => {
+            this.showAlert("No se ha podido guardar el articulo.");
+        });
     }
 
     quitarImagen() {
@@ -70,8 +91,8 @@ class EditArticulo extends Component {
     }
 
     render() {
-        return <div id="editArticuloModal" className="modal fade bd-example-modal-lg" tabIndex="-1" role="dialog" aria-labelledby="editArticuloModalLabel" aria-hidden="true">
-            <div className="modal-dialog modal-lg" role="document">
+        return <div id="editArticuloModal" className="modal fade bd-example-modal-xl" tabIndex="-1" role="dialog" aria-labelledby="editArticuloModalLabel" aria-hidden="true">
+            <div className="modal-dialog modal-xl" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
                         <h5 className="modal-title" id="editArticuloModalLabel">Editar art&iacute;culo {this.id}</h5>

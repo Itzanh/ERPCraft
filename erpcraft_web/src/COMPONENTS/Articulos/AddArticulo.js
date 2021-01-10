@@ -1,4 +1,7 @@
 import { Component } from "react";
+import ReactDOM from 'react-dom';
+
+import FormAlert from "../FormAlert";
 
 class AddArticulo extends Component {
     constructor({ handleAddArticulo }) {
@@ -13,14 +16,32 @@ class AddArticulo extends Component {
         window.$('#addArticuloModal').modal({ show: true });
     }
 
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderArticulosModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderArticulosModalAlert'));
+    }
+
     addArticulo() {
         const articulo = {};
         articulo.name = this.refs.name.value;
         articulo.minecraftID = this.refs.mine_id.value;
         articulo.descripcion = this.refs.dsc.value;
 
+        if (articulo.name == null || articulo.name.length == "") {
+            this.showAlert("El nombre del articulo no puede estar vacío.");
+            return;
+        }
+        if (articulo.minecraftID == null || articulo.minecraftID.length == "") {
+            this.showAlert("El ID de Minecraft del articulo no puede estar vacío.");
+            return;
+        }
+
         this.handleAddArticulo(articulo).then(() => {
             window.$('#addArticuloModal').modal('hide');
+        }, () => {
+            this.showAlert("No se ha podido guardar el articulo.");
         });
     }
 

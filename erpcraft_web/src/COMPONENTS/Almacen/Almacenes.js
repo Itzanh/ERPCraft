@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom';
 
 import './../../CSS/Almacen.css';
 
+import FormAlert from "../FormAlert";
 import inventarioIco from './../../IMG/inventario.png';
 
 class Almacenes extends Component {
     constructor({ getAlmacenes, getAlmacenInventario, almacenInventarioPush, getArticuloImg, tabAlmacenPush, handleAdd, handleEdit, handleDelete }) {
         super();
         this.almacen = null;
+        this.imgCache = {};
 
         this.getAlmacenes = getAlmacenes;
         this.getAlmacenInventario = getAlmacenInventario;
@@ -104,6 +106,18 @@ class Almacenes extends Component {
 
     };
 
+    getArticuloImgCache(idArticulo) {
+        return new Promise(async (resolve) => {
+            if (this.imgCache[idArticulo] != null) { // intentar obtener de cache local
+                resolve(this.imgCache[idArticulo]);
+            } else { // pedir al servidor y vovler a guardar en cache
+                const img = await this.getArticuloImg(idArticulo);
+                this.imgCache[idArticulo] = img;
+                resolve(img);
+            }
+        });
+    }
+
     async renderInventario(inventario) {
         await ReactDOM.unmountComponentAtNode(this.refs.renderSlots);
         ReactDOM.render(inventario.map((element, i) => {
@@ -119,7 +133,7 @@ class Almacenes extends Component {
             const articulo = inventario[i].articulo;
 
             if (articulo != null && articulo.id != 0) {
-                const img = await this.getArticuloImg(articulo.id);
+                const img = await this.getArticuloImgCache(articulo.id);
                 inventario[i].img = img;
             }
 
@@ -166,6 +180,7 @@ class Almacenes extends Component {
     render() {
         return <div id="tabAlmacenes">
             <div ref="renderModal" />
+            <div id="renderAlmacenModalAlert" />
             <h3><img src={inventarioIco} />Almac&eacute;n</h3>
             <div className="form-row" id="almColumnas">
                 <div className="col">
@@ -231,12 +246,32 @@ class AlmacenForm extends Component {
         window.$('#almacenModal').modal({ show: true });
     }
 
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderAlmacenModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderAlmacenModalAlert'));
+    }
+
+    isValidUUID(uuid) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+    }
+
     async aceptar() {
         const almacen = {};
         almacen.name = this.refs.name.value;
         almacen.uuid = this.refs.uuid.value;
         almacen.descripcion = this.refs.descripcion.value;
         almacen.off = this.refs.off.checked;
+
+        if (almacen.name == null || almacen.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return;
+        }
+        if (almacen.uuid == null || almacen.uuid.length == 0 || !this.isValidUUID(almacen.uuid)) {
+            this.showAlert("Debes escribir un UUID valido.");
+            return;
+        }
 
         if (this.almacen == null) {
             await this.handleAdd(almacen);

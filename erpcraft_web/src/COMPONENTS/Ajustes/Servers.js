@@ -133,6 +133,8 @@ class Servers extends Component {
     render() {
         return <div id="tabServers">
             <div id="renderServersModal"></div>
+            <div id="renderServersPwdModal"></div>
+            <div id="renderServersModalAlert"></div>
             <h3><img src={serverIco} />Servers</h3>
             <button type="button" className="btn btn-primary" onClick={this.crear}>Crear</button>
             <div className="form-row">

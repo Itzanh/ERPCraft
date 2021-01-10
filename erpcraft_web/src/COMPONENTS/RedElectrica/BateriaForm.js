@@ -1,5 +1,7 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
+
+import FormAlert from "../FormAlert";
 import BateriaHistorial from './BateriaHistorial'
 import { Line } from 'react-chartjs-2';
 
@@ -49,6 +51,17 @@ class BateriaForm extends Component {
     componentDidMount() {
         window.$('#bateriaModal').modal({ show: true });
         this.mostrarBateria();
+    }
+
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderRedElectricaModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderRedElectricaModalAlert'));
+    }
+
+    isValidUUID(uuid) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
     }
 
     formatDate(date) {
@@ -192,8 +205,29 @@ class BateriaForm extends Component {
         bateria.tipo = this.refs.tipo.value;
         bateria.descripcion = this.refs.dsc.value;
 
-        this.handleAdd(bateria).then(() => {
-            window.$('#bateriaModal').modal('hide');
+        if (bateria.name == null || bateria.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return;
+        }
+        if (bateria.uuid == null || bateria.uuid.length == 0) {
+            this.showAlert("Debes escribir un UUID valido.");
+            return;
+        }
+        if (bateria.cargaActual < 0) {
+            this.showAlert("La carga de la batería no puede ser inferior a 0.");
+            return;
+        }
+        if (bateria.capacidadElectrica <= 0) {
+            this.showAlert("La capacidad de la batería no puede ser 0 ni inferior.");
+            return;
+        }
+
+        this.handleAdd(bateria).then((id) => {
+            if (id > 0) {
+                window.$('#bateriaModal').modal('hide');
+            } else {
+                this.showAlert("No se ha podido guardar la batería.");
+            }
         });
     }
 
@@ -208,8 +242,27 @@ class BateriaForm extends Component {
         bateria.tipo = this.refs.tipo.value;
         bateria.descripcion = this.refs.dsc.value;
 
+        if (bateria.name == null || bateria.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return;
+        }
+        if (bateria.uuid == null || bateria.uuid.length == 0) {
+            this.showAlert("Debes escribir un UUID valido.");
+            return;
+        }
+        if (bateria.cargaActual < 0) {
+            this.showAlert("La carga de la batería no puede ser inferior a 0.");
+            return;
+        }
+        if (bateria.capacidadElectrica <= 0) {
+            this.showAlert("La capacidad de la batería no puede ser 0 ni inferior.");
+            return;
+        }
+
         this.handleUpdate(bateria).then(() => {
             window.$('#bateriaModal').modal('hide');
+        }, () => {
+            this.showAlert("No se ha podido guardar la batería.");
         });
     }
 

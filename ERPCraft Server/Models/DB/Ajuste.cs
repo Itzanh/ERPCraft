@@ -80,7 +80,7 @@ namespace ERPCraft_Server.Models.DB
             this.timeout = 30;
             this.puertoWeb = 32324;
             this.puertoOC = 32325;
-            this.hashIteraciones = 5000;
+            this.hashIteraciones = 250000;
         }
     }
 }

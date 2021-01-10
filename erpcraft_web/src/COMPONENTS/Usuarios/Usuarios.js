@@ -1,6 +1,7 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
+import FormAlert from "../FormAlert";
 import usersIco from './../../IMG/users.svg';
 import './../../CSS/Usuarios.css';
 
@@ -29,9 +30,10 @@ class Usuarios extends Component {
     render() {
         return <div id="tabUsuarios">
             <div id="renderUsuarioModal"></div>
+            <div id="renderUsuarioModalAlert"></div>
             <h3><img src={usersIco} />Usuarios</h3>
             <div className="input-group busqueda">
-                <input type="text" className="form-control" ref="bus" />
+                <input type="text" className="form-control" ref="bus" onChange={this.buscar} />
                 <div className="input-group-append">
                     <button type="button" className="btn btn-outline-success" onClick={this.buscar}>Buscar</button>
                 </div>
@@ -67,7 +69,26 @@ class UsuarioAddForm extends Component {
         window.$('#usuarioAddFormModal').modal({ show: true });
     }
 
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderUsuarioModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderUsuarioModalAlert'));
+    }
+
     aceptar() {
+        const name = this.refs.name.value;
+        const pwd = this.refs.pwd.value;
+
+        if (name == null || name.length == 0) {
+            this.showAlert("El nombre no puede estar vacio.");
+            return;
+        }
+        if (pwd == null || pwd.length == 0) {
+            this.showAlert("La contraseña no puede estar vacia.");
+            return;
+        }
+
         this.handleAdd(this.refs.name.value, this.refs.pwd.value).then(() => {
             window.$('#usuarioAddFormModal').modal('hide');
         });

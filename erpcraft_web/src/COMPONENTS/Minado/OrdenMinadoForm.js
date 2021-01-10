@@ -1,14 +1,16 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
+import FormAlert from "../FormAlert";
+import RobotLocalizador from "../Robots/RobotLocalizador";
+
+// IMG
+
 import queueIco from './../../IMG/orden_minado_estado/queue.svg';
 import readyIco from './../../IMG/orden_minado_estado/ready.svg';
 import runningIco from './../../IMG/orden_minado_estado/running.svg';
 import doneIco from './../../IMG/orden_minado_estado/done.svg';
 import flashlightIco from './../../IMG/flashlight.svg';
-import RobotLocalizador from "../Robots/RobotLocalizador";
-
-// IMG
 
 import stonePickaxeIco from './../../IMG/stone_pickaxe.png';
 import ironPickaxeIco from './../../IMG/iron_pickaxe.png';
@@ -61,6 +63,13 @@ class OrdenMinadoForm extends Component {
         this.robotName();
         this.getInventario();
     };
+
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderOrdenesMinadoModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderOrdenesMinadoModalAlert'));
+    }
 
     formatearFechaTiempo(fechaTiempo) {
         const fecha = new Date(fechaTiempo);
@@ -121,6 +130,9 @@ class OrdenMinadoForm extends Component {
         orden.name = this.refs.name.value;
         orden.size = parseInt(this.refs.size.value);
         orden.robot = parseInt(this.refs.robId.value);
+        if (orden.robot == 0) {
+            orden.robot = null;
+        }
         orden.gpsX = parseInt(this.refs.gpsX.value);
         orden.gpsY = parseInt(this.refs.gpsY.value);
         orden.gpsZ = parseInt(this.refs.gpsZ.value);
@@ -142,8 +154,23 @@ class OrdenMinadoForm extends Component {
         }
         orden.shutdown = this.refs.shutdown.checked;
 
+        if (orden.name == null || orden.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacío.");
+            return;
+        }
+        if (orden.size <= 0) {
+            this.showAlert("El tamaño de la minería debe de ser superior a 0.");
+            return;
+        }
+        if (orden.energiaRecarga <= 0) {
+            this.showAlert("La energía de recarga debe de ser mayor a 0.");
+            return;
+        }
+
         this.handleAdd(orden).then(() => {
             window.$('#ordenMinadoModal').modal('hide');
+        }, () => {
+            this.showAlert("No se ha podido guardar la orden de minado.");
         });
     };
 
@@ -174,8 +201,23 @@ class OrdenMinadoForm extends Component {
         }
         orden.shutdown = this.refs.shutdown.checked;
 
+        if (orden.name == null || orden.name.length == 0) {
+            this.showAlert("El nombre no puede estar vacío.");
+            return;
+        }
+        if (orden.size <= 0) {
+            this.showAlert("El tamaño de la minería debe de ser superior a 0.");
+            return;
+        }
+        if (orden.energiaRecarga <= 0) {
+            this.showAlert("La energía de recarga debe de ser mayor a 0.");
+            return;
+        }
+
         this.handleEdit(orden).then(() => {
             window.$('#ordenMinadoModal').modal('hide');
+        }, () => {
+            this.showAlert("No se ha podido guardar la orden de minado.");
         });
     };
 

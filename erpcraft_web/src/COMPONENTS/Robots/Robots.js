@@ -58,7 +58,7 @@ class Robots extends Component {
             <div ref="renderRobotModal"></div>
             <h3><img src={robotIco} />Robots</h3>
             <div className="input-group busqueda">
-                <input type="text" className="form-control" ref="name" />
+                <input type="text" className="form-control" ref="name" onChange={this.buscar} />
                 <div className="input-group-append">
                     <button type="button" className="btn btn-outline-success" onClick={this.buscar}>Buscar</button>
                 </div>

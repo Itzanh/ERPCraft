@@ -31,7 +31,7 @@ class RobotsTabla extends Component {
                     energiaActual={element.energiaActual}
 
                     handleEdit={() => {
-                        this.editarRobot(element);
+                        this.editarRobot(element, i);
                     }}
                 />
             })

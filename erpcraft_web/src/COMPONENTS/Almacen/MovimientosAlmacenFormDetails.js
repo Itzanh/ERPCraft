@@ -17,7 +17,6 @@ class MovimientosAlmacenFormDetails extends Component {
 
     aceptar() {
         const movimientoAlmacen = this.movimiento;
-        console.log(this.movimiento);
         movimientoAlmacen.descripcion = this.refs.dsc.value;
 
         this.updateMovimientoAlmacen(movimientoAlmacen);

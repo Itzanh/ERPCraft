@@ -34,7 +34,7 @@ class RedesElectricas extends Component {
         return <div id="tabRedElectrica">
             <h3><img src={electricoIco} />Redes El&eacute;ctricas</h3>
             <div className="input-group busqueda">
-                <input type="text" className="form-control" ref="bus" aria-label="" />
+                <input type="text" className="form-control" ref="bus" aria-label="" onChange={this.buscar} />
                 <div className="input-group-append">
                     <button type="button" className="btn btn-outline-success" onClick={this.buscar}>Buscar</button>
                 </div>

@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom';
 import robotIco from './../../IMG/robot.png';
 import RobotLogs from "./RobotLogs";
 import RobotComposicion from "./RobotComposicion";
+import RobotTerminal from "./RobotTerminal";
+import FormAlert from "../FormAlert";
 
 // IMG
 import onlineIco from './../../IMG/robot_estado/online.svg';
@@ -11,7 +13,7 @@ import minandoIco from './../../IMG/robot_estado/minando.png';
 import offlineIco from './../../IMG/robot_estado/offline.svg';
 import conPerdidaIco from './../../IMG/robot_estado/con_perdida.svg';
 import sinBateriaIco from './../../IMG/robot_estado/sin_bateria.svg';
-import RobotTerminal from "./RobotTerminal";
+
 
 const estadosRobot = {
     "O": "Online",
@@ -30,10 +32,15 @@ const imagenEstadosRobot = {
 };
 
 class RobotForm extends Component {
-    constructor({ robot, handleCancelar, handleAddRobot, handleEditRobot, handleEliminar, handleLogs, handleDeleteLogs, handleClearLogs, handleComando }) {
+    constructor({ robot, robotChange, handleCancelar, handleAddRobot, handleEditRobot, handleEliminar, handleLogs, handleDeleteLogs, handleClearLogs, handleComando }) {
         super();
 
         this.robot = robot;
+        if (robot != null) {
+            this.robotChange = this.robotChange.bind(this);
+            robotChange(this.robotChange);
+            this.handleRobotChange = robotChange;
+        }
 
         this.handleCancelar = handleCancelar;
         this.handleAddRobot = handleAddRobot;
@@ -47,6 +54,7 @@ class RobotForm extends Component {
         this.calcularPorcentajeBateria = this.calcularPorcentajeBateria.bind(this);
         this.eliminarPrompt = this.eliminarPrompt.bind(this);
         this.guardarRobot = this.guardarRobot.bind(this);
+        this.guardar = this.guardar.bind(this);
         this.eliminar = this.eliminar.bind(this);
         this.terminal = this.terminal.bind(this);
         this.aceptar = this.aceptar.bind(this);
@@ -57,10 +65,48 @@ class RobotForm extends Component {
         this.calcularPorcentajeBateria();
     }
 
+    componentWillUnmount() {
+        this.handleRobotChange(null);
+    }
+
     calcularPorcentajeBateria() {
         const porcentaje = Math.floor((parseInt(this.refs.energiaActual.value) / parseInt(this.refs.totalEnergia.value)) * 100) + '%';
         this.refs.barraBateria.style.width = porcentaje;
         this.refs.barraBateria.innerText = porcentaje;
+    }
+
+    robotChange(robot) {
+        if (robot == null) {
+            this.handleCancelar();
+            return;
+        }
+
+        this.robot = robot;
+        this.refs.name.value = this.robot.name;
+        this.refs.uuid.value = this.robot.uuid;
+        this.refs.tier.value = this.robot.tier;
+        this.refs.totalEnergia.value = this.robot.totalEnergia;
+        this.refs.energiaActual.value = this.robot.energiaActual;
+        this.refs.upgradeGenerador.checked = this.robot.upgradeGenerador;
+        this.refs.itemsGenerador.value = this.robot.itemsGenerador;
+        this.refs.numeroSlots.value = this.robot.numeroSlots;
+        this.refs.numeroStacks.value = this.robot.numeroStacks;
+        this.refs.numeroItems.value = this.robot.numeroItems;
+        this.refs.upgradeGps.checked = this.robot.upgradeGps;
+        this.refs.offX.value = this.robot.offsetPosX;
+        this.refs.offY.value = this.robot.offsetPosY;
+        this.refs.offZ.value = this.robot.offsetPosZ;
+        this.refs.posX.value = this.robot.posX;
+        this.refs.posY.value = this.robot.posY;
+        this.refs.posZ.value = this.robot.posZ;
+        this.refs.descripcion.value = this.robot.descripcion;
+        this.refs.off.checked = this.robot.off;
+        this.refs.dateAdd.value = this.formatearFechaTiempo(this.robot.dateAdd);
+        this.refs.dateUpd.value = this.formatearFechaTiempo(this.robot.dateUpd);
+        this.refs.fechaConexion.value = this.formatearFechaTiempo(this.robot.fechaConexion);
+        this.refs.fechaDesconexion.value = this.formatearFechaTiempo(this.robot.fechaDesconexion);
+        this.refs.estado.innerText = estadosRobot[this.robot.estado];
+        this.refs.estadoImg.src = imagenEstadosRobot[this.robot.estado];
     }
 
     getRobot() {
@@ -91,28 +137,95 @@ class RobotForm extends Component {
         return robot;
     }
 
-    guardarRobot() {
-        this.robot = this.getRobot();
-        if (this.robot && this.robot.id == 0) { // creación del robot
-            this.handleAddRobot(this.robot).then((response) => {
-                this.robot.id = response;
-                if (this.refs.id) {
-                    this.refs.id.innerText = "ID: " + response;
-                }
-            }, () => {
-                alert("No se ha podido añadir el robot");
-            });
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderRobotFormModalError'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderRobotFormModalError'));
+    }
 
-        } else { // modificación del robot
-            this.handleEditRobot(this.robot).then(null, () => {
-                alert("No se ha podido guardar el robot");
-            });
+    isValidUUID(uuid) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+    }
+
+    robotIsValid(robot) {
+        if (robot.name == null || robot.name.length == 0) {
+            this.showAlert("Debes especificar un nombre para poder continuar.");
+            return false;
         }
+        if (robot.uuid == null || robot.uuid.length == 0 || !this.isValidUUID(robot.uuid)) {
+            this.showAlert("Debes especificar un UUID válido.");
+            return false;
+        }
+        if (robot.tier < 1 || robot.tier > 3) {
+            this.showAlert("El tier del robot está entre 1 y 3.");
+            return false;
+        }
+        if (robot.numeroSlots < 0) {
+            this.showAlert("El mínimo de slots es 0.");
+            return false;
+        }
+        if (robot.totalEnergia < 0) {
+            this.showAlert("El total de energía debe de ser mayor que 0.");
+            return false;
+        }
+        if (robot.energiaActual < 0) {
+            this.showAlert("El mínimo de energía del robot es de 0.");
+            return false;
+        }
+        if (robot.itemsGenerador < 0) {
+            this.showAlert("Los ñitems del generador deben ser 0 como mínimo.");
+            return false;
+        }
+        return true;
+    }
+
+    guardarRobot() {
+        return new Promise((resolve, reject) => {
+            this.robot = this.getRobot();
+            if (!this.robotIsValid(this.robot)) {
+                reject(false);
+                return;
+            }
+
+            if (this.robot && this.robot.id == 0) { // creación del robot
+                this.handleAddRobot(this.robot).then((response) => {
+                    this.robot.id = response;
+                    if (this.refs.id) {
+                        this.refs.id.innerText = "ID: " + response;
+                    }
+                    resolve();
+                }, () => {
+                    reject(true);
+                });
+
+            } else { // modificación del robot
+                this.handleEditRobot(this.robot).then(() => {
+                    resolve();
+                }, () => {
+                    reject(true);
+                });
+            }
+        });
+
+    }
+
+    guardar() {
+        this.guardarRobot().then(null, (showError) => { // error
+            if (showError) {
+                this.showAlert("No se ha podido guardar el robot. Revisa que todos los datos sean correctos y que se pueda conectar con el servidor.");
+            }
+        });
     }
 
     aceptar() {
-        this.guardarRobot();
-        this.handleCancelar();
+        this.guardarRobot().then(() => { // ok
+            this.handleCancelar();
+        }, (showError) => { // error
+            if (showError) {
+                this.showAlert("No se ha podido guardar el robot. Revisa que todos los datos sean correctos y que se pueda conectar con el servidor.");
+            }
+        });
     }
 
     eliminarPrompt() {
@@ -171,6 +284,7 @@ class RobotForm extends Component {
     render() {
         return <div id="editRobot">
             <div id="renderRobotFormModal"></div>
+            <div id="renderRobotFormModalError"></div>
             <div id="robotTitle">
                 <img src={robotIco} />
                 <h3>Robot</h3>
@@ -226,11 +340,11 @@ class RobotForm extends Component {
                         </div>
                         <div className="col">
                             <label>N&uacute;mero de stacks usados</label>
-                            <input type="number" className="form-control" readOnly defaultValue={this.robot != null ? this.robot.numeroStacks : '0'} />
+                            <input type="number" className="form-control" ref="numeroStacks" readOnly defaultValue={this.robot != null ? this.robot.numeroStacks : '0'} />
                         </div>
                         <div className="col">
                             <label>&Iacute;tems en el inventario</label>
-                            <input type="number" className="form-control" readOnly defaultValue={this.robot != null ? this.robot.numeroItems : '0'} />
+                            <input type="number" className="form-control" ref="numeroItems" readOnly defaultValue={this.robot != null ? this.robot.numeroItems : '0'} />
                         </div>
                     </div>
 
@@ -242,24 +356,24 @@ class RobotForm extends Component {
                         <div className="form-row">
                             <div className="col">
                                 <label>Fecha de creaci&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.dateAdd) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="dateAdd" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.dateAdd) : ''} readOnly={true} />
                             </div>
                             <div className="col">
                                 <label>Fecha de modificaci&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.dateUpd) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="dateUpd" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.dateUpd) : ''} readOnly={true} />
                             </div>
                             <div className="col">
-                                <p><img src={imagenEstadosRobot[this.robot != null ? this.robot.estado : 'F']} />{estadosRobot[this.robot != null ? this.robot.estado : 'F']}</p>
+                                <p ref="estado"><img ref="estadoImg" src={imagenEstadosRobot[this.robot != null ? this.robot.estado : 'F']} />{estadosRobot[this.robot != null ? this.robot.estado : 'F']}</p>
                             </div>
                         </div>
                         <div className="form-row">
                             <div className="col">
                                 <label>Fecha de conexi&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.fechaConexion) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="fechaConexion" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.fechaConexion) : ''} readOnly={true} />
                             </div>
                             <div className="col">
                                 <label>Fecha de desconexi&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.fechaDesconexion) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="fechaDesconexion" defaultValue={this.robot != null ? this.formatearFechaTiempo(this.robot.fechaDesconexion) : ''} readOnly={true} />
                             </div>
                             <div className="col">
                                 <input type="checkbox" defaultChecked={this.robot != null && this.robot.off} ref="off" />
@@ -328,7 +442,7 @@ class RobotForm extends Component {
                 <button type="button" className="btn btn-dark" onClick={this.terminal}>Terminal</button>
                 <button type="button" className="btn btn-dark" onClick={this.composicion}>Ensamblador</button>
 
-                <button type="button" className="btn btn-primary" onClick={this.guardarRobot}>Guardar</button>
+                <button type="button" className="btn btn-primary" onClick={this.guardar}>Guardar</button>
                 <button type="button" className="btn btn-success" onClick={this.aceptar}>Aceptar</button>
                 <button type="button" className="btn btn-light" onClick={this.handleCancelar}>Cancelar</button>
             </div>
@@ -379,8 +493,8 @@ class RobotFormDeleteConfirm extends Component {
             </div>
         </div>
     }
-}
-
-
+};
 
 export default RobotForm;
+
+

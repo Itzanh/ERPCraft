@@ -30,7 +30,7 @@ namespace ERPCraft_Server.Models.DB.Almacen
 
         public bool isValid()
         {
-            return !(almacen <= 0 || articulo <= 0 || cantidad <= 0 || descripcion == null);
+            return !(almacen <= 0 || articulo <= 0 || cantidad == 0 || descripcion == null);
         }
     }
 

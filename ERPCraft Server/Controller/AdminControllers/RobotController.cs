@@ -92,7 +92,7 @@ namespace ERPCraft_Server.Controller.AdminControllers
             {
                 robot = (Robot)JsonConvert.DeserializeObject(message, typeof(Robot));
             }
-            catch (Exception e) { Console.WriteLine(e); return "ERR"; }
+            catch (Exception) { return "ERR"; }
             if (robot == null || !robot.isValid())
                 return "ERR";
 

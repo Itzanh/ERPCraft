@@ -57,7 +57,9 @@ namespace ERPCraft_Server.Controller.AdminControllers
             {
                 orden = (OrdenMinado)JsonConvert.DeserializeObject(message, typeof(OrdenMinado));
             }
-            catch (Exception) { return "ERR"; }
+            catch (Exception e) { Console.WriteLine(e.ToString()); return "ERR"; }
+            if (orden == null || !orden.isValid())
+                Console.WriteLine("INVALID!");
             if (orden == null || !orden.isValid())
                 return "ERR";
 

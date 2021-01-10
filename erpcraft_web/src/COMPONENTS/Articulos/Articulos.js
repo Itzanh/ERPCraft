@@ -13,8 +13,11 @@ class Articulos extends Component {
         this.handleAddArticulo = handleAddArticulo;
         this.handleSearch = handleSearch;
 
+        this.busTimer = null;
+
         this.addArticulo = this.addArticulo.bind(this);
         this.buscar = this.buscar.bind(this);
+        this.buscarAuto = this.buscarAuto.bind(this);
     }
 
     addArticulo() {
@@ -25,15 +28,32 @@ class Articulos extends Component {
     }
 
     buscar() {
+        if (this.busTimer != null) {
+            clearTimeout(this.busTimer);
+            this.busTimer = null;
+        }
+
         this.handleSearch(this.refs.bus.value);
+    }
+
+    buscarAuto() {
+        if (this.busTimer != null) {
+            clearTimeout(this.busTimer);
+            this.busTimer = null;
+        }
+
+        this.busTimer = setTimeout(() => {
+            this.buscar();
+        }, 400);
     }
 
     render() {
         return <div id="tabArticulos">
             <div id="renderArticulosModal"></div>
+            <div id="renderArticulosModalAlert"></div>
             <h3><img src={articulosIco} />Articulos</h3>
             <div className="input-group busqueda">
-                <input type="text" className="form-control" ref="bus" />
+                <input type="text" className="form-control" ref="bus" onChange={this.buscarAuto} />
                 <div className="input-group-append">
                     <button type="button" className="btn btn-outline-success" onClick={this.buscar}>Buscar</button>
                 </div>

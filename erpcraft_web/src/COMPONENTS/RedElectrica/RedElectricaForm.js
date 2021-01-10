@@ -2,13 +2,18 @@ import { Component } from "react";
 import ReactDOM from 'react-dom';
 
 import electricoIco from './../../IMG/electrico.svg';
+
 import Generador from "./Generador";
 import Bateria from "./Bateria";
+
 import GeneradorForm from "./GeneradorForm";
 import BateriaForm from "./BateriaForm";
 
+import FormAlert from "../FormAlert";
+
+
 class RedElectricaForm extends Component {
-    constructor({ red, generadoresChange, bateriasChange, handleRedesElectricas, handleAddRedElectrica, handleEditRedElectrica, handleDeleteRedElectrica,
+    constructor({ red, redChange, generadoresChange, bateriasChange, handleRedesElectricas, handleAddRedElectrica, handleEditRedElectrica, handleDeleteRedElectrica,
         handleGetBateriaHistorial, handleAddGeneradorRedElectrica, handleUpdateGeneradorRedElectrica, handleDeleteGeneradorRedElectrica,
         handleAddBateriaRedElectrica, handleUpdateBateriaRedElectrica, handleDeleteBateriaRedElectrica }) {
         super();
@@ -44,16 +49,49 @@ class RedElectricaForm extends Component {
         this.handleGetBateriaHistorial = handleGetBateriaHistorial;
 
         // tiempo real
-        this.generadoresChange = this.generadoresChange.bind(this);
-        generadoresChange(this.generadoresChange);
+        if (red) {
+            this.redChange = this.redChange.bind(this);
+            redChange(this.redChange);
+            this.handleRedChange = redChange;
 
-        this.bateriasChange = this.bateriasChange.bind(this);
-        bateriasChange(this.bateriasChange);
+            this.generadoresChange = this.generadoresChange.bind(this);
+            generadoresChange(this.generadoresChange);
+            this.handleGeneradoresChange = generadoresChange;
+
+            this.bateriasChange = this.bateriasChange.bind(this);
+            bateriasChange(this.bateriasChange);
+            this.handleBateriasChange = bateriasChange;
+        }
 
         this.aceptar = this.aceptar.bind(this);
         this.handleAddGenerador = this.handleAddGenerador.bind(this);
         this.handleAddBateria = this.handleAddBateria.bind(this);
         this.eliminarRedElectrica = this.eliminarRedElectrica.bind(this);
+    }
+
+    componentWillUnmount() {
+        this.handleRedChange(null);
+        this.handleGeneradoresChange(null);
+        this.handleBateriasChange(null);
+    }
+
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderRedElectricaModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderRedElectricaModalAlert'));
+    }
+
+    redChange(redElectrica) {
+        if (redElectrica == null) {
+            this.handleRedesElectricas();
+            return;
+        }
+        this.red = redElectrica;
+        this.refs.name.value = redElectrica.name;
+        this.refs.energiaActual.value = redElectrica.energiaActual;
+        this.refs.capacidadElectrica.value = redElectrica.capacidadElectrica;
+        this.refs.pb.style.width = Math.floor((redElectrica.energiaActual / redElectrica.capacidadElectrica) * 100) + "%";
     }
 
     generadoresChange(generadores) {
@@ -118,6 +156,11 @@ class RedElectricaForm extends Component {
     }
 
     handleAddGenerador() {
+        if (!this.red) {
+            this.showAlert("Crea la red eléctrica antes de poder crear un generador.");
+            return;
+        }
+
         ReactDOM.unmountComponentAtNode(document.getElementById('renderRedElectricaModal'));
         ReactDOM.render(<GeneradorForm
             idRedElectrica={this.red.id}
@@ -136,6 +179,11 @@ class RedElectricaForm extends Component {
     }
 
     handleAddBateria() {
+        if (!this.red) {
+            this.showAlert("Crea la red eléctrica antes de poder crear una batería.");
+            return;
+        }
+
         ReactDOM.unmountComponentAtNode(document.getElementById('renderRedElectricaModal'));
         ReactDOM.render(<BateriaForm
             idRedElectrica={this.red.id}
@@ -168,6 +216,11 @@ class RedElectricaForm extends Component {
         red.name = this.refs.name.value;
         red.descripcion = "";
 
+        if (red.name == null || red.name.length == 0) {
+            this.showAlert("El nombre de la red eléctrica no puede estar vacío.");
+            return;
+        }
+
         this.handleAddRedElectrica(red).then(() => {
             this.handleRedesElectricas();
         });
@@ -178,6 +231,11 @@ class RedElectricaForm extends Component {
         red.id = this.red.id;
         red.name = this.refs.name.value;
         red.descripcion = "";
+
+        if (red.name == null || red.name.length == 0) {
+            this.showAlert("El nombre de la red eléctrica no puede estar vacío.");
+            return;
+        }
 
         this.handleEditRedElectrica(red).then(() => {
             this.handleRedesElectricas();
@@ -201,6 +259,7 @@ class RedElectricaForm extends Component {
     render() {
         return <div id="redElectricaForm">
             <div id="renderRedElectricaModal"></div>
+            <div id="renderRedElectricaModalAlert"></div>
             <div id="redElectricaTitle">
                 <img src={electricoIco} />
                 <h3>Red el&eacute;ctrica</h3>
@@ -222,7 +281,7 @@ class RedElectricaForm extends Component {
                 </div>
                 <div className="col">
                     <div className="progress">
-                        <div className="progress-bar" role="progressbar" style={{ 'width': this.porcentaje + '%' }} aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                        <div className="progress-bar" role="progressbar" ref="pb" style={{ 'width': this.porcentaje + '%' }} aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
                             {this.porcentaje}%
                         </div>
                     </div>

@@ -179,22 +179,8 @@ class OrdenesMinado extends Component {
 
             localizarRobots={this.localizarRobots}
             getRobotName={this.getRobotName}
-            handleEdit={(orden) => {
-                return new Promise((resolve) => {
-                    this.handleEdit(orden).then(() => {
-                        resolve();
-                        this.renderOrdenes();
-                    });
-                });
-            }}
-            handleDelete={(ordenId) => {
-                return new Promise((resolve) => {
-                    this.handleDelete(ordenId).then(() => {
-                        resolve();
-                        this.renderOrdenes();
-                    });
-                });
-            }}
+            handleEdit={this.handleEdit}
+            handleDelete={this.handleDelete}
             handleInventario={this.handleInventario}
             ordenMinadoInventarioPush={this.ordenMinadoInventarioPush}
             getOrdenMinadoInventarioArticuloImg={this.getOrdenMinadoInventarioArticuloImg}
@@ -229,14 +215,7 @@ class OrdenesMinado extends Component {
         ReactDOM.render(<OrdenMinadoForm
 
             localizarRobots={this.localizarRobots}
-            handleAdd={(orden) => {
-                return new Promise((resolve) => {
-                    this.handleAdd(orden).then(() => {
-                        resolve();
-                        this.renderOrdenes();
-                    });
-                });
-            }}
+            handleAdd={this.handleAdd}
 
         />, document.getElementById("renderOrdenesMinadoModal"));
     }
@@ -245,6 +224,7 @@ class OrdenesMinado extends Component {
         return <div id="tabOrdenesMinado">
             <div id="renderOrdenesMinadoModal"></div>
             <div id="renderOrdenesMinadoLocalizarRobot"></div>
+            <div id="renderOrdenesMinadoModalAlert"></div>
             <h3><img src={minandoIco} />&Oacute;rdenes de minado</h3>
             <div className="form-row" id="OrdenesMinadoBusqueda">
                 <div className="col">

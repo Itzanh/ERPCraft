@@ -209,6 +209,11 @@ async function tabRobots() {
             case 1: { // update
                 for (var i = 0; i < robots.length; i++) {
                     if (robots[i].id === pos) {
+                        newRobot.robotChange = robots[i].robotChange;
+                        if (robots[i].robotChange != null) {
+                            robots[i].robotChange(newRobot);
+                        }
+
                         robots[i] = newRobot;
                         break;
                     }
@@ -219,6 +224,10 @@ async function tabRobots() {
             case 2: { // delete
                 for (var i = 0; i < robots.length; i++) {
                     if (robots[i].id === pos) {
+                        if (robots[i].robotChange != null) {
+                            robots[i].robotChange(null);
+                        }
+
                         robots.splice(i, 1);
                         break;
                     }
@@ -241,11 +250,17 @@ function buscarRobots(query) {
 }
 
 function renderRobots(robots, view = 1) {
+    if (!document.getElementById('robotTabla')) {
+        return;
+    }
+
     if (view == 1) {
         ReactDOM.unmountComponentAtNode(document.getElementById('robotTabla'));
         ReactDOM.render(<RobotsTabla
             robots={robots}
-            editarRobot={editarRobot}
+            editarRobot={(robot, i) => {
+                editarRobot(robot, robots, i);
+            }}
         />, document.getElementById('robotTabla'));
     } else if (view == 2) {
         ReactDOM.unmountComponentAtNode(document.getElementById('robotTabla'));
@@ -256,10 +271,13 @@ function renderRobots(robots, view = 1) {
     }
 };
 
-async function editarRobot(robot) {
+async function editarRobot(robot, robots, i) {
     ReactDOM.unmountComponentAtNode(document.getElementById('renderTab'));
     await ReactDOM.render(<RobotForm
         robot={robot}
+        robotChange={(callback) => {
+            robots[i].robotChange = callback;
+        }}
         handleCancelar={tabRobots}
         handleEditRobot={updateRobot}
         handleEliminar={deleteRobot}
@@ -600,8 +618,8 @@ function searchUsuarios(text) {
     }
 };
 
-function renderUsuarios(usuarios) {
-    ReactDOM.unmountComponentAtNode(document.getElementById('renderUsuarios'));
+async function renderUsuarios(usuarios) {
+    await ReactDOM.unmountComponentAtNode(document.getElementById('renderUsuarios'));
     ReactDOM.render(
         usuarios.map((element, i) => {
             return <Usuario
@@ -657,9 +675,13 @@ function deleteUsuario(id) {
 };
 
 function pwdUsuario(id, pwdActual, pwdNuevo) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('usuarios', 'pwd', JSON.stringify({ id, pwdActual, pwdNuevo }), (_, response) => {
-            resolve();
+            if (response == 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };
@@ -801,9 +823,13 @@ async function renderArticulos(articulos) {
 };
 
 function addArticulo(articulo) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('articulos', 'add', JSON.stringify(articulo), (_, response) => {
-            resolve();
+            if (response === "OK") {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };
@@ -846,9 +872,13 @@ function articuloQuitarImagen(id) {
 };
 
 function updateArticulo(articulo) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('articulos', 'edit', JSON.stringify(articulo), (_, response) => {
-            resolve();
+            if (response === 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };
@@ -922,6 +952,12 @@ function getRedElectrica() {
                         if (redes[i].id === pos) {
                             newRedElectrica.generadoresChange = redes[i].generadoresChange;
                             newRedElectrica.bateriasChange = redes[i].bateriasChange;
+
+                            newRedElectrica.redChange = redes[i].redChange;
+                            if (redes[i].redChange != null) {
+                                redes[i].redChange(newRedElectrica);
+                            }
+
                             redes[i] = newRedElectrica;
                             break;
                         }
@@ -932,6 +968,11 @@ function getRedElectrica() {
                 case 2: { // delete
                     for (var i = 0; i < redes.length; i++) {
                         if (redes[i].id === pos) {
+
+                            if (redes[i].redChange != null) {
+                                redes[i].redChange(null);
+                            }
+
                             redes.splice(i, 1);
                             break;
                         }
@@ -1102,6 +1143,9 @@ function editarRedElectrica(red) {
     ReactDOM.render(<RedElectricaForm
         // red
         red={red}
+        redChange={(callback) => {
+            red.redChange = callback;
+        }}
         generadoresChange={(callback) => {
             red.generadoresChange = callback;
         }}
@@ -1159,9 +1203,13 @@ function addGeneradorRedElectrica(generador) {
 };
 
 function updateGeneradorRedElectrica(generador) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('electrico', 'updateGenerador', JSON.stringify(generador), (_, response) => {
-            resolve(response == "OK");
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };
@@ -1185,9 +1233,13 @@ function addBateriaRedElectrica(bateria) {
 };
 
 function updateBateriaRedElectrica(bateria) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('electrico', 'updateBateria', JSON.stringify(bateria), (_, response) => {
-            resolve(response == "OK");
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };
@@ -1281,17 +1333,25 @@ function getOrdenesMinado(query) {
 };
 
 function addOrdenesMinado(orden) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('ordenMinado', 'add', JSON.stringify(orden), (_, response) => {
-            resolve();
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };
 
 function updateOrdenesMinado(orden) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('ordenMinado', 'update', JSON.stringify(orden), (_, response) => {
-            resolve();
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };
@@ -1522,12 +1582,7 @@ function deleteServer(uuid) {
     });
 };
 
-function pwdAutoregServer(uuid) {
-    const pwd = prompt('Introduce la nueva contraseña');
-    if (pwd == null || pwd.length == 0)
-        return;
-
-    console.log({ uuid, pwd });
+function pwdAutoregServer(uuid, pwd) {
     client.emit('server', 'pwd', JSON.stringify({ uuid, pwd }), (_, response) => {
         console.log(response);
     });
@@ -1645,6 +1700,11 @@ function getDrones() {
                 case 1: { // update
                     for (var i = 0; i < drones.length; i++) {
                         if (drones[i].id === pos) {
+                            newDrone.droneChange = drones[i].droneChange;
+                            if (drones[i].droneChange != null) {
+                                drones[i].droneChange(newDrone);
+                            }
+
                             drones[i] = newDrone;
                             break;
                         }
@@ -1655,6 +1715,10 @@ function getDrones() {
                 case 2: { // delete
                     for (var i = 0; i < drones.length; i++) {
                         if (drones[i].id === pos) {
+                            if (drones[i].droneChange != null) {
+                                drones[i].droneChange(null);
+                            }
+
                             drones.splice(i, 1);
                             break;
                         }
@@ -1678,6 +1742,10 @@ function searchDrone(text) {
 };
 
 function renderDrones(drones) {
+    if (!document.getElementById('renderDrones')) {
+        return;
+    }
+
     ReactDOM.unmountComponentAtNode(document.getElementById('renderDrones'));
     ReactDOM.render(
         drones.map((element, i) => {
@@ -1716,6 +1784,9 @@ async function editarDrone(drone) {
     ReactDOM.render(<DroneForm
         drone={drone}
 
+        droneChange={(callback) => {
+            drone.droneChange = callback;
+        }}
         handleCancelar={tabDrones}
         handleAddDrone={addDrone}
         handleEditDrone={updateDrone}
@@ -2100,9 +2171,13 @@ function localizarAlmacenes() {
 };
 
 function addMovimientoAlmacen(movAlmacen) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         client.emit('movAlmacen', 'add', JSON.stringify(movAlmacen), (_, response) => {
-            resolve(response);
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 };

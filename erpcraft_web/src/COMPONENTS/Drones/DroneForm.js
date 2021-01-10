@@ -2,6 +2,8 @@ import { Component } from "react";
 import ReactDOM from 'react-dom';
 
 import droneIco from './../../IMG/drone.png';
+import DroneLogs from "./DroneLogs";
+import FormAlert from "../FormAlert";
 
 // IMG
 import onlineIco from './../../IMG/robot_estado/online.svg';
@@ -9,7 +11,7 @@ import minandoIco from './../../IMG/robot_estado/minando.png';
 import offlineIco from './../../IMG/robot_estado/offline.svg';
 import conPerdidaIco from './../../IMG/robot_estado/con_perdida.svg';
 import sinBateriaIco from './../../IMG/robot_estado/sin_bateria.svg';
-import DroneLogs from "./DroneLogs";
+
 
 const estadosDrone = {
     "O": "Online",
@@ -28,10 +30,15 @@ const imagenEstadosDrone = {
 };
 
 class DroneForm extends Component {
-    constructor({ drone, handleCancelar, handleAddDrone, handleEditDrone, handleEliminar, handleLogs, handleDeleteLogs, handleClearLogs }) {
+    constructor({ drone, droneChange, handleCancelar, handleAddDrone, handleEditDrone, handleEliminar, handleLogs, handleDeleteLogs, handleClearLogs }) {
         super();
 
         this.drone = drone;
+        if (drone != null) {
+            this.droneChange = this.droneChange.bind(this);
+            droneChange(this.droneChange);
+            this.handleDroneChange = droneChange;
+        }
 
         this.handleCancelar = handleCancelar;
         this.handleAddDrone = handleAddDrone;
@@ -43,7 +50,8 @@ class DroneForm extends Component {
 
         this.calcularPorcentajeBateria = this.calcularPorcentajeBateria.bind(this);
         this.eliminarPrompt = this.eliminarPrompt.bind(this);
-        this.guardarRobot = this.duardarDrone.bind(this);
+        this.guardarRobot = this.guardarDrone.bind(this);
+        this.guardar = this.guardar.bind(this);
         this.eliminar = this.eliminar.bind(this);
         this.aceptar = this.aceptar.bind(this);
         this.logs = this.logs.bind(this);
@@ -53,10 +61,48 @@ class DroneForm extends Component {
         this.calcularPorcentajeBateria();
     }
 
+    componentWillUnmount() {
+        this.handleDroneChange(null);
+    }
+
     calcularPorcentajeBateria() {
         const porcentaje = Math.floor((parseInt(this.refs.energiaActual.value) / parseInt(this.refs.totalEnergia.value)) * 100) + '%';
         this.refs.barraBateria.style.width = porcentaje;
         this.refs.barraBateria.innerText = porcentaje;
+    }
+
+    droneChange(drone) {
+        if (drone == null) {
+            this.handleCancelar();
+            return;
+        }
+
+        this.drone = drone;
+        this.refs.name.value = this.drone.name;
+        this.refs.uuid.value = this.drone.uuid;
+        this.refs.tier.value = this.drone.tier;
+        this.refs.totalEnergia.value = this.drone.totalEnergia;
+        this.refs.energiaActual.value = this.drone.energiaActual;
+        this.refs.upgradeGenerador.checked = this.drone.upgradeGenerador;
+        this.refs.itemsGenerador.value = this.drone.itemsGenerador;
+        this.refs.numeroSlots.value = this.drone.numeroSlots;
+        this.refs.numeroStacks.value = this.drone.numeroStacks;
+        this.refs.numeroItems.value = this.drone.numeroItems;
+        this.refs.upgradeGps.checked = this.drone.upgradeGps;
+        this.refs.offX.value = this.drone.offsetPosX;
+        this.refs.offY.value = this.drone.offsetPosY;
+        this.refs.offZ.value = this.drone.offsetPosZ;
+        this.refs.posX.value = this.drone.posX;
+        this.refs.posY.value = this.drone.posY;
+        this.refs.posZ.value = this.drone.posZ;
+        this.refs.descripcion.value = this.drone.descripcion;
+        this.refs.off.checked = this.drone.off;
+        this.refs.dateAdd.value = this.formatearFechaTiempo(this.drone.dateAdd);
+        this.refs.dateUpd.value = this.formatearFechaTiempo(this.drone.dateUpd);
+        this.refs.fechaConexion.value = this.formatearFechaTiempo(this.drone.fechaConexion);
+        this.refs.fechaDesconexion.value = this.formatearFechaTiempo(this.drone.fechaDesconexion);
+        this.refs.estado.innerText = estadosDrone[this.drone.estado];
+        this.refs.estadoImg.src = imagenEstadosDrone[this.drone.estado];
     }
 
     getDrone() {
@@ -87,28 +133,94 @@ class DroneForm extends Component {
         return drone;
     }
 
-    duardarDrone() {
-        this.drone = this.getDrone();
-        if (this.drone && this.drone.id == 0) { // creación del drone
-            this.handleAddDrone(this.drone).then((response) => {
-                this.drone.id = response;
-                if (this.refs.id) {
-                    this.refs.id.innerText = "ID: " + response;
-                }
-            }, () => {
-                alert("No se ha podido añadir el drone");
-            });
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderDroneFormModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderDroneFormModalAlert'));
+    }
 
-        } else { // modificación del robot
-            this.handleEditDrone(this.drone).then(null, () => {
-                alert("No se ha podido guardar el drone");
-            });
+    isValidUUID(uuid) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+    }
+
+    droneIsValid(drone) {
+        if (drone.name == null || drone.name.length == 0) {
+            this.showAlert("Debes especificar un nombre para poder continuar.");
+            return false;
         }
+        if (drone.uuid == null || drone.uuid.length == 0 || !this.isValidUUID(drone.uuid)) {
+            this.showAlert("Debes especificar un UUID válido.");
+            return false;
+        }
+        if (drone.tier < 1 || drone.tier > 3) {
+            this.showAlert("El tier del robot está entre 1 y 3.");
+            return false;
+        }
+        if (drone.numeroSlots < 0) {
+            this.showAlert("El mínimo de slots es 0.");
+            return false;
+        }
+        if (drone.totalEnergia < 0) {
+            this.showAlert("El total de energía debe de ser mayor que 0.");
+            return false;
+        }
+        if (drone.energiaActual < 0) {
+            this.showAlert("El mínimo de energía del robot es de 0.");
+            return false;
+        }
+        if (drone.itemsGenerador < 0) {
+            this.showAlert("Los ñitems del generador deben ser 0 como mínimo.");
+            return false;
+        }
+        return true;
+    }
+
+    guardarDrone() {
+        return new Promise((resolve, reject) => {
+            this.drone = this.getDrone();
+            if (!this.droneIsValid(this.drone)) {
+                reject(false);
+                return;
+            }
+
+            if (this.drone && this.drone.id == 0) { // creación del drone
+                this.handleAddDrone(this.drone).then((response) => {
+                    this.drone.id = response;
+                    if (this.refs.id) {
+                        this.refs.id.innerText = "ID: " + response;
+                    }
+                    resolve();
+                }, () => {
+                    reject(true);
+                });
+
+            } else { // modificación del robot
+                this.handleEditDrone(this.drone).then(() => {
+                    resolve();
+                }, () => {
+                    reject(true);
+                });
+            }
+        });
+    }
+
+    guardar() {
+        this.guardarDrone().then(null, (showError) => { // error
+            if (showError) {
+                this.showAlert("No se ha podido guardar el drone. Revisa que todos los datos sean correctos y que se pueda conectar con el servidor.");
+            }
+        });
     }
 
     aceptar() {
-        this.duardarDrone();
-        this.handleCancelar();
+        this.guardarDrone().then(() => { // ok
+            this.handleCancelar();
+        }, (showError) => { // error
+            if (showError) {
+                this.showAlert("No se ha podido guardar el drone. Revisa que todos los datos sean correctos y que se pueda conectar con el servidor.");
+            }
+        });
     }
 
     eliminarPrompt() {
@@ -151,6 +263,7 @@ class DroneForm extends Component {
     render() {
         return <div id="editDrone">
             <div id="renderDroneFormModal"></div>
+            <div id="renderDroneFormModalAlert"></div>
             <div id="droneTitle">
                 <img src={droneIco} />
                 <h3>Drone</h3>
@@ -206,11 +319,11 @@ class DroneForm extends Component {
                         </div>
                         <div className="col">
                             <label>N&uacute;mero de stacks usados</label>
-                            <input type="number" className="form-control" readOnly defaultValue={this.drone != null ? this.drone.numeroStacks : '0'} />
+                            <input type="number" className="form-control" ref="numeroStacks" readOnly defaultValue={this.drone != null ? this.drone.numeroStacks : '0'} />
                         </div>
                         <div className="col">
                             <label>&Iacute;tems en el inventario</label>
-                            <input type="number" className="form-control" readOnly defaultValue={this.drone != null ? this.drone.numeroItems : '0'} />
+                            <input type="number" className="form-control" ref="numeroItems" readOnly defaultValue={this.drone != null ? this.drone.numeroItems : '0'} />
                         </div>
                     </div>
 
@@ -222,24 +335,24 @@ class DroneForm extends Component {
                         <div className="form-row">
                             <div className="col">
                                 <label>Fecha de creaci&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.dateAdd) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="dateAdd" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.dateAdd) : ''} readOnly={true} />
                             </div>
                             <div className="col">
                                 <label>Fecha de modificaci&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.dateUpd) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="dateUpd" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.dateUpd) : ''} readOnly={true} />
                             </div>
                             <div className="col">
-                                <p><img src={imagenEstadosDrone[this.drone != null ? this.drone.estado : 'F']} />{estadosDrone[this.drone != null ? this.drone.estado : 'F']}</p>
+                                <p ref="estado"><img ref="estadoImg" src={imagenEstadosDrone[this.drone != null ? this.drone.estado : 'F']} />{estadosDrone[this.drone != null ? this.drone.estado : 'F']}</p>
                             </div>
                         </div>
                         <div className="form-row">
                             <div className="col">
                                 <label>Fecha de conexi&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.fechaConexion) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="fechaConexion" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.fechaConexion) : ''} readOnly={true} />
                             </div>
                             <div className="col">
                                 <label>Fecha de desconexi&oacute;n</label>
-                                <input type="text" className="form-control" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.fechaDesconexion) : ''} readOnly={true} />
+                                <input type="text" className="form-control" ref="fechaDesconexion" defaultValue={this.drone != null ? this.formatearFechaTiempo(this.drone.fechaDesconexion) : ''} readOnly={true} />
                             </div>
                             <div className="col">
                                 <input type="checkbox" defaultChecked={this.drone != null && this.drone.off} ref="off" />
@@ -306,7 +419,7 @@ class DroneForm extends Component {
                 <button type="button" className="btn btn-danger" onClick={this.eliminarPrompt}>Borrar</button>
                 <button type="button" className="btn btn-dark" onClick={this.logs}>Logs</button>
 
-                <button type="button" className="btn btn-primary" onClick={this.duardarDrone}>Guardar</button>
+                <button type="button" className="btn btn-primary" onClick={this.guardar}>Guardar</button>
                 <button type="button" className="btn btn-success" onClick={this.aceptar}>Aceptar</button>
                 <button type="button" className="btn btn-light" onClick={this.handleCancelar}>Cancelar</button>
             </div>

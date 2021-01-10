@@ -16,6 +16,13 @@ class RobotTerminal extends Component {
         window.$('#robotTerminalModal').modal({ show: true });
     }
 
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderRobotFormModalError'));
+        ReactDOM.render(<RobotFormAlert
+            txt={txt}
+        />, document.getElementById('renderRobotFormModalError'));
+    }
+
     enviar() {
         if (this.refs.comando.value == "")
             return;
@@ -37,7 +44,7 @@ class RobotTerminal extends Component {
             this.refs.comando.value = "";
 
         }, () => {
-            alert("ERROR!");
+            this.showAlert("No se puede enviar el comando, asegurate de que el robot sigue online");
         });
     }
 
@@ -103,6 +110,39 @@ class RobotTerminalLog extends Component {
             <th scope="col">{this.formatearFechaTiempo(this.date)}</th>
             <td>{this.command}</td>
         </tr>
+    }
+};
+
+class RobotFormAlert extends Component {
+    constructor({ txt }) {
+        super();
+
+        this.txt = txt;
+    }
+
+    componentDidMount() {
+        window.$('#robotFormAlert').modal({ show: true });
+    }
+
+    render() {
+        return <div class="modal fade" tabIndex="-1" role="robotFormAlert" id="robotFormAlert" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="robotFormDeleteConfirmLabel">Error</h5>
+                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <p>{this.txt}</p>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 };
 

@@ -22,7 +22,7 @@ class Drones extends Component {
         return <div id="tabDrones">
             <h3><img src={droneIco} />Drones</h3>
             <div className="input-group busqueda">
-                <input type="text" className="form-control" ref="bus" />
+                <input type="text" className="form-control" ref="bus" onChange={this.buscar} />
                 <div className="input-group-append">
                     <button type="button" className="btn btn-outline-success" onClick={this.buscar}>Buscar</button>
                 </div>

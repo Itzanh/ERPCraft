@@ -5,6 +5,8 @@ import movimientosIco from './../../IMG/movimientos.png';
 import flashlightIco from './../../IMG/flashlight.svg';
 
 import './../../CSS/MovimientosAlmacen.css';
+
+import FormAlert from "../FormAlert";
 import ArticuloLocalizador from "../Articulos/ArticuloLocalizador";
 import AlmacenLocalizador from "./AlmacenLocalizador";
 
@@ -81,6 +83,7 @@ class MovimientosAlmacen extends Component {
         return <div id="tabMovimientoAlmacen">
             <div id="renderMovimientoModal"></div>
             <div id="renderMovimientoLocalizador"></div>
+            <div id="renderMovimientoModalAlert"></div>
             <h3><img src={movimientosIco} />Movimientos de almac&eacute;n</h3>
             <div className="form-row" id="OrdenesMinadoBusqueda">
                 <div className="col">
@@ -151,6 +154,13 @@ class MovimientosAlmacenForm extends Component {
         window.$('#movimientoAlmacenForm').modal({ show: true });
     }
 
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderMovimientoModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderMovimientoModalAlert'));
+    }
+
     localizarAlmacen() {
         ReactDOM.unmountComponentAtNode(document.getElementById("renderMovimientoLocalizador"));
         ReactDOM.render(<AlmacenLocalizador
@@ -182,8 +192,24 @@ class MovimientosAlmacenForm extends Component {
         movimientoAlmacen.cantidad = parseInt(this.refs.cant.value);
         movimientoAlmacen.descripcion = this.refs.dsc.value;
 
-        this.addMovimientoAlmacen(movimientoAlmacen);
-        window.$('#movimientoAlmacenForm').modal('hide');
+        if (movimientoAlmacen.almacen <= 0) {
+            this.showAlert("No se ha seleccionado un almacen.");
+            return;
+        }
+        if (movimientoAlmacen.articulo <= 0) {
+            this.showAlert("No se ha seleccionado un articulo.");
+            return;
+        }
+        if (movimientoAlmacen.cantidad == 0) {
+            this.showAlert("La cantidad no puede ser 0.");
+            return;
+        }
+
+        this.addMovimientoAlmacen(movimientoAlmacen).then(() => {
+            window.$('#movimientoAlmacenForm').modal('hide');
+        }, () => {
+            this.showAlert("No se ha podido dar de alta el movimiento de almacen.");
+        });
     }
 
     render() {
@@ -210,7 +236,7 @@ class MovimientosAlmacenForm extends Component {
                             <input type="text" ref="artName" className="form-control" readOnly={true} />
                         </div>
                         <label>Cantidad</label>
-                        <input type="number" ref="cant" className="form-control" />
+                        <input type="number" ref="cant" className="form-control" defaultValue={0} />
                         <label>Descripci&oacute;n</label>
                         <textarea rows="5" ref="dsc" className="form-control"></textarea>
                     </div>
