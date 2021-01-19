@@ -59,7 +59,7 @@ class OrdenMinadoForm extends Component {
         window.$('#ordenMinadoModal').modal({ show: true });
         window.$(function () {
             window.$('[data-toggle="tooltip"]').tooltip()
-        })
+        });
         this.robotName();
         this.getInventario();
     };
@@ -166,6 +166,7 @@ class OrdenMinadoForm extends Component {
             this.showAlert("La energía de recarga debe de ser mayor a 0.");
             return;
         }
+        orden.notificacion = this.refs.notificacion.checked;
 
         this.handleAdd(orden).then(() => {
             window.$('#ordenMinadoModal').modal('hide');
@@ -213,6 +214,7 @@ class OrdenMinadoForm extends Component {
             this.showAlert("La energía de recarga debe de ser mayor a 0.");
             return;
         }
+        orden.notificacion = this.refs.notificacion.checked;
 
         this.handleEdit(orden).then(() => {
             window.$('#ordenMinadoModal').modal('hide');
@@ -382,6 +384,8 @@ class OrdenMinadoForm extends Component {
                                     </label>
                                 </div>
                                 <input type="number" className="form-control" ref="energiaRecarga" min="0" defaultValue={this.orden != null ? this.orden.energiaRecarga : 10} />
+                                <input type="checkbox" ref="notificacion" defaultChecked={this.orden != null ? this.orden.notificacion : false} />
+                                <label>&iquest;Notificaci&oacute;n?</label>
                             </div>
                             <div className="col">
                                 <div className="btn-group btn-group-toggle" data-toggle="buttons">

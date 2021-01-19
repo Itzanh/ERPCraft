@@ -102,4 +102,55 @@ namespace ERPCraft_Server.Models.DB.Almacen
             this.uuid = rdr.GetGuid(2);
         }
     }
+
+    public class AlmacenInventarioNotificacion
+    {
+        public short idAlmacen;
+        public short id;
+        public string name;
+        public short idArticulo;
+        /// <summary>
+        /// <,>,=,-,+
+        /// < menor que
+        /// > mayor que
+        /// = igual
+        /// - menor o igual que
+        /// + mayor o igual que
+        /// </summary>
+        public char modo;
+        public int cantidad;
+
+        public AlmacenInventarioNotificacion()
+        {
+        }
+
+        public AlmacenInventarioNotificacion(NpgsqlDataReader rdr)
+        {
+            this.idAlmacen = rdr.GetInt16(0);
+            this.id = rdr.GetInt16(1);
+            this.name = rdr.GetString(2);
+            this.idArticulo = rdr.GetInt16(3);
+            this.modo = rdr.GetChar(4);
+            this.cantidad = rdr.GetInt32(5);
+        }
+
+        public bool isValid()
+        {
+            if (modo != '<' && modo != '>' && modo != '=' && modo != '-' && modo != '+')
+                return false;
+
+            return !(idAlmacen <= 0 || name == null || name.Length == 0 || idArticulo <= 0 || cantidad < 0);
+        }
+    }
+
+    public class AlmacenInventarioNotificacionDelete
+    {
+        public short idAlmacen;
+        public short id;
+
+        public bool isValid()
+        {
+            return !(idAlmacen <= 0 || id <= 0);
+        }
+    }
 }

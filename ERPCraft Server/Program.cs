@@ -63,7 +63,7 @@ namespace ERPCraft_Server
             db.createDB();
             initDb();
 
-            websocketPubSub = new PubSub(new string[] { "robots", "articulos", "articulosImg", "electrico", "generador", "bateria", "ordenMinado", "almacen", "drones", "usuarios", "config", "apiKeys", "servers" });
+            websocketPubSub = new PubSub(new string[] { "robots", "articulos", "articulosImg", "electrico", "generador", "bateria", "ordenMinado", "almacen", "drones", "usuarios", "config", "apiKeys", "servers", "notificaciones" });
 
             // gestio administrativa remota. crear el objecte que controal la gestio remota, 
             // conectar el listener, i rebre les connexions el altre fil

@@ -13,6 +13,7 @@ namespace ERPCraft_Server.Models.DB.Electrico
         public bool activado;
         public char tipo;
         public string descripcion;
+        public bool notificacion;
 
         public Generador()
         {
@@ -28,6 +29,7 @@ namespace ERPCraft_Server.Models.DB.Electrico
             this.activado = rdr.GetBoolean(5);
             this.tipo = rdr.GetChar(6);
             this.descripcion = rdr.GetString(7);
+            this.notificacion = rdr.GetBoolean(8);
         }
 
         public bool isValid()

@@ -8,13 +8,13 @@ namespace ERPCraft_Server.Models.DB
         public string name;
         public bool activado;
         public bool limpiarRobotGps;
-        public short horasRobotGps;
+        public short diasRobotGps;
         public bool limpiarRobotLogs;
-        public short horasRobotLogs;
+        public short diasRobotLogs;
         public bool limpiarDroneGps;
-        public short horasDroneGps;
+        public short diasDroneGps;
         public bool limpiarDroneLogs;
-        public short horasDroneLogs;
+        public short diasDroneLogs;
         public bool limpiarBateriaHistorial;
         public short horasBateriaHistorial;
         public bool vacuumLimpiar;
@@ -24,6 +24,8 @@ namespace ERPCraft_Server.Models.DB
         public int puertoWeb;
         public int puertoOC;
         public int hashIteraciones;
+        public bool limpiarNotificaciones;
+        public short horasNotificaciones;
 
         public Ajuste()
         {
@@ -36,13 +38,13 @@ namespace ERPCraft_Server.Models.DB
             this.name = rdr.GetString(1);
             this.activado = rdr.GetBoolean(2);
             this.limpiarRobotGps = rdr.GetBoolean(3);
-            this.horasRobotGps = rdr.GetInt16(4);
+            this.diasRobotGps = rdr.GetInt16(4);
             this.limpiarRobotLogs = rdr.GetBoolean(5);
-            this.horasRobotLogs = rdr.GetInt16(6);
+            this.diasRobotLogs = rdr.GetInt16(6);
             this.limpiarDroneGps = rdr.GetBoolean(7);
-            this.horasDroneGps = rdr.GetInt16(8);
+            this.diasDroneGps = rdr.GetInt16(8);
             this.limpiarDroneLogs = rdr.GetBoolean(9);
-            this.horasDroneLogs = rdr.GetInt16(10);
+            this.diasDroneLogs = rdr.GetInt16(10);
             this.limpiarBateriaHistorial = rdr.GetBoolean(11);
             this.horasBateriaHistorial = rdr.GetInt16(12);
             this.vacuumLimpiar = rdr.GetBoolean(13);
@@ -52,13 +54,15 @@ namespace ERPCraft_Server.Models.DB
             this.puertoWeb = rdr.GetInt32(17);
             this.puertoOC = rdr.GetInt32(18);
             this.hashIteraciones = rdr.GetInt32(19);
+            this.limpiarNotificaciones = rdr.GetBoolean(20);
+            this.horasNotificaciones = rdr.GetInt16(21);
         }
 
         public bool isValid()
         {
             if (this.name == null || this.name.Length == 0)
                 return false;
-            if (this.horasRobotGps < 0 || this.horasRobotLogs < 0 || this.horasDroneGps < 0 || this.horasDroneLogs < 0
+            if (this.diasRobotGps < 0 || this.diasRobotLogs < 0 || this.diasDroneGps < 0 || this.diasDroneLogs < 0
                 || this.horasBateriaHistorial < 0 || this.puertoWeb < 1 || this.puertoWeb > 65535 || this.puertoOC < 1
                 || this.puertoOC > 65535 || this.hashIteraciones < 1 || this.hashIteraciones > 500000)
                 return false;
@@ -75,12 +79,15 @@ namespace ERPCraft_Server.Models.DB
             this.id = 1;
             this.name = "Configuración general";
             this.activado = true;
+            this.vacuumLimpiar = true;
             this.reindexLimpiar = true;
             this.pingInterval = 5;
             this.timeout = 30;
             this.puertoWeb = 32324;
             this.puertoOC = 32325;
             this.hashIteraciones = 250000;
+            this.limpiarNotificaciones = true;
+            this.horasNotificaciones = 48;
         }
     }
 }

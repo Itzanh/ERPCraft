@@ -27,6 +27,7 @@ namespace ERPCraft_Server.Models.DB.Robots
         public short energiaRecarga;
         public char modoMinado;
         public bool shutdown;
+        public bool notificacion;
 
         public OrdenMinado()
         {
@@ -65,6 +66,7 @@ namespace ERPCraft_Server.Models.DB.Robots
             this.energiaRecarga = rdr.GetInt16(19);
             this.modoMinado = rdr.GetChar(20);
             this.shutdown = rdr.GetBoolean(21);
+            this.notificacion = rdr.GetBoolean(22);
         }
 
         /// <summary>

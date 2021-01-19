@@ -13,8 +13,8 @@ namespace ERPCraft_Server.Models.DB.Robots
         public short numeroStacks;
         public short numeroItems;
         public char estado;
-        public short totalEnergia;
-        public short energiaActual;
+        public int totalEnergia;
+        public int energiaActual;
         public bool upgradeGenerador;
         public short itemsGenerador;
         public DateTime fechaConexion;
@@ -31,6 +31,9 @@ namespace ERPCraft_Server.Models.DB.Robots
         public short offsetPosX;
         public short offsetPosY;
         public short offsetPosZ;
+        public bool notificacionConexion;
+        public bool notificacionDesconexion;
+        public bool notificacionBateriaBaja;
 
         public Robot()
         {
@@ -47,8 +50,8 @@ namespace ERPCraft_Server.Models.DB.Robots
             this.numeroStacks = rdr.GetInt16(5);
             this.numeroItems = rdr.GetInt16(6);
             this.estado = rdr.GetChar(7);
-            this.totalEnergia = rdr.GetInt16(8);
-            this.energiaActual = rdr.GetInt16(9);
+            this.totalEnergia = rdr.GetInt32(8);
+            this.energiaActual = rdr.GetInt32(9);
             this.upgradeGenerador = rdr.GetBoolean(10);
             this.itemsGenerador = rdr.GetInt16(11);
             this.fechaConexion = rdr.GetDateTime(12);
@@ -65,6 +68,9 @@ namespace ERPCraft_Server.Models.DB.Robots
             this.offsetPosX = rdr.GetInt16(23);
             this.offsetPosY = rdr.GetInt16(24);
             this.offsetPosZ = rdr.GetInt16(25);
+            this.notificacionConexion = rdr.GetBoolean(26);
+            this.notificacionDesconexion = rdr.GetBoolean(27);
+            this.notificacionBateriaBaja = rdr.GetBoolean(28);
         }
 
         public bool isValid()

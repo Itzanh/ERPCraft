@@ -31,6 +31,9 @@ namespace ERPCraft_Server.Models.DB.Drones
         public DateTime dateAdd;
         public DateTime dateUpd;
         public bool off;
+        public bool notificacionConexion;
+        public bool notificacionDesconexion;
+        public bool notificacionBateriaBaja;
 
         public Drone()
         {
@@ -65,6 +68,9 @@ namespace ERPCraft_Server.Models.DB.Drones
             this.offsetPosX = rdr.GetInt16(23);
             this.offsetPosY = rdr.GetInt16(24);
             this.offsetPosZ = rdr.GetInt16(25);
+            this.notificacionConexion = rdr.GetBoolean(26);
+            this.notificacionDesconexion = rdr.GetBoolean(27);
+            this.notificacionBateriaBaja = rdr.GetBoolean(28);
         }
 
         public bool isValid()

@@ -2,6 +2,7 @@
 using ERPCraft_Server.Storage;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace ERPCraft_Server.Controller.AdminControllers
 {
@@ -16,6 +17,10 @@ namespace ERPCraft_Server.Controller.AdminControllers
                         return getOrdenesMinado(db, message);
                     }
                 case "add":
+                    {
+                        return addOrdenMinado(db, message);
+                    }
+                case "addArray":
                     {
                         return addOrdenesMinado(db, message);
                     }
@@ -50,20 +55,42 @@ namespace ERPCraft_Server.Controller.AdminControllers
             return JsonConvert.SerializeObject(db.getOrdenesDeMinado(query.estado, query.robot));
         }
 
-        private static string addOrdenesMinado(DBStorage db, string message)
+        private static string addOrdenMinado(DBStorage db, string message)
         {
             OrdenMinado orden;
             try
             {
                 orden = (OrdenMinado)JsonConvert.DeserializeObject(message, typeof(OrdenMinado));
             }
-            catch (Exception e) { Console.WriteLine(e.ToString()); return "ERR"; }
-            if (orden == null || !orden.isValid())
-                Console.WriteLine("INVALID!");
+            catch (Exception) { return "ERR"; }
             if (orden == null || !orden.isValid())
                 return "ERR";
 
             return db.addOrdenesDeMinado(orden) ? "OK" : "ERR";
+        }
+
+        private static string addOrdenesMinado(DBStorage db, string message)
+        {
+            List<OrdenMinado> ordenes;
+            try
+            {
+                ordenes = (List<OrdenMinado>)JsonConvert.DeserializeObject(message, typeof(List<OrdenMinado>));
+            }
+            catch (Exception) { return "ERR"; }
+            foreach (OrdenMinado orden in ordenes)
+            {
+                if (orden == null)
+                    return "ERR";
+
+                orden.descripcion = string.Empty;
+                orden.unidadRecarga = '%';
+                orden.energiaRecarga = 10;
+
+                if (!orden.isValid())
+                    return "ERR";
+            }
+
+            return db.addOrdenesDeMinado(ordenes) ? "OK" : "ERR";
         }
 
         private static string updateOrdenesMinado(DBStorage db, string message)

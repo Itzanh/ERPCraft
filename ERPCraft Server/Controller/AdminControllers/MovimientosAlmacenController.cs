@@ -5,7 +5,7 @@ using System;
 
 namespace ERPCraft_Server.Controller.AdminControllers
 {
-    public class MovimientosAlmacenController
+    public static class MovimientosAlmacenController
     {
         public static string movimientosAlmacenCommands(DBStorage db, string command, string message)
         {

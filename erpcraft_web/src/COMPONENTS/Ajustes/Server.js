@@ -1,13 +1,14 @@
 import { Component } from "react";
 
 class Server extends Component {
-    constructor({ uuid, name, online, ultimaConexion, handleEdit }) {
+    constructor({ uuid, name, online, ultimaConexion, dateAdd, handleEdit }) {
         super();
 
         this.uuid = uuid;
         this.name = name;
         this.online = online;
         this.ultimaConexion = this.formatearFechaTiempo(new Date(ultimaConexion));
+        this.dateAdd = this.formatearFechaTiempo(new Date(dateAdd));
 
         this.handleEdit = handleEdit;
     }
@@ -28,6 +29,7 @@ class Server extends Component {
             <td>{this.name}</td>
             <td>{this.online ? "Si" : "No"}</td>
             <td>{this.ultimaConexion}</td>
+            <td>{this.dateAdd}</td>
         </tr>
     }
 };

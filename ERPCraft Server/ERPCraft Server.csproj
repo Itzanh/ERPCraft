@@ -137,6 +137,7 @@
     <Compile Include="Controller\AdminControllers\ArticulosController.cs" />
     <Compile Include="Controller\AdminControllers\DroneController.cs" />
     <Compile Include="Controller\AdminControllers\MovimientosAlmacenController.cs" />
+    <Compile Include="Controller\AdminControllers\NotificacionesController.cs" />
     <Compile Include="Controller\AdminControllers\OrdenMinadoController.cs" />
     <Compile Include="Controller\AdminControllers\RedElectricaController.cs" />
     <Compile Include="Controller\AdminControllers\RobotController.cs" />
@@ -156,6 +157,7 @@
     <Compile Include="Models\DB\Electrico\Bateria.cs" />
     <Compile Include="Models\DB\Electrico\Generador.cs" />
     <Compile Include="Models\DB\Electrico\RedElectrica.cs" />
+    <Compile Include="Models\DB\Notificacion.cs" />
     <Compile Include="Models\DB\Robots\OrdenMinado.cs" />
     <Compile Include="Models\DB\Robots\Robot.cs" />
     <Compile Include="Models\DB\Robots\RobotGPS.cs" />
@@ -184,6 +186,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="a1e13481235f776467c7c2bde4d041ac.ico" />
+    <Content Include="Embedded\db_upgrade_1.sql" />
     <EmbeddedResource Include="Embedded\db_create.sql" />
   </ItemGroup>
   <ItemGroup>

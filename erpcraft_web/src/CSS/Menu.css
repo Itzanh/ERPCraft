@@ -50,3 +50,19 @@ div#mainScreen nav div#navbarNav ul li:nth-child(8) div.dropdown-menu a:nth-chil
     height: 40px;
     margin: -10px;
 }
+
+div#mainScreen nav form.form-inline.my-2.my-lg-0 img {
+    height: 40px;
+}
+
+div#mainScreen nav form.form-inline.my-2.my-lg-0 h3 {
+    color: red;
+}
+
+/* NOTIFICACIONES */
+
+div#mainScreen div#notificacionesModal tr.noLeido {
+    border-left-width: 5px;
+    border-left-style: solid;
+    border-left-color: blue;
+}

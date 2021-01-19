@@ -13,6 +13,8 @@ namespace ERPCraft_Server.Models.DB.Electrico
         public long cargaActual;
         public string descripcion;
         public char tipo;
+        public bool notificacion;
+        public long cargaNotificacion;
 
         public Bateria()
         {
@@ -28,6 +30,8 @@ namespace ERPCraft_Server.Models.DB.Electrico
             this.cargaActual = rdr.GetInt64(5);
             this.descripcion = rdr.GetString(6);
             this.tipo = rdr.GetChar(7);
+            this.notificacion = rdr.GetBoolean(8);
+            this.cargaNotificacion = rdr.GetInt64(9);
         }
 
         public bool isValid()

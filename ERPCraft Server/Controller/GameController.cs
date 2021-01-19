@@ -191,7 +191,7 @@ namespace ERPCraft_Server.Controller
                     for (int j = server.robots.Count - 1; j >= 0; j--)
                     {
                         DeviceController robot = server.robots[j];
-                        server.db.updateRobotOffline(robot.uuid);
+                        server.db.updateRobotOffline(robot.uuid, true);
                         server.db.stopRobotOrdenMinado(Guid.Parse(robot.uuid));
                         server.robots.RemoveAt(j);
                     }
@@ -311,6 +311,11 @@ namespace ERPCraft_Server.Controller
                         comandoRobGps(uuid, msg, server.db);
                         break;
                     }
+                case "robBat":
+                    {
+                        comandoRobBat(uuid, msg, server.db);
+                        break;
+                    }
                 // ÓRDENES DE MINADO
                 case "robOrdenMinado":
                     {
@@ -395,7 +400,7 @@ namespace ERPCraft_Server.Controller
 
             try
             {
-                db.autoRegisterRobot(serveruuid, data[0], uuid, data[1], Int16.Parse(data[2]), Int16.Parse(data[3]), Int16.Parse(data[4]), data[5].Equals("1"),
+                db.autoRegisterRobot(serveruuid, data[0], uuid, data[1], Int16.Parse(data[2]), Int32.Parse(data[3]), Int32.Parse(data[4]), data[5].Equals("1"),
                     Int16.Parse(data[6]), data[7].Equals("1"), Int16.Parse(data[8]), Int16.Parse(data[9]), Int16.Parse(data[10]));
             }
             catch (Exception) { return; }
@@ -412,7 +417,7 @@ namespace ERPCraft_Server.Controller
             try
             {
                 db.updateRobotOnline(uuid, data[0],
-                Int16.Parse(data[1]), Int16.Parse(data[2]), Int16.Parse(data[3]), Int16.Parse(data[4]), Int16.Parse(data[5]));
+                Int32.Parse(data[1]), Int32.Parse(data[2]), Int16.Parse(data[3]), Int16.Parse(data[4]), Int16.Parse(data[5]));
             }
             catch (Exception) { return; }
         }
@@ -467,6 +472,18 @@ namespace ERPCraft_Server.Controller
                 }
                 catch (Exception) { return; }
             }
+        }
+
+        private static void comandoRobBat(string uuid, string msg, DBStorage db)
+        {
+            int energiaActual;
+            try
+            {
+                energiaActual = Int32.Parse(msg);
+            }
+            catch (Exception) { return; }
+
+            db.updateRobotBateria(uuid, energiaActual);
         }
 
         // ÓRDENES DE MINADO

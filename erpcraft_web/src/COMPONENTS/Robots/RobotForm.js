@@ -59,6 +59,9 @@ class RobotForm extends Component {
         this.terminal = this.terminal.bind(this);
         this.aceptar = this.aceptar.bind(this);
         this.logs = this.logs.bind(this);
+        this.composicion = this.composicion.bind(this);
+        this.notificaciones = this.notificaciones.bind(this);
+        this.notificacionesChange = this.notificacionesChange.bind(this);
     }
 
     componentDidMount() {
@@ -66,7 +69,9 @@ class RobotForm extends Component {
     }
 
     componentWillUnmount() {
-        this.handleRobotChange(null);
+        if (this.handleRobotChange != null) {
+            this.handleRobotChange(null);
+        }
     }
 
     calcularPorcentajeBateria() {
@@ -133,6 +138,11 @@ class RobotForm extends Component {
         robot.offsetPosY = parseInt(this.refs.offY.value);
         robot.offsetPosZ = parseInt(this.refs.offZ.value);
         robot.off = this.refs.off.checked;
+        if (this.robot != null) {
+            robot.notificacionConexion = this.robot.notificacionConexion;
+            robot.notificacionDesconexion = this.robot.notificacionDesconexion;
+            robot.notificacionBateriaBaja = this.robot.notificacionBateriaBaja;
+        }
 
         return robot;
     }
@@ -246,6 +256,9 @@ class RobotForm extends Component {
     }
 
     logs() {
+        if (this.robot == null) {
+            return;
+        }
         ReactDOM.unmountComponentAtNode(document.getElementById('renderRobotFormModal'));
         ReactDOM.render(<RobotLogs
             idRobot={this.robot.id}
@@ -256,6 +269,9 @@ class RobotForm extends Component {
     }
 
     terminal() {
+        if (this.robot == null) {
+            return;
+        }
         ReactDOM.unmountComponentAtNode(document.getElementById('renderRobotFormModal'));
         ReactDOM.render(<RobotTerminal
             handleEnviar={(comando) => {
@@ -265,6 +281,9 @@ class RobotForm extends Component {
     }
 
     composicion() {
+        if (this.robot == null) {
+            return;
+        }
         ReactDOM.unmountComponentAtNode(document.getElementById('renderRobotFormModal'));
         ReactDOM.render(<RobotComposicion
 
@@ -279,6 +298,25 @@ class RobotForm extends Component {
             + fecha.getHours() + ':'
             + fecha.getMinutes() + ':'
             + fecha.getSeconds();
+    }
+
+    notificaciones() {
+        if (this.robot == null) {
+            return;
+        }
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderRobotFormModal'));
+        ReactDOM.render(<RobotNotificacionModal
+            notificacionConexion={this.robot.notificacionConexion}
+            notificacionDesconexion={this.robot.notificacionDesconexion}
+            notificacionBateriaBaja={this.robot.notificacionBateriaBaja}
+            notificacionesChange={this.notificacionesChange}
+        />, document.getElementById('renderRobotFormModal'));
+    }
+
+    notificacionesChange(notificacionConexion, notificacionDesconexion, notificacionBateriaBaja) {
+        this.robot.notificacionConexion = notificacionConexion;
+        this.robot.notificacionDesconexion = notificacionDesconexion;
+        this.robot.notificacionBateriaBaja = notificacionBateriaBaja;
     }
 
     render() {
@@ -440,6 +478,7 @@ class RobotForm extends Component {
                 <button type="button" className="btn btn-danger" onClick={this.eliminarPrompt}>Borrar</button>
                 <button type="button" className="btn btn-dark" onClick={this.logs}>Logs</button>
                 <button type="button" className="btn btn-dark" onClick={this.terminal}>Terminal</button>
+                <button type="button" className="btn btn-dark" onClick={this.notificaciones}>Notificaciones</button>
                 <button type="button" className="btn btn-dark" onClick={this.composicion}>Ensamblador</button>
 
                 <button type="button" className="btn btn-primary" onClick={this.guardar}>Guardar</button>
@@ -488,6 +527,57 @@ class RobotFormDeleteConfirm extends Component {
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                         <button type="button" className="btn btn-danger" onClick={this.eliminar}>Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
+
+class RobotNotificacionModal extends Component {
+    constructor({ notificacionConexion, notificacionDesconexion, notificacionBateriaBaja, notificacionesChange }) {
+        super();
+
+        this.notificacionConexion = notificacionConexion;
+        this.notificacionDesconexion = notificacionDesconexion;
+        this.notificacionBateriaBaja = notificacionBateriaBaja;
+
+        this.notificacionesChange = notificacionesChange;
+
+        this.aceptar = this.aceptar.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#robotNotificacionModal').modal({ show: true });
+    }
+
+    aceptar() {
+        this.notificacionesChange(
+            this.refs.notificacionConexion.checked, this.refs.notificacionDesconexion.checked, this.refs.notificacionBateriaBaja.checked);
+    }
+
+    render() {
+        return <div class="modal fade" tabIndex="-1" role="modal" id="robotNotificacionModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="robotNotificacionModalLabel">Notificaciones</h5>
+                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <input type="checkbox" defaultChecked={this.notificacionConexion} ref="notificacionConexion" />
+                        <label>Robot conectado</label>
+                        <br />
+                        <input type="checkbox" defaultChecked={this.notificacionDesconexion} ref="notificacionDesconexion" />
+                        <label>Robot desconectado</label>
+                        <br />
+                        <input type="checkbox" defaultChecked={this.notificacionBateriaBaja} ref="notificacionBateriaBaja" />
+                        <label>Bater&iacute;a del robot baja</label>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={this.aceptar}>Aceptar</button>
                     </div>
                 </div>
             </div>

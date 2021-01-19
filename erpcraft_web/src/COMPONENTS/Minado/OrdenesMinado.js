@@ -12,9 +12,10 @@ import './../../CSS/OrdenesMinado.css';
 import OrdenMinado from "./OrdenMinado";
 import OrdenMinadoForm from "./OrdenMinadoForm";
 import RobotLocalizador from "../Robots/RobotLocalizador";
+import GestionPasillo from "./GestionPasillo";
 
 class OrdenesMinado extends Component {
-    constructor({ getOrdenes, localizarRobots, getRobotName, handleAdd, handleEdit, handleDelete, handleInventario, ordenMinadoInventarioPush, getOrdenMinadoInventarioArticuloImg, tabOrdenesMinadoPush }) {
+    constructor({ getOrdenes, localizarRobots, getRobotName, handleAdd, handleEdit, handleDelete, handleInventario, ordenMinadoInventarioPush, getOrdenMinadoInventarioArticuloImg, tabOrdenesMinadoPush, addOrdenesMinadoArray }) {
         super();
 
         this.getOrdenes = getOrdenes;
@@ -27,12 +28,14 @@ class OrdenesMinado extends Component {
         this.ordenMinadoInventarioPush = ordenMinadoInventarioPush;
         this.getOrdenMinadoInventarioArticuloImg = getOrdenMinadoInventarioArticuloImg;
         this.tabOrdenesMinadoPush = tabOrdenesMinadoPush;
+        this.addOrdenesMinadoArray = addOrdenesMinadoArray;
 
         this.localizarRobot = this.localizarRobot.bind(this);
         this.busquedaRobot = this.busquedaRobot.bind(this);
         this.renderOrdenes = this.renderOrdenes.bind(this);
         this.editar = this.editar.bind(this);
         this.nuevaOrden = this.nuevaOrden.bind(this);
+        this.gestionPasillo = this.gestionPasillo.bind(this);
     }
 
     componentDidMount() {
@@ -220,6 +223,17 @@ class OrdenesMinado extends Component {
         />, document.getElementById("renderOrdenesMinadoModal"));
     }
 
+    gestionPasillo() {
+        ReactDOM.unmountComponentAtNode(document.getElementById("renderOrdenesMinadoModal"));
+        ReactDOM.render(<GestionPasillo
+
+            localizarRobots={this.localizarRobots}
+            getOrdenes={this.getOrdenes}
+            addOrdenesMinadoArray={this.addOrdenesMinadoArray}
+
+        />, document.getElementById("renderOrdenesMinadoModal"));
+    }
+
     render() {
         return <div id="tabOrdenesMinado">
             <div id="renderOrdenesMinadoModal"></div>
@@ -253,7 +267,10 @@ class OrdenesMinado extends Component {
                     <button type="button" className="btn btn-outline-success" onClick={this.renderOrdenes}>Buscar</button>
                 </div>
             </div>
-            <button type="button" className="btn btn-primary" onClick={this.nuevaOrden}>A&ntilde;adir orden de minado</button>
+            <div id="ordenesMinadoOpciones">
+                <button type="button" className="btn btn-primary" onClick={this.nuevaOrden}>A&ntilde;adir orden de minado</button>
+                <button type="button" className="btn btn-warning" onClick={this.gestionPasillo}>Gesti&oacute;n del pasillo</button>
+            </div>
             <table className="table table-dark" id="tableTabOrdenesMinado">
                 <thead>
                     <tr>

@@ -83,6 +83,11 @@ namespace ERPCraft_Server.Controller
                 callback(MovimientosAlmacenController.movimientosAlmacenCommands(sender.db, msg.message.command, msg.message.message));
             });
 
+            clientIO.on("notificacion", (NetEventIO sender, OnMessageEventArgs msg, NetEventIO.Callback callback) =>
+            {
+                callback(NotificacionesController.notificacionesCommands(sender.db, msg.message.command, msg.message.message));
+            });
+
         }
 
         

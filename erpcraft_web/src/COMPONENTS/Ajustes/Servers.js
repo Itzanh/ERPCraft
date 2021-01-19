@@ -39,6 +39,7 @@ class Servers extends Component {
                 name={element.name}
                 online={element.online}
                 ultimaConexion={element.ultimaConexion}
+                dateAdd={element.dateAdd}
 
                 handleEdit={() => {
                     this.editar(element);
@@ -146,6 +147,7 @@ class Servers extends Component {
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Online</th>
                                 <th scope="col">&Uacute;ltima conexi&oacute;n</th>
+                                <th scope="col">Fecha de creaci&oacute;n</th>
                             </tr>
                         </thead>
                         <tbody id="renderServers">

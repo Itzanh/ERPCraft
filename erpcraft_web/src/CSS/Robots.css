@@ -45,6 +45,10 @@ div#tabRobots table#tableTabRobots {
             height: 50px;
         }
 
+            div#tabRobots table#tableTabRobots tbody#renderRobots tr td:nth-child(5) img.min {
+                padding: 10px;
+            }
+
     div#tabRobots table#tableTabRobots tbody#renderRobots tr td:nth-child(6) {
         width: 10%;
     }

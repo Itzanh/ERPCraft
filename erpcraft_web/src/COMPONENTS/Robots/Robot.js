@@ -33,7 +33,8 @@ class Robot extends Component {
         this.numeroSlots = numeroSlots;
         this.numeroStacks = numeroStacks;
         this.numeroItems = numeroItems;
-        this.estado = estadosRobot[estado];
+        this.estado = estado;
+        this.estadoTxt = estadosRobot[estado];
         this.estadoImagen = imagenEstadosRobot[estado];
         this.totalEnergia = totalEnergia;
         this.energiaActual = energiaActual;
@@ -55,8 +56,8 @@ class Robot extends Component {
             <td>{this.uuid}</td>
             <td>{this.numeroItems} &iacute;tems ({this.numeroStacks} stacks / {this.numeroSlots} slots)</td>
             <td>
-                <img src={this.estadoImagen} />
-                {this.estado}
+                <img src={this.estadoImagen} className={this.estado == 'M' ? 'min' : ''} />
+                {this.estadoTxt}
             </td>
             <td>{this.energiaActual} / {this.totalEnergia}</td>
             <td>

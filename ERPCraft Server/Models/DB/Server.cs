@@ -14,6 +14,9 @@ namespace ERPCraft_Server.Models.DB
         public string pwd;
         public string salt;
         public int iteraciones;
+        public bool notificacionOnline;
+        public bool notificacionOffline;
+        public DateTime dateAdd;
 
         public Server()
         {
@@ -31,6 +34,9 @@ namespace ERPCraft_Server.Models.DB
             this.pwd = rdr.GetString(6);
             this.salt = rdr.GetString(7);
             this.iteraciones = rdr.GetInt32(8);
+            this.notificacionOnline = rdr.GetBoolean(9);
+            this.notificacionOffline = rdr.GetBoolean(10);
+            this.dateAdd = rdr.GetDateTime(11);
         }
 
         public bool isValid()

@@ -36,3 +36,51 @@ div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen {
         div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen div.card h5 {
             color: black;
         }
+
+/* ALMACEN NOTIFICACIONES */
+
+div#tabAlmacenes div#almNotificacionesModal div.localizador img {
+    margin-left: 1%;
+    height: 40px;
+    background-color: #17a2b8;
+    padding: 2px;
+    border-radius: .25rem;
+}
+
+div#tabAlmacenes div#almNotificacionesModal div.localizador input[type="number"] {
+    max-width: 20%;
+    margin-left: 1%;
+    display: inline-block;
+}
+
+div#tabAlmacenes div#almNotificacionesModal div.localizador input[type="text"] {
+    max-width: 60%;
+    margin-left: 1%;
+    display: inline-block;
+}
+
+div#tabAlmacenes div#almNotificacionesModal div.form-row div.col:nth-child(2) {
+    max-width: 33%;
+}
+
+div#tabAlmacenes div#almNotificacionesModal div.form-row div.col:nth-child(3) {
+    max-width: 10%;
+}
+
+div#tabAlmacenes div#almNotificacionesModal div.form-row div.col:nth-child(4) {
+    max-width: 12%;
+}
+
+div#tabAlmacenes div#almNotificacionesModal div.form-row div.col:nth-child(5) {
+    max-width: 8%;
+    padding-top: 30px;
+}
+
+div#tabAlmacenes div#almNotificacionesModal table tbody tr td:nth-child(6) {
+    width: 5%;
+    padding: 0;
+}
+
+    div#tabAlmacenes div#almNotificacionesModal table tbody tr td:nth-child(6) img {
+        height: 40px;
+    }

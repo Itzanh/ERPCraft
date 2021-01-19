@@ -55,6 +55,8 @@ class DroneForm extends Component {
         this.eliminar = this.eliminar.bind(this);
         this.aceptar = this.aceptar.bind(this);
         this.logs = this.logs.bind(this);
+        this.notificaciones = this.notificaciones.bind(this);
+        this.notificacionesChange = this.notificacionesChange.bind(this);
     }
 
     componentDidMount() {
@@ -129,6 +131,11 @@ class DroneForm extends Component {
         drone.offsetPosY = parseInt(this.refs.offY.value);
         drone.offsetPosZ = parseInt(this.refs.offZ.value);
         drone.off = this.refs.off.checked;
+        if (this.drone != null) {
+            drone.notificacionConexion = this.drone.notificacionConexion;
+            drone.notificacionDesconexion = this.drone.notificacionDesconexion;
+            drone.notificacionBateriaBaja = this.drone.notificacionBateriaBaja;
+        }
 
         return drone;
     }
@@ -258,6 +265,26 @@ class DroneForm extends Component {
             + fecha.getHours() + ':'
             + fecha.getMinutes() + ':'
             + fecha.getSeconds();
+    }
+
+    notificaciones() {
+        if (this.drone == null) {
+            return;
+        }
+
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderDroneFormModal'));
+        ReactDOM.render(<DroneNotificacionModal
+            notificacionConexion={this.drone.notificacionConexion}
+            notificacionDesconexion={this.drone.notificacionDesconexion}
+            notificacionBateriaBaja={this.drone.notificacionBateriaBaja}
+            notificacionesChange={this.notificacionesChange}
+        />, document.getElementById('renderDroneFormModal'));
+    }
+
+    notificacionesChange(notificacionConexion, notificacionDesconexion, notificacionBateriaBaja) {
+        this.drone.notificacionConexion = notificacionConexion;
+        this.drone.notificacionDesconexion = notificacionDesconexion;
+        this.drone.notificacionBateriaBaja = notificacionBateriaBaja;
     }
 
     render() {
@@ -418,6 +445,7 @@ class DroneForm extends Component {
             <div id="botonesInferiores">
                 <button type="button" className="btn btn-danger" onClick={this.eliminarPrompt}>Borrar</button>
                 <button type="button" className="btn btn-dark" onClick={this.logs}>Logs</button>
+                <button type="button" className="btn btn-dark" onClick={this.notificaciones}>Notificaciones</button>
 
                 <button type="button" className="btn btn-primary" onClick={this.guardar}>Guardar</button>
                 <button type="button" className="btn btn-success" onClick={this.aceptar}>Aceptar</button>
@@ -470,7 +498,58 @@ class DroneFormDeleteConfirm extends Component {
             </div>
         </div>
     }
-}
+};
+
+class DroneNotificacionModal extends Component {
+    constructor({ notificacionConexion, notificacionDesconexion, notificacionBateriaBaja, notificacionesChange }) {
+        super();
+
+        this.notificacionConexion = notificacionConexion;
+        this.notificacionDesconexion = notificacionDesconexion;
+        this.notificacionBateriaBaja = notificacionBateriaBaja;
+
+        this.notificacionesChange = notificacionesChange;
+
+        this.aceptar = this.aceptar.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#droneNotificacionModal').modal({ show: true });
+    }
+
+    aceptar() {
+        this.notificacionesChange(
+            this.refs.notificacionConexion.checked, this.refs.notificacionDesconexion.checked, this.refs.notificacionBateriaBaja.checked);
+    }
+
+    render() {
+        return <div class="modal fade" tabIndex="-1" role="modal" id="droneNotificacionModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="droneNotificacionModalLabel">Notificaciones</h5>
+                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <input type="checkbox" defaultChecked={this.notificacionConexion} ref="notificacionConexion" />
+                        <label>Drone conectado</label>
+                        <br />
+                        <input type="checkbox" defaultChecked={this.notificacionDesconexion} ref="notificacionDesconexion" />
+                        <label>Drone desconectado</label>
+                        <br />
+                        <input type="checkbox" defaultChecked={this.notificacionBateriaBaja} ref="notificacionBateriaBaja" />
+                        <label>Bater&iacute;a del drone baja</label>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={this.aceptar}>Aceptar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
 
 
 

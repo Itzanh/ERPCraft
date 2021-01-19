@@ -39,6 +39,18 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return localizarAlmacen(db);
                     }
+                case "getNotificaciones":
+                    {
+                        return getNotificaciones(message, db);
+                    }
+                case "addNotificacion":
+                    {
+                        return addNotificaciones(message, db);
+                    }
+                case "deleteNotificacion":
+                    {
+                        return deleteNotificaciones(message, db);
+                    }
             }
 
             return "ERR";
@@ -122,6 +134,48 @@ namespace ERPCraft_Server.Controller.AdminControllers
         private static string localizarAlmacen(DBStorage db)
         {
             return JsonConvert.SerializeObject(db.localizarAlmacenes());
+        }
+
+        private static string getNotificaciones(string message, DBStorage db)
+        {
+            short idAlmacen;
+            try
+            {
+                idAlmacen = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (idAlmacen <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getNotificacionesAlmacen(idAlmacen));
+        }
+
+        private static string addNotificaciones(string message, DBStorage db)
+        {
+            AlmacenInventarioNotificacion notificacion;
+            try
+            {
+                notificacion = (AlmacenInventarioNotificacion)JsonConvert.DeserializeObject(message, typeof(AlmacenInventarioNotificacion));
+            }
+            catch (Exception) { return "ERR"; }
+            if (notificacion == null || !notificacion.isValid())
+                return "ERR";
+
+            return db.addNotificacionAlmacen(notificacion) ? "OK" : "ERR";
+        }
+
+        private static string deleteNotificaciones(string message, DBStorage db)
+        {
+            AlmacenInventarioNotificacionDelete notificacion;
+            try
+            {
+                notificacion = (AlmacenInventarioNotificacionDelete)JsonConvert.DeserializeObject(message, typeof(AlmacenInventarioNotificacionDelete));
+            }
+            catch (Exception) { return "ERR"; }
+            if (notificacion == null || !notificacion.isValid())
+                return "ERR";
+
+            return db.deleteNotificacionAlmacen(notificacion.idAlmacen, notificacion.id) ? "OK" : "ERR";
         }
     }
 }

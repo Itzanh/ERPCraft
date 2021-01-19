@@ -41,6 +41,14 @@ div#tabOrdenesMinado h3 img {
     margin-left: 25px;
 }
 
+div#tabOrdenesMinado div#ordenesMinadoOpciones {
+    margin-bottom: 5px;
+}
+
+    div#tabOrdenesMinado div#ordenesMinadoOpciones button {
+        margin-left: 10px;
+    }
+
 div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr th:nth-child(1) {
     width: 5%;
 }
@@ -149,10 +157,11 @@ div#tabOrdenesMinado div#ordenMinadoModal div#ordenRobotParams {
 }
 
     div#tabOrdenesMinado div#ordenMinadoModal div#ordenRobotParams div.col:nth-child(1) input[type="number"] {
-        max-width: 50%;
+        max-width: 25%;
         display: inline-block;
         vertical-align: middle;
         margin-left: 10px;
+        margin-right: 10px;
     }
 
     div#tabOrdenesMinado div#ordenMinadoModal div#ordenRobotParams div.col:nth-child(2) img {
@@ -190,3 +199,135 @@ div#tabOrdenesMinado div#ordenMinadoModal div#inventarioOrdenMinadoContenido {
                 max-height: 50px;
                 margin-top: 40%;
             }
+
+/* GESTION DEL PASILLO */
+
+div#tabOrdenesMinado div#gestionPasillo > div.modal-dialog.modal-xl {
+    max-width: 1880px;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(2) {
+    max-width: 20%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td img {
+    height: 40px;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr th:nth-child(1) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td:nth-child(3) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td:nth-child(4) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td:nth-child(5) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td:nth-child(6) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td:nth-child(7) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td:nth-child(8) {
+    width: 5%;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales tbody tr td:nth-child(9) {
+    width: 5%;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(1) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(3) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(4) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(5) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(6) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(7) {
+    width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(8) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoActuales thead tr th:nth-child(9) {
+    width: 5%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoGenerador tbody tr td:nth-child(8) {
+    width: 5%;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm > div.col:nth-child(1) table#ordenesMinadoGenerador tbody tr td img {
+    height: 40px;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(1) {
+    max-width: 25%;
+}
+
+    div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(1) input[type="number"] {
+        max-width: 20%;
+        margin-left: 1%;
+        display: inline-block;
+    }
+
+    div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(1) input[type="text"] {
+        max-width: 60%;
+        margin-left: 1%;
+        display: inline-block;
+    }
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(2) {
+    max-width: 11%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(3) img {
+    width: 35px;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(4) {
+    max-width: 10%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(5) {
+    max-width: 6%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(6) {
+    max-width: 15%;
+}
+
+div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(7) {
+    max-width: 8%;
+}

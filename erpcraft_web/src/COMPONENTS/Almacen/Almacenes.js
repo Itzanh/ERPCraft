@@ -1,13 +1,17 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
+import inventarioIco from './../../IMG/inventario.png';
+import flashlightIco from './../../IMG/flashlight.svg';
+import deleteIco from './../../IMG/delete.svg';
 import './../../CSS/Almacen.css';
 
 import FormAlert from "../FormAlert";
-import inventarioIco from './../../IMG/inventario.png';
+import ArticuloLocalizador from "../Articulos/ArticuloLocalizador";
 
 class Almacenes extends Component {
-    constructor({ getAlmacenes, getAlmacenInventario, almacenInventarioPush, getArticuloImg, tabAlmacenPush, handleAdd, handleEdit, handleDelete }) {
+    constructor({ getAlmacenes, getAlmacenInventario, almacenInventarioPush, getArticuloImg, tabAlmacenPush, handleAdd, handleEdit, handleDelete,
+        getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos }) {
         super();
         this.almacen = null;
         this.imgCache = {};
@@ -21,6 +25,11 @@ class Almacenes extends Component {
         this.handleAdd = handleAdd;
         this.handleEdit = handleEdit;
         this.handleDelete = handleDelete;
+
+        this.getAlmacenNotificaciones = getAlmacenNotificaciones;
+        this.addAlmacenNotificaciones = addAlmacenNotificaciones;
+        this.deleteAlmacenNotificaciones = deleteAlmacenNotificaciones;
+        this.getArticulos = getArticulos;
 
         this.getInventario = this.getInventario.bind(this);
         this.crear = this.crear.bind(this);
@@ -163,6 +172,11 @@ class Almacenes extends Component {
             almacen={this.almacen}
             handleEdit={this.handleEdit}
             handleDelete={this.handleDelete}
+
+            getAlmacenNotificaciones={this.getAlmacenNotificaciones}
+            addAlmacenNotificaciones={this.addAlmacenNotificaciones}
+            deleteAlmacenNotificaciones={this.deleteAlmacenNotificaciones}
+            getArticulos={this.getArticulos}
         />, this.refs.renderModal);
     };
 
@@ -179,7 +193,7 @@ class Almacenes extends Component {
 
     render() {
         return <div id="tabAlmacenes">
-            <div ref="renderModal" />
+            <div ref="renderModal" id="renderModalAlmacen" />
             <div id="renderAlmacenModalAlert" />
             <h3><img src={inventarioIco} />Almac&eacute;n</h3>
             <div className="form-row" id="almColumnas">
@@ -230,7 +244,7 @@ class Almacen extends Component {
 };
 
 class AlmacenForm extends Component {
-    constructor({ almacen, handleAdd, handleEdit, handleDelete }) {
+    constructor({ almacen, handleAdd, handleEdit, handleDelete, getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos }) {
         super();
 
         this.almacen = almacen;
@@ -239,11 +253,21 @@ class AlmacenForm extends Component {
         this.handleEdit = handleEdit;
         this.handleDelete = handleDelete;
 
+        this.getAlmacenNotificaciones = getAlmacenNotificaciones;
+        this.addAlmacenNotificaciones = addAlmacenNotificaciones;
+        this.deleteAlmacenNotificaciones = deleteAlmacenNotificaciones;
+        this.getArticulos = getArticulos;
+
         this.aceptar = this.aceptar.bind(this);
+        this.notificaciones = this.notificaciones.bind(this);
     }
 
     componentDidMount() {
         window.$('#almacenModal').modal({ show: true });
+    }
+
+    componentWillUnmount() {
+        window.$('#almacenModal').modal('hide');
     }
 
     showAlert(txt) {
@@ -290,6 +314,23 @@ class AlmacenForm extends Component {
             + fecha.getHours() + ':'
             + fecha.getMinutes() + ':'
             + fecha.getSeconds();
+    }
+
+    async notificaciones() {
+        await ReactDOM.unmountComponentAtNode(document.getElementById("renderModalAlmacen"));
+        ReactDOM.render(<AlmacenNotificaciones
+            getAlmacenNotificaciones={() => {
+                return this.getAlmacenNotificaciones(this.almacen.id);
+            }}
+            addAlmacenNotificaciones={(notificacion) => {
+                notificacion.idAlmacen = this.almacen.id;
+                return this.addAlmacenNotificaciones(notificacion);
+            }}
+            deleteAlmacenNotificaciones={(id) => {
+                return this.deleteAlmacenNotificaciones(this.almacen.id, id);
+            }}
+            getArticulos={this.getArticulos}
+        />, document.getElementById("renderModalAlmacen"));
     }
 
     render() {
@@ -340,6 +381,7 @@ class AlmacenForm extends Component {
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-primary" onClick={this.aceptar}>Aceptar</button>
+                        <button type="button" className="btn btn-success" onClick={this.notificaciones}>Notificaciones</button>
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                     </div>
                 </div>
@@ -416,6 +458,160 @@ class AlmacenesFormInventarioSlot extends Component {
                 </div>
             </div>
         </div>;
+    }
+};
+
+class AlmacenNotificaciones extends Component {
+    constructor({ getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos }) {
+        super();
+
+        this.getAlmacenNotificaciones = getAlmacenNotificaciones;
+        this.addAlmacenNotificaciones = addAlmacenNotificaciones;
+        this.deleteAlmacenNotificaciones = deleteAlmacenNotificaciones;
+        this.getArticulos = getArticulos;
+
+        this.localizarArticulo = this.localizarArticulo.bind(this);
+        this.agregar = this.agregar.bind(this);
+        this.borrar = this.borrar.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#almNotificacionesModal').modal({ show: true });
+        this.renderNotificaciones();
+    }
+
+    showAlert(txt) {
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderAlmacenModalAlert'));
+        ReactDOM.render(<FormAlert
+            txt={txt}
+        />, document.getElementById('renderAlmacenModalAlert'));
+    }
+
+    getModo(modo) {
+        if (modo == '+') {
+            return ">=";
+        } else if (modo == '-') {
+            return "<=";
+        } else {
+            return modo;
+        }
+    }
+
+    async renderNotificaciones() {
+        const notificaciones = await this.getAlmacenNotificaciones();
+        ReactDOM.render(notificaciones.map((element, i) => {
+            return <tr key={i}>
+                <th scope="row">{element.id}</th>
+                <td>{element.name}</td>
+                <td>{element.idArticulo}</td>
+                <td>{this.getModo(element.modo)}</td>
+                <td>{element.cantidad}</td>
+                <td><img src={deleteIco} onClick={() => {
+                    this.borrar(element.id);
+                }} /></td>
+            </tr>
+        }), this.refs.renderNotificacionesAlmacen);
+    }
+
+    localizarArticulo() {
+        ReactDOM.unmountComponentAtNode(document.getElementById("renderAlmacenModalAlert"));
+        ReactDOM.render(<ArticuloLocalizador
+            getArticulos={this.getArticulos}
+            handleSelect={(id, name) => {
+                this.refs.artId.value = id;
+                this.refs.artName.value = name;
+            }}
+        />, document.getElementById("renderAlmacenModalAlert"));
+    }
+
+    agregar() {
+        const notificacion = {};
+        notificacion.name = this.refs.name.value;
+        notificacion.idArticulo = parseInt(this.refs.artId.value);
+        notificacion.modo = this.refs.modo.value;
+        notificacion.cantidad = parseInt(this.refs.cantidad.value);
+
+        this.addAlmacenNotificaciones(notificacion).then(() => {
+            this.renderNotificaciones();
+        }, () => {
+            this.showAlert("No se ha podido añadir la notificacion. Comprueba que el nombre no está vacío y que se ha seleccionado un artículo.");
+        });
+    }
+
+    borrar(id) {
+        this.deleteAlmacenNotificaciones(id).then(() => {
+            this.renderNotificaciones();
+        }, () => {
+            this.showAlert("El servidor ha devuelto un error al eliminar. Refresca y vuelve a intentarlo.");
+        });
+
+    }
+
+    render() {
+        return <div class="modal fade bd-example-modal-xl" tabindex="-1" role="dialog" aria-labelledby="almNotificacionesModalLabel" id="almNotificacionesModal" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="almNotificacionesModalLabel">Notificaciones</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Nombre</th>
+                                    <th scope="col">Art&iacute;culo</th>
+                                    <th scope="col">Operador</th>
+                                    <th scope="col">Cantidad</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody ref="renderNotificacionesAlmacen">
+                            </tbody>
+                        </table>
+
+                        <div className="form-row">
+                            <div className="col">
+                                <label>Nombre</label>
+                                <input type="text" className="form-control" ref="name" />
+                            </div>
+                            <div className="col">
+                                <div className="localizador">
+                                    <label>Art&iacute;culo</label>
+                                    <br />
+                                    <img src={flashlightIco} onClick={this.localizarArticulo} />
+                                    <input type="number" ref="artId" className="form-control" readOnly={true} defaultValue={0} />
+                                    <input type="text" ref="artName" className="form-control" readOnly={true} />
+                                </div>
+                            </div>
+                            <div className="col">
+                                <label for="operadorSelect">Operador</label>
+                                <select class="form-control" id="operadorSelect" ref="modo">
+                                    <option value="<">&lt;</option>
+                                    <option value=">">></option>
+                                    <option value="=">=</option>
+                                    <option value="-">&lt;=</option>
+                                    <option value="+">>=</option>
+                                </select>
+                            </div>
+                            <div className="col">
+                                <label>Cantidad</label>
+                                <input type="number" className="form-control" defaultValue={0} ref="cantidad" min="0" />
+                            </div>
+                            <div className="col">
+                                <button type="button" class="btn btn-primary" onClick={this.agregar}>A&ntilde;adir</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 };
 

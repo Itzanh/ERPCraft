@@ -204,6 +204,9 @@ class BateriaForm extends Component {
         bateria.capacidadElectrica = parseInt(this.refs.cap_ele.value);
         bateria.tipo = this.refs.tipo.value;
         bateria.descripcion = this.refs.dsc.value;
+        bateria.capacidadElectrica = parseInt(this.refs.cap_ele.value);
+        bateria.notificacion = this.refs.notificacion.checked;
+        bateria.cargaNotificacion = parseInt(this.refs.cargaNotificacion.value);
 
         if (bateria.name == null || bateria.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio.");
@@ -241,6 +244,8 @@ class BateriaForm extends Component {
         bateria.capacidadElectrica = parseInt(this.refs.cap_ele.value);
         bateria.tipo = this.refs.tipo.value;
         bateria.descripcion = this.refs.dsc.value;
+        bateria.notificacion = this.refs.notificacion.checked;
+        bateria.cargaNotificacion = parseInt(this.refs.cargaNotificacion.value);
 
         if (bateria.name == null || bateria.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio.");
@@ -324,6 +329,17 @@ class BateriaForm extends Component {
 
                         <label>Descripcion</label><br />
                         <textarea className="form-control" rows="5" ref="dsc" defaultValue={this.bateria != null ? this.bateria.descripcion : ''} ></textarea>
+
+                        <div className="form-row" id="bateriaNotificacion">
+                            <div className="col">
+                                <input type="checkbox" name="act" ref="notificacion" defaultChecked={this.bateria != null && this.bateria.notificacion} />
+                                <label>Notificaci&oacute;n de bater&iacute;a baja</label>
+                            </div>
+                            <div className="col">
+                                <label>Carga de notificaci&oacute;n</label>
+                                <input type="number" className="form-control" placeholder="Carga de notificaci&oacute;n" ref="cargaNotificacion" defaultValue={this.bateria != null ? this.bateria.cargaNotificacion : '0'} />
+                            </div>
+                        </div>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-success" onClick={this.historial}>Historial</button>

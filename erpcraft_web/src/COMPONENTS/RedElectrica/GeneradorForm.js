@@ -99,6 +99,7 @@ class GeneradorForm extends Component {
         generador.euTick = parseInt(this.refs.eu_t.value);
         generador.activado = this.refs.act.checked;
         generador.descripcion = this.refs.dsc.value;
+        generador.notificacion = this.refs.notificacion.checked;
 
         if (generador.name == null || generador.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio.");
@@ -132,6 +133,7 @@ class GeneradorForm extends Component {
         generador.euTick = parseInt(this.refs.eu_t.value);
         generador.activado = this.refs.act.checked;
         generador.descripcion = this.refs.dsc.value;
+        generador.notificacion = this.refs.notificacion.checked;
 
         if (generador.name == null || generador.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio.");
@@ -203,9 +205,12 @@ class GeneradorForm extends Component {
                                 </select>
                             </div>
                         </div>
-
+                        
                         <label>Descripcion</label><br />
                         <textarea className="form-control" rows="5" ref="dsc" defaultValue={this.generador != null ? this.generador.descripcion : ''} ></textarea>
+
+                        <input type="checkbox" name="act" ref="notificacion" defaultChecked={this.generador != null && this.generador.notificacion} />
+                        <label>&iquest;Notificaci&oacute;n de cambio de estado?</label>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-danger" onClick={this.eliminar}>Eliminar</button>

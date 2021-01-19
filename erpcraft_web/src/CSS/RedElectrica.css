@@ -117,6 +117,10 @@ div#redElectricaForm div#renderRedElectricaModal div#bateriaModal div.progress {
     height: 2rem;
 }
 
+div#redElectricaForm div#renderRedElectricaModal div#bateriaModal div#bateriaNotificacion.form-row div.col:nth-child(1) {
+    padding-top: 30px;
+}
+
 /* RED ELECTRICA BATERIA HISTORIAL */
 
 div#redElectricaForm div#renderRedElectricaModal div#bateriaHistorialModal div.modal-body {

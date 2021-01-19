@@ -47,6 +47,8 @@ class ServerForm extends Component {
         server.name = this.refs.name.value;
         server.descripcion = this.refs.dsc.value;
         server.permitirAutoregistro = this.refs.permitirAutoregistro.checked;
+        server.notificacionOnline = this.refs.notificacionOnline.checked;
+        server.notificacionOffline = this.refs.notificacionOffline.checked;
 
         if (server.uuid == null || server.uuid.length == 0 || !this.isValidUUID(server.uuid)) {
             this.showAlert("Se debe escribir un UUID valido.");
@@ -67,6 +69,9 @@ class ServerForm extends Component {
         server.name = this.refs.name.value;
         server.descripcion = this.refs.dsc.value;
         server.permitirAutoregistro = this.refs.permitirAutoregistro.checked;
+        server.notificacionOnline = this.refs.notificacionOnline.checked;
+        server.notificacionOffline = this.refs.notificacionOffline.checked;
+        console.log(server);
 
         if (server.name == null || server.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio.");
@@ -110,6 +115,12 @@ class ServerForm extends Component {
                         <textarea className="form-control" ref="dsc" defaultValue={this.server != null ? this.server.descripcion : ''}></textarea>
                         <input type="checkbox" defaultChecked={this.server != null ? this.server.permitirAutoregistro : false} ref="permitirAutoregistro" />
                         <label>&iquest;Permitir autoregistrarse?</label>
+                        <h6>Notificaciones</h6>
+                        <input type="checkbox" defaultChecked={this.server != null ? this.server.notificacionOnline : false} ref="notificacionOnline" />
+                        <label>&iquest;Notificaci&oacute;n de conexi&oacute;n?</label>
+                        <br />
+                        <input type="checkbox" defaultChecked={this.server != null ? this.server.notificacionOffline : false} ref="notificacionOffline" />
+                        <label>&iquest;Notificaci&oacute;n de desconexi&oacute;n?</label>
                     </div>
                     <div className="modal-footer">
                         <button type="button" class="btn btn-warning" onClick={this.pwd}>Contrase&ntilde;a autoreg.</button>

@@ -60,8 +60,19 @@ m.open(SERVER_PORT)
 
 --- Avisa al servidor de que el robot está disponible
 local function robotOnline()
-	local str = "robOnline--" .. robot.name() .. ";" .. math.floor(computer.energy()) .. ";" .. math.floor(computer.maxEnergy()) .. ";0;0;0"
-	m.send(SERVER_ADDR, SERVER_PORT, str)
+  local str = "robOnline--" .. robot.name() .. ";" .. math.floor(computer.energy()) .. ";" .. math.floor(computer.maxEnergy()) .. ";"
+  if not gpsEnabled then
+    str = str .. "0;0;0"
+  else
+    local posX, posY, posZ = component.navigation.getPosition()
+    str = str .. math.floor(posX) .. ";" .. math.floor(posY) .. ";" .. math.floor(posZ)
+  end
+  m.send(SERVER_ADDR, SERVER_PORT, str)
+end
+
+local function robotBateria()
+  local str = "robBat--" .. math.floor(computer.energy())
+  m.send(SERVER_ADDR, SERVER_PORT, str)
 end
 
 --- Enviar un log al servidor
@@ -73,8 +84,8 @@ end
 
 --- Marcar la orden de minado actual como finalizada
 local function ordenMinadoFin()
-	local str = "robOrdenMinadoFin--"
-	m.send(SERVER_ADDR, SERVER_PORT, str)
+  local str = "robOrdenMinadoFin--"
+  m.send(SERVER_ADDR, SERVER_PORT, str)
 end
 
 --- Envía el contenido del inventario al servidor
@@ -136,6 +147,7 @@ end)
 
 thread.create(function()
   while true do
+    robotBateria()
     setRobotInventario()
 	setRobotGps()
     os.sleep(1)
@@ -151,6 +163,7 @@ local size = 0
 
 local r = component.robot
 local x, y, z, f = 0, 0, 0, 0
+local ordenGPS = {}
 local energiaRecarga = 0 -- declarado al recibir orden del servidor, con bateria por debajo de este limite recargar
 local updateOrden -- forward declaration
 local modoMinado = "O" -- modos de recarga del arma O = Optimo, E = Economico
@@ -177,8 +190,8 @@ local function getOrdenMinado()
     return false
   else
     -- decodificar el mensaje
-  print("message " .. message)
-  local str = strSplit(message, ";")
+    print("message " .. message)
+    local str = strSplit(message, ";")
     --local s, posX, posY, posZ, facing, gpsX, gpsY, gpsZ, energiaRecarga, modoMinado, shutdown = message:match("([^;]+);([^;]+)")
     
     size = tonumber(str[1])
@@ -186,13 +199,17 @@ local function getOrdenMinado()
     y = tonumber(str[3])
     z = tonumber(str[4])
     f = tonumber(str[5])
+	ordenGPS[1] = tonumber(str[6])
+	ordenGPS[2] = tonumber(str[7])
+	ordenGPS[3] = tonumber(str[8])
 	energiaRecarga = tonumber(str[9])
 	modoMinado = str[10]
     if tonumber(str[11]) == 1 then
       options.s = true
     end
   
-  print("size " .. size .. " x " .. x .. " y " .. y .. " z " .. z .. " f " .. f .. " modoMinado " .. modoMinado)
+    print("size " .. size .. " x " .. x .. " y " .. y .. " z " .. z .. " f " .. f .. " modoMinado " .. modoMinado)
+	return true
   end
 end
 
@@ -207,8 +224,10 @@ end
 --[[ /OBTENER ORDEN DE MIANDO ]]--
 
 -- Inicializar las variables de minado de la orden del servidor
-getOrdenMinado()
-print ("Iniciando orden de minado size " .. size)
+if not getOrdenMinado() then
+  os.exit()
+end
+print("Iniciando orden de minado size " .. size)
 setRobotInventario()
 --os.exit()																												---- QUITAR!!!! -----
 
@@ -527,12 +546,48 @@ local function digLayer()
   return true
 end
 
-repeat until not digLayer()
-moveTo(0, 0, 0)
-turnTowards(0)
-checkedDrop(true)
+function moverseEntreOrdenes(origen_X, origen_Z, destinoX, destinoZ)
+  if destinoZ > origen_Z then
+    for i = origen_Z,destinoZ,1 do
+      r.forward()
+    end
+  elseif destinoZ < origen_Z then
+    for i = origen_Z,destinoZ,1 do
+      r.back()
+    end
+  end
+  
+  if origen_X > destinoX then
+    r.turnRight()
+    for i = destinoX,origen_X,1 do
+      r.forward()
+    end
+    r.turnLeft()
+  elseif origen_X < destinoX then
+    r.turnLeft()
+    for i = origen_X,destinoX,1 do
+      r.forward()
+    end
+    r.turnRight()
+  end
+end
 
-ordenMinadoFin()
+while true
+do
+  repeat until not digLayer()
+  moveTo(0, 0, 0)
+  turnTowards(0)
+  checkedDrop(true)
+
+  ordenMinadoFin()
+  
+  local gps = ordenGPS
+  if not getOrdenMinado() then
+    os.exit()
+  else
+    moverseEntreOrdenes(gps[1], gps[3], ordenGPS[1], ordenGPS[3])
+  end
+end
 
 if options.s then
   computer.shutdown()

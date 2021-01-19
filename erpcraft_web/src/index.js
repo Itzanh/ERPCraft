@@ -40,6 +40,7 @@ import DroneLog from './COMPONENTS/Drones/DroneLog';
 import MovimientosAlmacen from './COMPONENTS/Almacen/MovimientosAlmacen';
 import MovimientoAlmacen from './COMPONENTS/Almacen/MovimientoAlmacen';
 import MovimientosAlmacenFormDetails from './COMPONENTS/Almacen/MovimientosAlmacenFormDetails';
+import Notificaciones from './COMPONENTS/Notificaciones';
 
 /**
  * Object that represents the WebSocket data connection with the server
@@ -155,9 +156,11 @@ function printMenu() {
         handleServidores={tabServidores}
         handleAlmacen={tabAlmacen}
         handleDrones={tabDrones}
+        handleNotificaciones={tabNotificaciones}
     />, document.getElementById('root'));
 
     inicio();
+    countNotificaciones();
 };
 
 function inicio() {
@@ -166,6 +169,20 @@ function inicio() {
     ReactDOM.render(<Inicio
 
     />, document.getElementById('renderTab'));
+};
+
+function countNotificaciones() {
+    setTimeout(() => {
+        client.emit('notificacion', 'count', '', (_, response) => {
+            document.getElementById("notificacionesCount").innerText = response;
+        });
+    }, 200);
+
+    setInterval(() => {
+        client.emit('notificacion', 'count', '', (_, response) => {
+            document.getElementById("notificacionesCount").innerText = response;
+        });
+    }, 1000);
 };
 
 /* ROBOTS */
@@ -1302,7 +1319,8 @@ async function tabOrdenesMinado() {
         localizarRobots={localizarRobots}
         getRobotName={getRobotName}
 
-        handleAdd={addOrdenesMinado}
+        handleAdd={addOrdenMinado}
+        addOrdenesMinadoArray={addOrdenesMinadoArray}
         handleEdit={updateOrdenesMinado}
         handleDelete={deleteOrdenesMinado}
         handleInventario={getOrdenMinadoInventario}
@@ -1332,9 +1350,21 @@ function getOrdenesMinado(query) {
     });
 };
 
-function addOrdenesMinado(orden) {
+function addOrdenMinado(orden) {
     return new Promise((resolve, reject) => {
         client.emit('ordenMinado', 'add', JSON.stringify(orden), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function addOrdenesMinadoArray(array) {
+    return new Promise((resolve, reject) => {
+        client.emit('ordenMinado', 'addArray', JSON.stringify(array), (_, response) => {
             if (response == "OK") {
                 resolve();
             } else {
@@ -1602,6 +1632,11 @@ function tabAlmacen() {
         handleAdd={addAlmacen}
         handleEdit={editAlmacen}
         handleDelete={deleteAlmacen}
+
+        getAlmacenNotificaciones={getAlmacenNotificaciones}
+        addAlmacenNotificaciones={addAlmacenNotificaciones}
+        deleteAlmacenNotificaciones={deleteAlmacenNotificaciones}
+        getArticulos={localizarArticulos}
     />, document.getElementById('renderTab'));
 };
 
@@ -1664,6 +1699,38 @@ function almacenInventarioPush(id, callback) {
         }
 
         callback(JSON.parse(value));
+    });
+};
+
+function getAlmacenNotificaciones(id) {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'getNotificaciones', '' + id, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function addAlmacenNotificaciones(notificacion) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'addNotificacion', JSON.stringify(notificacion), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function deleteAlmacenNotificaciones(idAlmacen, id) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'deleteNotificacion', JSON.stringify({ idAlmacen, id }), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
     });
 };
 
@@ -2179,6 +2246,41 @@ function addMovimientoAlmacen(movAlmacen) {
                 reject();
             }
         });
+    });
+};
+
+/* NOTIFICACIONES */
+
+async function tabNotificaciones() {
+    await ReactDOM.unmountComponentAtNode(document.getElementById('renderNotificacionesModal'));
+    await ReactDOM.render(<Notificaciones
+        getNotificaciones={getNotificaciones}
+        notificacionesLeidas={notificacionesLeidas}
+        onNotificaciones={onNotificaciones}
+    />, document.getElementById('renderNotificacionesModal'));
+};
+
+function getNotificaciones() {
+    return new Promise((resolve) => {
+        client.emit('notificacion', 'get', '', (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function notificacionesLeidas() {
+    return new Promise((resolve) => {
+        client.emit('notificacion', 'leidas', '', (_, response) => {
+            resolve();
+        });
+    });
+};
+
+function onNotificaciones(callback) {
+    client.subscribe('notificaciones', (_, topicName, changeType, pos, value) => {
+        if (pos == 0) {
+            callback(value);
+        }
     });
 };
 

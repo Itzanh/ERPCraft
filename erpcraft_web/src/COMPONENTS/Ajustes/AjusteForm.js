@@ -34,13 +34,13 @@ class AjusteForm extends Component {
             ajuste.id = this.ajuste.id;
         ajuste.name = this.refs.name.value;
         ajuste.limpiarRobotGps = this.refs.limpiarRobotGps.checked;
-        ajuste.horasRobotGps = parseInt(this.refs.horasRobotGps.value);
+        ajuste.diasRobotGps = parseInt(this.refs.diasRobotGps.value);
         ajuste.limpiarRobotLogs = this.refs.limpiarRobotLogs.checked;
-        ajuste.horasRobotLogs = parseInt(this.refs.horasRobotLogs.value);
+        ajuste.diasRobotLogs = parseInt(this.refs.diasRobotLogs.value);
         ajuste.limpiarDroneGps = this.refs.limpiarDroneGps.checked;
-        ajuste.horasDroneGps = parseInt(this.refs.horasDroneGps.value);
+        ajuste.diasDroneGps = parseInt(this.refs.diasDroneGps.value);
         ajuste.limpiarDroneLogs = this.refs.limpiarDroneLogs.checked;
-        ajuste.horasDroneLogs = parseInt(this.refs.horasDroneLogs.value);
+        ajuste.diasDroneLogs = parseInt(this.refs.diasDroneLogs.value);
         ajuste.limpiarBateriaHistorial = this.refs.limpiarBateriaHistorial.checked;
         ajuste.horasBateriaHistorial = parseInt(this.refs.horasBateriaHistorial.value);
         ajuste.vacuumLimpiar = this.refs.vacuumLimpiar.checked;
@@ -50,6 +50,8 @@ class AjusteForm extends Component {
         ajuste.puertoWeb = parseInt(this.refs.puertoWeb.value);
         ajuste.puertoOC = parseInt(this.refs.puertoOC.value);
         ajuste.hashIteraciones = parseInt(this.refs.hashIteraciones.value);
+        ajuste.limpiarNotificaciones = this.refs.limpiarNotificaciones.checked;
+        ajuste.horasNotificaciones = parseInt(this.refs.horasNotificaciones.value);
 
         if (ajuste.name == null || ajuste.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio");
@@ -161,16 +163,16 @@ class AjusteForm extends Component {
                     <label>&iquest;Limpiar el historial de ubicaciones del Robot?</label>
                 </div>
                 <div className="col">
-                    <label>Horas de duraci&oacute;n del historial de ubicaciones del Robot</label>
-                    <input type="number" className="form-control" min="0" max="32767" placeholder="Horas de duraci&oacute;n del historial de ubicaciones del Robot" ref="horasRobotGps" defaultValue={this.ajuste != null ? this.ajuste.horasRobotGps : 0} />
+                    <label>D&iacute;as de duraci&oacute;n del historial de ubicaciones del Robot</label>
+                    <input type="number" className="form-control" min="0" max="32767" placeholder="D&iacute;as de duraci&oacute;n del historial de ubicaciones del Robot" ref="diasRobotGps" defaultValue={this.ajuste != null ? this.ajuste.diasRobotGps : 0} />
                 </div>
                 <div className="col checkContainer">
                     <input type="checkbox" ref="limpiarRobotLogs" defaultChecked={this.ajuste != null ? this.ajuste.limpiarRobotLogs : false} />
                     <label>&iquest;Limpiar los logs del Robot?</label>
                 </div>
                 <div className="col">
-                    <label>Horas de duraci&oacute;n de los logs del Robot</label>
-                    <input type="number" className="form-control" min="0" max="32767" placeholder="Horas de duraci&oacute;n de los logs del Robot" ref="horasRobotLogs" defaultValue={this.ajuste != null ? this.ajuste.horasRobotLogs : 0} />
+                    <label>D&iacute;as de duraci&oacute;n de los logs del Robot</label>
+                    <input type="number" className="form-control" min="0" max="32767" placeholder="D&iacute;as de duraci&oacute;n de los logs del Robot" ref="diasRobotLogs" defaultValue={this.ajuste != null ? this.ajuste.diasRobotLogs : 0} />
                 </div>
             </div>
 
@@ -180,16 +182,16 @@ class AjusteForm extends Component {
                     <label>&iquest;Limpiar el historial de ubicaciones del Drone?</label>
                 </div>
                 <div className="col">
-                    <label>Horas de duraci&oacute;n del historial de ubicaciones del Drone</label>
-                    <input type="number" className="form-control" min="0" max="32767" placeholder="Horas de duraci&oacute;n del historial de ubicaciones del Drone" ref="horasDroneGps" defaultValue={this.ajuste != null ? this.ajuste.horasDroneGps : 0} />
+                    <label>D&iacute;as de duraci&oacute;n del historial de ubicaciones del Drone</label>
+                    <input type="number" className="form-control" min="0" max="32767" placeholder="D&iacute;as de duraci&oacute;n del historial de ubicaciones del Drone" ref="diasDroneGps" defaultValue={this.ajuste != null ? this.ajuste.diasDroneGps : 0} />
                 </div>
                 <div className="col checkContainer">
                     <input type="checkbox" ref="limpiarDroneLogs" defaultChecked={this.ajuste != null ? this.ajuste.limpiarDroneLogs : false} />
                     <label>&iquest;Limpiar los logs del Drone?</label>
                 </div>
                 <div className="col">
-                    <label>Horas de duraci&oacute;n de los logs del Drone</label>
-                    <input type="number" className="form-control" min="0" max="32767" placeholder="Horas de duraci&oacute;n de los logs del Drone" ref="horasDroneLogs" defaultValue={this.ajuste != null ? this.ajuste.horasDroneLogs : 0} />
+                    <label>D&iacute;as de duraci&oacute;n de los logs del Drone</label>
+                    <input type="number" className="form-control" min="0" max="32767" placeholder="D&iacute;as de duraci&oacute;n de los logs del Drone" ref="diasDroneLogs" defaultValue={this.ajuste != null ? this.ajuste.diasDroneLogs : 0} />
                 </div>
             </div>
 
@@ -203,12 +205,27 @@ class AjusteForm extends Component {
                     <input type="number" className="form-control" min="0" max="32767" placeholder="Horas de duraci&oacute;n del historial de la bater&iacute;a" ref="horasBateriaHistorial" defaultValue={this.ajuste != null ? this.ajuste.horasBateriaHistorial : 0} />
                 </div>
                 <div className="col checkContainer">
+                    <input type="checkbox" ref="limpiarNotificaciones" defaultChecked={this.ajuste != null ? this.ajuste.limpiarNotificaciones : false} />
+                    <label>&iquest;Limpiar las notificaciones leidas?</label>
+                </div>
+                <div className="col">
+                    <label>Horas de duraci&oacute;n de las notificaciones leidas</label>
+                    <input type="number" className="form-control" min="0" max="32767" placeholder="Horas de duraci&oacute;n de las notificaciones leidas" ref="horasNotificaciones" defaultValue={this.ajuste != null ? this.ajuste.horasNotificaciones : 0} />
+                </div>
+            </div>
+
+            <div className="row">
+                <div className="col checkContainer">
                     <input type="checkbox" ref="vacuumLimpiar" defaultChecked={this.ajuste != null ? this.ajuste.vacuumLimpiar : false} />
                     <label>&iquest;Ejecutar el comando VACUUM al terminar de limpiar?</label>
                 </div>
                 <div className="col checkContainer">
                     <input type="checkbox" ref="reindexLimpiar" defaultChecked={this.ajuste != null ? this.ajuste.reindexLimpiar : false} />
                     <label>&iquest;Reindexar todas las tablas al terminar de limpiar?</label>
+                </div>
+                <div className="col">
+                </div>
+                <div className="col">
                 </div>
             </div>
 

@@ -12,11 +12,12 @@ import settingsIco from './../IMG/settings.svg';
 import keyIco from './../IMG/key.svg';
 import serverIco from './../IMG/oc_server.png';
 import logo from './../logo.png';
+import bellIco from './../IMG/bell.svg';
 
 import './../CSS/Menu.css';
 
 class Menu extends Component {
-    constructor({ handleInicio, handleRobots, handleArticulos, handleMovimientosAlmacen, handleUsuarios, handleRedesElectricas, handleOrdenesMinado, handleConfiguraciones, handleApiKey, handleServidores, handleAlmacen, handleDrones }) {
+    constructor({ handleInicio, handleRobots, handleArticulos, handleMovimientosAlmacen, handleUsuarios, handleRedesElectricas, handleOrdenesMinado, handleConfiguraciones, handleApiKey, handleServidores, handleAlmacen, handleDrones, handleNotificaciones }) {
         super();
 
         this.handleInicio = handleInicio;
@@ -31,6 +32,7 @@ class Menu extends Component {
         this.handleServidores = handleServidores;
         this.handleAlmacen = handleAlmacen;
         this.handleDrones = handleDrones;
+        this.handleNotificaciones = handleNotificaciones;
     }
 
     render() {
@@ -75,6 +77,11 @@ class Menu extends Component {
                         </li>
                     </ul>
                 </div>
+                <form class="form-inline my-2 my-lg-0">
+                    <img src={bellIco} onClick={this.handleNotificaciones} />
+                    <h3 id="notificacionesCount"></h3>
+                    <div id="renderNotificacionesModal"></div>
+                </form>
             </nav>
 
             <div id="renderTab"></div>
