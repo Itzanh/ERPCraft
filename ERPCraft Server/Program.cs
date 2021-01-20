@@ -60,13 +60,21 @@ namespace ERPCraft_Server
             Console.WriteLine("");
             config = Configuracion.readConfiguracion();
             db = new DBStorage(config);
+            // clean the database on start - allow the program to be called from a cron command to clean the DB
+            if (args.Length > 0 && args[0].Equals("clean"))
+            {
+                ajuste = db.getAjuste();
+                Console.WriteLine("CLEANING THE DATABASE FOLLOWING THE ACTIVE CONFIG...");
+                db.limpiar();
+                Console.WriteLine("OK!");
+                return;
+            }
             db.createDB();
             initDb();
 
             websocketPubSub = new PubSub(new string[] { "robots", "articulos", "articulosImg", "electrico", "generador", "bateria", "ordenMinado", "almacen", "drones", "usuarios", "config", "apiKeys", "servers", "notificaciones" });
 
-            // gestio administrativa remota. crear el objecte que controal la gestio remota, 
-            // conectar el listener, i rebre les connexions el altre fil
+            // admin management (web)
             Thread threadWS = new Thread(new ThreadStart(WaitForWebSocket.Run));
             threadWS.Start();
 
