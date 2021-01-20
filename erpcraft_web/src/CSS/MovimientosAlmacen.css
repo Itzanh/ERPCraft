@@ -46,7 +46,7 @@ div#tabMovimientoAlmacen div.localizador img {
 }
 
 div#tabMovimientoAlmacen div.localizador input[type="number"] {
-    max-width: 20%;
+    max-width: 18%;
     margin-left: 1%;
     display: inline-block;
 }

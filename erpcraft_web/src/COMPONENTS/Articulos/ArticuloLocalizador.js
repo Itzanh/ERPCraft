@@ -7,9 +7,11 @@ class ArticuloLocalizador extends Component {
 
         this.getArticulos = getArticulos;
         this.handleSelect = handleSelect;
+        this.articulos = [];
 
         this.select = this.select.bind(this);
         this.cancelar = this.cancelar.bind(this);
+        this.filtrar = this.filtrar.bind(this);
     }
 
     componentDidMount() {
@@ -18,10 +20,14 @@ class ArticuloLocalizador extends Component {
     }
 
     async renderArticulos() {
-        const articulos = await this.getArticulos();
+        this.articulos = await this.getArticulos();
 
+        this.printArticulos();
+    }
+
+    async printArticulos() {
         await ReactDOM.unmountComponentAtNode(document.getElementById("renderArticulosLocalizador"));
-        ReactDOM.render(articulos.map((element, i) => {
+        ReactDOM.render(this.articulos.map((element, i) => {
             return <ArticuloLocalizadorArticulo
                 key={i}
 
@@ -44,6 +50,56 @@ class ArticuloLocalizador extends Component {
         window.$('#articuloLocalizador').modal('hide');
     }
 
+    async filtrar() {
+        // texto de la búsqueda como stirng
+        const txt = this.refs.txt.value;
+        // no hacer búsqueda por defecto
+        if (txt === '')
+            return this.printArticulos();
+        // C = Código, N = Nombre, U = UUID
+        const tipoFiltro = this.refs.fil.value;
+        // si se busca por código pero no es un número, no buscar
+        if (tipoFiltro === 'C' && isNaN(txt))
+            return;
+
+        // establecer el callback dependiendo del filtro
+        var callback;
+        switch (tipoFiltro) {
+            case "C": {
+                const id = parseInt(txt);
+                callback = (element) => {
+                    return element.id === id;
+                };
+                break;
+            }
+            case "N": {
+                callback = (element) => {
+                    return element.name.startsWith(txt);
+                };
+                break;
+            }
+            case "M": {
+                callback = (element) => {
+                    return element.minecraftID.startsWith(txt);
+                };
+                break;
+            }
+        }
+
+        await ReactDOM.unmountComponentAtNode(document.getElementById("renderArticulosLocalizador"));
+        ReactDOM.render(this.articulos.filter(callback).map((element, i) => {
+            return <ArticuloLocalizadorArticulo
+                key={i}
+
+                id={element.id}
+                name={element.name}
+                minecraftID={element.minecraftID}
+
+                handleSelect={this.select}
+            />
+        }), document.getElementById("renderArticulosLocalizador"));
+    }
+
     render() {
         return <div className="modal fade bd-example-modal-lg" tabIndex="-1" role="dialog" aria-labelledby="articuloLocalizadorLabel" id="articuloLocalizador" aria-hidden="true">
             <div className="modal-dialog modal-lg" role="document">
@@ -57,14 +113,14 @@ class ArticuloLocalizador extends Component {
                     <div className="modal-body">
                         <div className="form-row">
                             <div className="col">
-                                <select className="form-control">
-                                    <option>C&oacute;digo</option>
-                                    <option>Nombre</option>
-                                    <option>Minecraft ID</option>
+                                <select className="form-control" onChange={this.filtrar} ref="fil">
+                                    <option value="C">C&oacute;digo</option>
+                                    <option value="N">Nombre</option>
+                                    <option value="M">Minecraft ID</option>
                                 </select>
                             </div>
                             <div className="col">
-                                <input type="text" className="form-control" placeholder="Introducir dato" />
+                                <input type="text" className="form-control" placeholder="Introducir dato" ref="txt" onChange={this.filtrar} />
                             </div>
                             <div className="col">
                                 <button type="button" className="btn btn-secondary" onClick={this.cancelar}>Cancelar</button>
