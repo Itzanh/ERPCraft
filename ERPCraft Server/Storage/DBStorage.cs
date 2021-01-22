@@ -383,7 +383,7 @@ namespace ERPCraft_Server.Storage
         public List<ClaveDeAPI> getApiKeys()
         {
             List<ClaveDeAPI> keys = new List<ClaveDeAPI>();
-            string sql = "SELECT id,name,uuid,ultima_con FROM api_key";
+            string sql = "SELECT id,name,uuid,ultima_con,date_add FROM api_key";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -397,7 +397,7 @@ namespace ERPCraft_Server.Storage
 
         public ClaveDeAPI getApiKey(short id)
         {
-            string sql = "SELECT id,name,uuid,ultima_con FROM api_key WHERE id = @id";
+            string sql = "SELECT id,name,uuid,ultima_con,date_add FROM api_key WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -415,7 +415,7 @@ namespace ERPCraft_Server.Storage
 
         public ClaveDeAPI getApiKey(Guid uuid)
         {
-            string sql = "SELECT id,name,uuid,ultima_con FROM api_key WHERE uuid = @uuid";
+            string sql = "SELECT id,name,uuid,ultima_con,date_add FROM api_key WHERE uuid = @uuid";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@uuid", uuid);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -672,7 +672,7 @@ namespace ERPCraft_Server.Storage
         public List<Usuario> getUsuarios()
         {
             List<Usuario> usuarios = new List<Usuario>();
-            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off FROM usuarios ORDER BY id ASC";
+            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off,date_add FROM usuarios WHERE off = false ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -684,10 +684,13 @@ namespace ERPCraft_Server.Storage
             return usuarios;
         }
 
-        public List<Usuario> searchUsuarios(string text)
+        public List<Usuario> searchUsuarios(string text, bool off)
         {
             List<Usuario> usuarios = new List<Usuario>();
-            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off FROM usuarios WHERE name ILIKE @text ORDER BY id ASC";
+            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off,date_add FROM usuarios WHERE name ILIKE @text";
+            if (!off)
+                sql += " AND off = false";
+            sql += " ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@text", "%" + text + "%");
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -702,7 +705,7 @@ namespace ERPCraft_Server.Storage
 
         public Usuario getUsuario(string username)
         {
-            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off FROM usuarios WHERE name = @username AND off = false";
+            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off,date_add FROM usuarios WHERE name = @username AND off = false";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@username", username);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -720,7 +723,7 @@ namespace ERPCraft_Server.Storage
 
         public Usuario getUsuario(short id)
         {
-            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off FROM usuarios WHERE id = @id AND off = false";
+            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off,date_add FROM usuarios WHERE id = @id AND off = false";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -2694,11 +2697,6 @@ namespace ERPCraft_Server.Storage
             id = rdr.GetInt16(0);
             rdr.Close();
 
-            sql = "UPDATE almacenes SET date_inv_upd = CURRENT_TIMESTAMP(3) WHERE id = @id";
-            cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
-
             return id;
         }
 
@@ -2982,6 +2980,18 @@ namespace ERPCraft_Server.Storage
                     cmd.ExecuteNonQuery();
                 }
             }
+
+            // actualizar el almacén con la fecha de actualización, y los items y slots utilitzados
+            int items = 0;
+            for (int i = 0; i < inventario.Count; i++)
+                items += inventario[i].cantidad;
+
+            sql = "UPDATE almacenes SET date_inv_upd = CURRENT_TIMESTAMP(3), slots = @slots, items = @items WHERE id = @id";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", idAlmacen);
+            cmd.Parameters.AddWithValue("@slots", inventario.Count);
+            cmd.Parameters.AddWithValue("@items", items);
+            cmd.ExecuteNonQuery();
 
             trans.Commit();
 

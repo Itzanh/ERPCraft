@@ -47,7 +47,16 @@ namespace ERPCraft_Server.Controller.AdminControllers
 
         private static string searchUsuarios(DBStorage db, string message)
         {
-            return JsonConvert.SerializeObject(db.searchUsuarios(message));
+            UsuarioQuery query;
+            try
+            {
+                query = (UsuarioQuery)JsonConvert.DeserializeObject(message, typeof(UsuarioQuery));
+            }
+            catch (Exception) { return "ERR"; }
+            if (query == null || query.text == null)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.searchUsuarios(query.text, query.off));
         }
 
         private static string addUsuario(DBStorage db, string message)
@@ -57,7 +66,7 @@ namespace ERPCraft_Server.Controller.AdminControllers
             {
                 usuario = (UsuarioLogin)JsonConvert.DeserializeObject(message, typeof(UsuarioLogin));
             }
-            catch (Exception e) { Console.WriteLine(e); return "ERR"; }
+            catch (Exception) { return "ERR"; }
             if (usuario == null || !usuario.isValid())
                 return "ERR";
 

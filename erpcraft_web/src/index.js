@@ -624,9 +624,9 @@ function getUsuarios() {
     });
 };
 
-function searchUsuarios(text) {
-    if (text && text.length > 0) {
-        client.emit('usuarios', 'search', text, (_, response) => {
+function searchUsuarios(query) {
+    if ((query.text && query.text.length > 0) || query.off) {
+        client.emit('usuarios', 'search', JSON.stringify(query), (_, response) => {
             const usuarios = JSON.parse(response);
             renderUsuarios(usuarios);
         });
@@ -645,6 +645,7 @@ async function renderUsuarios(usuarios) {
                 id={element.id}
                 name={element.name}
                 ultima_con={element.ultima_con}
+                dateAdd={element.dateAdd}
                 off={element.off}
                 iteraciones={element.iteraciones}
 

@@ -17,7 +17,7 @@ class Usuarios extends Component {
     }
 
     buscar() {
-        this.searchUsuarios(this.refs.bus.value);
+        this.searchUsuarios({ text: this.refs.bus.value, off: this.refs.off.checked });
     }
 
     add() {
@@ -37,6 +37,8 @@ class Usuarios extends Component {
                 <div className="input-group-append">
                     <button type="button" className="btn btn-outline-success" onClick={this.buscar}>Buscar</button>
                 </div>
+                <input type="checkbox" className="form-control" ref="off" onChange={this.buscar} />
+                <label>&iquest;Desactivado?</label>
             </div>
             <button type="button" className="btn btn-primary" onClick={this.add}>A&ntilde;adir</button>
             <table className="table table-dark" id="tableTabUsuarios">
@@ -46,6 +48,7 @@ class Usuarios extends Component {
                         <th scope="col">Nombre</th>
                         <th scope="col">Ultima conexi&oacute;n</th>
                         <th scope="col">Estado</th>
+                        <th scope="col">Fecha de creaci&oacute;n</th>
                         <th scope="col">Iteraciones</th>
                     </tr>
                 </thead>

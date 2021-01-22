@@ -4,6 +4,18 @@ div#tabUsuarios div.busqueda {
     margin-bottom: 20px;
 }
 
+    div#tabUsuarios div.busqueda input[type="checkbox"] {
+        max-width: 20px;
+        max-height: 50px;
+        margin-left: 10px;
+    }
+
+div#tabUsuarios h3 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
 div#tabUsuarios table#tableTabUsuarios {
     width: 100%;
 }

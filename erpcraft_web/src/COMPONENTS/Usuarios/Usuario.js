@@ -1,12 +1,13 @@
 import { Component } from "react";
 
 class Usuario extends Component {
-    constructor({ id, name, ultima_con, iteraciones, off, handleEdit }) {
+    constructor({ id, name, ultima_con, dateAdd, iteraciones, off, handleEdit }) {
         super();
 
         this.id = id;
         this.name = name;
-        this.ultima_con = this.formatearFechaTiempo(new Date(ultima_con));
+        this.ultima_con = this.formatearFechaTiempo(ultima_con);
+        this.dateAdd = this.formatearFechaTiempo(dateAdd);
         this.iteraciones = iteraciones;
         this.off = off;
         this.handleEdit = handleEdit;
@@ -28,6 +29,7 @@ class Usuario extends Component {
             <td>{this.name}</td>
             <td>{this.ultima_con}</td>
             <td className={ this.off ? "off" : "on" }>{this.off ? "Desactivado" : "Activado"}</td>
+            <td>{this.dateAdd}</td>
             <td>{this.iteraciones}</td>
         </tr>;
     }

@@ -67,12 +67,15 @@ class RedElectricaForm extends Component {
         this.handleAddGenerador = this.handleAddGenerador.bind(this);
         this.handleAddBateria = this.handleAddBateria.bind(this);
         this.eliminarRedElectrica = this.eliminarRedElectrica.bind(this);
+        this.descripcion = this.descripcion.bind(this);
     }
 
     componentWillUnmount() {
-        this.handleRedChange(null);
-        this.handleGeneradoresChange(null);
-        this.handleBateriasChange(null);
+        if (this.red != null) {
+            this.handleRedChange(null);
+            this.handleGeneradoresChange(null);
+            this.handleBateriasChange(null);
+        }
     }
 
     showAlert(txt) {
@@ -230,7 +233,7 @@ class RedElectricaForm extends Component {
         const red = {};
         red.id = this.red.id;
         red.name = this.refs.name.value;
-        red.descripcion = "";
+        red.descripcion = this.red.descripcion;
 
         if (red.name == null || red.name.length == 0) {
             this.showAlert("El nombre de la red eléctrica no puede estar vacío.");
@@ -254,6 +257,19 @@ class RedElectricaForm extends Component {
             }}
         />, document.getElementById('renderRedElectricaModal'));
 
+    }
+
+    descripcion() {
+        if (this.red == null)
+            return;
+
+        ReactDOM.unmountComponentAtNode(document.getElementById('renderRedElectricaModal'));
+        ReactDOM.render(<RedElectricaDescripcionModal
+            descripcion={this.red.descripcion}
+            handleAceptar={(descripcion) => {
+                this.red.descripcion = descripcion;
+            }}
+        />, document.getElementById('renderRedElectricaModal'));
     }
 
     render() {
@@ -336,6 +352,7 @@ class RedElectricaForm extends Component {
                 <button type="button" className="btn btn-danger" onClick={this.eliminarRedElectrica}>Borrar</button>
                 <button type="button" className="btn btn-success" onClick={this.aceptar}>Aceptar</button>
                 <button type="button" className="btn btn-light" onClick={this.handleRedesElectricas}>Cancelar</button>
+                <button type="button" class="btn btn-dark" onClick={this.descripcion}>Descripci&oacute;n</button>
             </div>
 
         </div>
@@ -379,6 +396,48 @@ class RedElectricaFormDeleteConfirm extends Component {
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                         <button type="button" className="btn btn-danger" onClick={this.eliminar}>Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
+
+class RedElectricaDescripcionModal extends Component {
+    constructor({ descripcion, handleAceptar }) {
+        super();
+
+        this.descripcion = descripcion;
+        this.handleAceptar = handleAceptar;
+
+        this.aceptar = this.aceptar.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#redElectricaDescripcion').modal({ show: true });
+    }
+
+    aceptar() {
+        this.handleAceptar(this.refs.dsc.value);
+        window.$('#redElectricaDescripcion').modal('hide');
+    }
+
+    render() {
+        return <div className="modal fade bd-example-modal-lg" id="redElectricaDescripcion" tabIndex="-1" role="dialog" aria-labelledby="redElectricaDescripcionLabel" aria-hidden="true">
+            <div className="modal-dialog modal-lg" role="document">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="redElectricaDescripcionLabel">Descripci&oacute;n</h5>
+                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <textarea className="form-control" ref="dsc" rows="15" defaultValue={this.descripcion}></textarea>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" className="btn btn-primary" onClick={this.aceptar}>Aceptar</button>
                     </div>
                 </div>
             </div>

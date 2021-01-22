@@ -4,13 +4,15 @@ import trashIco from './../../IMG/trash.svg';
 import resetIco from './../../IMG/reset.svg';
 
 class ApiKey extends Component {
-    constructor({ id, name, uuid, ultimaConexion, handleReset, handleDelete }) {
+    constructor({ id, name, uuid, ultimaConexion, dateAdd, handleReset, handleDelete }) {
         super();
 
         this.id = id;
         this.name = name;
         this.uuid = uuid;
-        this.ultimaConexion = this.formatearFechaTiempo(new Date(ultimaConexion));
+        this.ultimaConexion = this.formatearFechaTiempo(ultimaConexion);
+        this.dateAdd = this.formatearFechaTiempo(dateAdd);
+        console.log(ultimaConexion, dateAdd);
 
         this.handleReset = handleReset;
         this.handleDelete = handleDelete;
@@ -43,6 +45,7 @@ class ApiKey extends Component {
             <td>{this.name}</td>
             <td>{this.uuid}</td>
             <td>{this.ultimaConexion}</td>
+            <td>{this.dateAdd}</td>
             <td><img src={resetIco} onClick={this.reset} /></td>
             <td><img src={trashIco} onClick={this.delete} /></td>
         </tr>

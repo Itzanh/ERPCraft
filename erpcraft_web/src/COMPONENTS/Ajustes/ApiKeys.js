@@ -37,6 +37,7 @@ class ApiKeys extends Component {
                 name={element.name}
                 uuid={element.uuid}
                 ultimaConexion={element.ultimaConexion}
+                dateAdd={element.dateAdd}
 
                 handleReset={this.reset}
                 handleDelete={this.delete}
@@ -86,6 +87,7 @@ class ApiKeys extends Component {
                     name={element.name}
                     uuid={element.uuid}
                     ultimaConexion={element.ultimaConexion}
+                    dateAdd={element.dateAdd}
 
                     handleReset={this.reset}
                     handleDelete={this.delete}
@@ -131,6 +133,7 @@ class ApiKeys extends Component {
                                 <th scope="col">Nombre</th>
                                 <th scope="col">UUID</th>
                                 <th scope="col">&Uacute;ltima conexi&oacute;n</th>
+                                <th scope="col">Fecha de creaci&oacute;n</th>
                                 <th scope="col">Reset</th>
                                 <th scope="col">Delete</th>
                             </tr>

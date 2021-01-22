@@ -9,6 +9,7 @@ namespace ERPCraft_Server.Models.DB
         public string name;
         public Guid uuid;
         public DateTime ultimaConexion;
+        public DateTime dateAdd;
 
         public ClaveDeAPI(NpgsqlDataReader rdr)
         {
@@ -16,6 +17,7 @@ namespace ERPCraft_Server.Models.DB
             this.name = rdr.GetString(1);
             this.uuid = rdr.GetGuid(2);
             this.ultimaConexion = rdr.GetDateTime(3);
+            this.dateAdd = rdr.GetDateTime(4);
         }
 
         public ClaveDeAPI(short id, string name, Guid uuid)

@@ -15,6 +15,7 @@ namespace ERPCraft_Server.Models.DB
         public DateTime ultima_con;
         public string descripcion;
         public bool off;
+        public DateTime dateAdd;
 
         public Usuario(NpgsqlDataReader rdr)
         {
@@ -26,6 +27,7 @@ namespace ERPCraft_Server.Models.DB
             this.ultima_con = rdr.GetDateTime(5);
             this.descripcion = rdr.GetString(6);
             this.off = rdr.GetBoolean(7);
+            this.dateAdd = rdr.GetDateTime(8);
         }
 
         public Usuario(string name, string pwd, string salt, int iteraciones)
@@ -81,6 +83,12 @@ namespace ERPCraft_Server.Models.DB
             }
             return str.ToString();
         }
+    }
+
+    public class UsuarioQuery
+    {
+        public string text;
+        public bool off;
     }
 
     public class UsuarioLogin
