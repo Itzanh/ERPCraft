@@ -186,7 +186,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="a1e13481235f776467c7c2bde4d041ac.ico" />
-    <Content Include="Embedded\db_upgrade_1.sql" />
+    <EmbeddedResource Include="Embedded\articulos.sql" />
+    <EmbeddedResource Include="Embedded\db_upgrade_1.sql" />
     <EmbeddedResource Include="Embedded\db_create.sql" />
   </ItemGroup>
   <ItemGroup>

@@ -106,6 +106,11 @@ namespace ERPCraft_Server.Storage
                 try
                 {
                     rdr = cmd.ExecuteReader();
+                    if (!rdr.HasRows)
+                    {
+                        rdr.Close();
+                        return;
+                    }
                     rdr.Read();
                     short version = rdr.GetInt16(0);
                     rdr.Close();
@@ -143,13 +148,13 @@ namespace ERPCraft_Server.Storage
             }
 
             //  read the SQL file that creates the schema from an embedded file
+            Console.WriteLine("*** THE DATABASE IS EMPTY. CREATING THE SCHEMA INTO THE DATABASE. ***");
             Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ERPCraft_Server.Embedded.db_create.sql");
             TextReader tr = new StreamReader(stream);
             string schema = tr.ReadToEnd();
             rdr.Close();
             stream.Close();
 
-            Console.WriteLine("*** THE DATABASE IS EMPTY. CREATING THE SCHEMA INTO THE DATABASE. ***");
             cmd = new NpgsqlCommand(schema, conn);
             if (cmd.ExecuteNonQuery() == 0)
             {
@@ -162,6 +167,23 @@ namespace ERPCraft_Server.Storage
             sql = "SET search_path TO public";
             cmd = new NpgsqlCommand(sql, conn);
             cmd.ExecuteNonQuery();
+
+            Console.WriteLine("*** COPYING ITEMS INTO THE DATABASE ***");
+
+            stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ERPCraft_Server.Embedded.articulos.sql");
+            tr = new StreamReader(stream);
+            schema = tr.ReadToEnd();
+            rdr.Close();
+            stream.Close();
+
+            cmd = new NpgsqlCommand(schema, conn);
+            if (cmd.ExecuteNonQuery() == 0)
+            {
+                Console.WriteLine("THERE WAS AN ERROR COPYING THE MINECRAFT ITEMS INTO THE DATABASE.");
+                return;
+            }
+
+            Console.WriteLine("*** MINECRAFT ITEMS CREATED OK ***");
         }
 
         public void limpiar()
