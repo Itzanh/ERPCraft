@@ -24,12 +24,25 @@ namespace ERPCraft_Server.Models.DB
             this.descripcion = rdr.GetString(4);
         }
 
+        private static bool minecraftIDisValid(string minecraftID)
+        {
+            if (minecraftID.IndexOf(':') <= 0 || minecraftID.LastIndexOf(':') == minecraftID.Length - 1)
+                return false;
+
+            const string charset = "abcdefghijklmnopqrstuvwxyz0123456789_:";
+            for (int i = 0; i < minecraftID.Length; i++)
+                if (charset.IndexOf(minecraftID[i]) < 0)
+                    return false;
+
+            return true;
+        }
+
         internal bool isValid()
         {
             if (this.name == null || this.name.Equals(string.Empty))
                 return false;
 
-            if (this.minecraftID == null || this.minecraftID.Length == 0 || this.minecraftID.IndexOf(':') < 0)
+            if (this.minecraftID == null || this.minecraftID.Length == 0 || !minecraftIDisValid(this.minecraftID))
                 return false;
 
             if (cantidad < 0)
