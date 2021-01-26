@@ -7,6 +7,7 @@ using ERPCraft_Server.Models.DB.Robots;
 using ERPCraft_Server.Models.DB.Almacen;
 using ERPCraft_Server.Storage;
 using ERPCraft_Server.Models.DB.Drones;
+using ERPCraft_Server.Models.DB;
 
 namespace ERPCraft_Server.Controller
 {
@@ -101,7 +102,6 @@ namespace ERPCraft_Server.Controller
         private static void clientLoop(TcpClient client)
         {
             ServerController server = new ServerController(client);
-            servers.Add(server);
             Console.WriteLine("El client s'ha conectat");
             client.ReceiveTimeout = 60000;
             client.SendTimeout = 60000;
@@ -111,6 +111,7 @@ namespace ERPCraft_Server.Controller
                 client.Close();
                 return;
             }
+            servers.Add(server);
             server.db.updateServerOnline(server.uuid, true);
 
             while (client.Connected)
@@ -132,15 +133,48 @@ namespace ERPCraft_Server.Controller
                 byte[] msgSrv = new byte[36];
                 client.GetStream().Read(msgSrv, 0, 36);
                 string server = Encoding.ASCII.GetString(msgSrv);
-                srv.uuid = Guid.Parse(server);
 
                 byte[] msgKey = new byte[36];
                 client.GetStream().Read(msgKey, 0, 36);
                 string apiKey = Encoding.ASCII.GetString(msgKey);
+                Guid key = Guid.Parse(apiKey);
 
-                return srv.db.serverExists(Guid.Parse(server)) && Program.db.existsApiKey(Guid.Parse(apiKey)) && Program.db.onlineApiKey(Guid.Parse(apiKey));
+                // funcionalidad de registrar un servidor automáticamente
+                if (server.Equals("AUTOREGISTER                        "))
+                {
+                    byte[] password = new byte[36];
+                    client.GetStream().Read(password, 0, 36);
+                    if (!autoregisterServer(key, Encoding.ASCII.GetString(password), srv.db))
+                        return false;
+                    srv.uuid = key;
+                    return true;
+                }
+                else
+                {
+                    srv.uuid = Guid.Parse(server);
+                    return srv.db.serverExists(srv.uuid) && Program.db.existsApiKey(key) && Program.db.onlineApiKey(key);
+                }
             }
             catch (Exception e) { Console.WriteLine(e.ToString()); return false; }
+        }
+
+        /// <summary>
+        /// funcionalidad de registrar un servidor automáticamente
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private static bool autoregisterServer(Guid srvId, string password, DBStorage db)
+        {
+            // comprobar que el registro automático está habilitado en este servidor
+            if (!Program.ajuste.permitirAutoregistrar)
+                return false;
+
+            // buscar si la contraseña es correcta
+            if (!Usuario.verifyHash(Program.ajuste.pwd, Program.ajuste.salt + password.Trim(), Program.ajuste.iteraciones))
+                return false;
+
+            // registrar el servidor en la base de datos
+            return db.addServer(srvId);
         }
 
         private static string recibirMensaje(TcpClient client)

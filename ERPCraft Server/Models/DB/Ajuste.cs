@@ -26,6 +26,10 @@ namespace ERPCraft_Server.Models.DB
         public int hashIteraciones;
         public bool limpiarNotificaciones;
         public short horasNotificaciones;
+        public bool permitirAutoregistrar;
+        public string pwd;
+        public string salt;
+        public int iteraciones;
 
         public Ajuste()
         {
@@ -56,6 +60,10 @@ namespace ERPCraft_Server.Models.DB
             this.hashIteraciones = rdr.GetInt32(19);
             this.limpiarNotificaciones = rdr.GetBoolean(20);
             this.horasNotificaciones = rdr.GetInt16(21);
+            this.permitirAutoregistrar = rdr.GetBoolean(22);
+            this.pwd = rdr.GetString(23);
+            this.salt = rdr.GetString(24);
+            this.iteraciones = rdr.GetInt32(25);
         }
 
         public bool isValid()
@@ -89,5 +97,11 @@ namespace ERPCraft_Server.Models.DB
             this.limpiarNotificaciones = true;
             this.horasNotificaciones = 48;
         }
+    }
+
+    public class AjustePwd
+    {
+        public short id;
+        public string pwd;
     }
 }

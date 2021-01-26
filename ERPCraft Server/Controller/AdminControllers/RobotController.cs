@@ -59,6 +59,10 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return execRobotCommand(db, message);
                     }
+                case "referencias":
+                    {
+                        return robotLoadReferences(db, message);
+                    }
             }
 
             return "ERR";
@@ -232,6 +236,39 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 return "ERR";
 
             return GameController.enviarComando(r.uuid.ToString(), command.command) ? "OK" : "ERR";
+        }
+
+        private static string robotLoadReferences(DBStorage db, string message)
+        {
+            RobotReferences references;
+            try
+            {
+                references = (RobotReferences)JsonConvert.DeserializeObject(message, typeof(RobotReferences));
+            }
+            catch (Exception) { return "ERR"; }
+            if (references == null || references.reference < 0 || references.ids == null || references.ids.Length == 0)
+                return "ERR";
+
+            switch (references.reference)
+            {
+                case RobotReferencesTable.RobotInventario:
+                    {
+                        return JsonConvert.SerializeObject(db.loadRobotReferenceInventario(references.ids));
+                    }
+                case RobotReferencesTable.RobotGPS:
+                    {
+                        return JsonConvert.SerializeObject(db.loadRobotReferenceGPS(references.ids));
+                    }
+                case RobotReferencesTable.RobotLogs:
+                    {
+                        return JsonConvert.SerializeObject(db.loadRobotReferenceLog(references.ids));
+                    }
+                case RobotReferencesTable.RobotOrdenesMinado:
+                    {
+                        break;
+                    }
+            }
+            return null;
         }
     }
 }

@@ -5,7 +5,7 @@ import FormAlert from "../FormAlert";
 import settingsIco from './../../IMG/settings.svg';
 
 class AjusteForm extends Component {
-    constructor({ ajuste, handleAdd, handleUpdate, handleActivar, handleLimpiar, handleEliminar }) {
+    constructor({ ajuste, handleAdd, handleUpdate, handleActivar, handleLimpiar, handleEliminar, pwdAjuste }) {
         super();
 
         this.ajuste = ajuste;
@@ -14,11 +14,14 @@ class AjusteForm extends Component {
         this.handleActivar = handleActivar;
         this.handleLimpiar = handleLimpiar;
         this.handleEliminar = handleEliminar;
+        this.pwdAjuste = pwdAjuste;
 
         this.guardar = this.guardar.bind(this);
         this.borrar = this.borrar.bind(this);
         this.activar = this.activar.bind(this);
         this.limpiar = this.limpiar.bind(this);
+        this.pwd = this.pwd.bind(this);
+        this.handlePwd = this.handlePwd.bind(this);
     }
 
     showAlert(txt) {
@@ -52,6 +55,7 @@ class AjusteForm extends Component {
         ajuste.hashIteraciones = parseInt(this.refs.hashIteraciones.value);
         ajuste.limpiarNotificaciones = this.refs.limpiarNotificaciones.checked;
         ajuste.horasNotificaciones = parseInt(this.refs.horasNotificaciones.value);
+        ajuste.permitirAutoregistrar = this.refs.permitirAutoregistrar.checked;
 
         if (ajuste.name == null || ajuste.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio");
@@ -108,6 +112,20 @@ class AjusteForm extends Component {
         await ReactDOM.unmountComponentAtNode(document.getElementById("ajusteFormModal"));
     }
 
+    handlePwd(pwd) {
+        this.pwdAjuste(this.ajuste.id, pwd);
+    }
+
+    pwd() {
+        if (this.ajuste == null) {
+            return;
+        }
+        ReactDOM.unmountComponentAtNode(document.getElementById("ajusteFormModal"));
+        ReactDOM.render(<ConfigFormPwd
+            handlePwd={this.handlePwd}
+        />, document.getElementById("ajusteFormModal"));
+    }
+
     render() {
         return <div id="ajusteForm">
             <div id="ajusteFormModal"></div>
@@ -140,7 +158,7 @@ class AjusteForm extends Component {
                 </div>
                 <div className="col">
                     <label>Iteraciones del hash de las contrase&ntilde;as de los usuarios</label>
-                    <input type="number" className="form-control" min="1" max="1000000" placeholder="Iteraciones del hash de las contrase&ntilde;as de los usuarios" ref="hashIteraciones" defaultValue={this.ajuste != null ? this.ajuste.hashIteraciones : 5000} />
+                    <input type="number" className="form-control" min="1" max="1000000" placeholder="Iteraciones del hash de las contrase&ntilde;as de los usuarios" ref="hashIteraciones" defaultValue={this.ajuste != null ? this.ajuste.hashIteraciones : 25000} />
                 </div>
             </div>
 
@@ -148,11 +166,18 @@ class AjusteForm extends Component {
             <div className="row">
                 <div className="col">
                     <label>Segundos del intervalo de ping</label>
-                    <input type="number" className="form-control" min="1" max="32767" placeholder="Segundos del intervalo de ping" ref="pingInterval" defaultValue={this.ajuste != null ? this.ajuste.pingInterval : 0} />
+                    <input type="number" className="form-control" min="1" max="32767" placeholder="Segundos del intervalo de ping" ref="pingInterval" defaultValue={this.ajuste != null ? this.ajuste.pingInterval : 5} />
                 </div>
                 <div className="col">
                     <label>Segundos de timeout de los dispositivos</label>
-                    <input type="number" className="form-control" min="2" max="32767" placeholder="Segundos de timeout de los dispositivos" ref="timeout" defaultValue={this.ajuste != null ? this.ajuste.timeout : 0} />
+                    <input type="number" className="form-control" min="2" max="32767" placeholder="Segundos de timeout de los dispositivos" ref="timeout" defaultValue={this.ajuste != null ? this.ajuste.timeout : 30} />
+                </div>
+                <div className="col checkContainer">
+                    <input type="checkbox" ref="permitirAutoregistrar" defaultChecked={this.ajuste != null ? this.ajuste.permitirAutoregistrar : false} />
+                    <label>&iquest;Permitir registrar autom&aacute;ticamente nuevos servidores?</label>
+                </div>
+                <div className="col">
+                    <button type="button" className="btn btn-warning" onClick={this.pwd}>Cambiar contrase&ntilde;a de autoregistro</button>
                 </div>
             </div>
 
@@ -326,6 +351,53 @@ class AjusteFormLimpieza extends Component {
                         <p>Se est&aacute; ejecutando la limpieza seg&uacute;n los ajustes activos actuales. Por favor, espere...</p>
                     </div>
                     <div className="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
+
+class ConfigFormPwd extends Component {
+    constructor({ handlePwd }) {
+        super();
+
+        this.handlePwd = handlePwd;
+
+        this.aceptar = this.aceptar.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#serverModalPwd').modal({ show: true });
+    }
+
+    aceptar() {
+        const pwd = this.refs.pwd.value;
+        if (pwd.length == 0)
+            return;
+
+        this.handlePwd(pwd);
+        window.$('#serverModalPwd').modal('hide');
+    }
+
+    render() {
+        return <div className="modal fade" id="serverModalPwd" tabIndex="-1" role="dialog" aria-labelledby="serverModalPwdLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="serverModalPwdLabel">Contrase&ntilde;a de autoregistro</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>La contrase&ntilde;a de autoregistro permite que se registren servidores nuevos desde el juego sin necesidad de introducir sus datos y su UUID manualmente, usando una contrase&ntilde;a que se ha de configurar.</p>
+                        <label>Contrase&ntilde;a</label>
+                        <input type="password" className="form-control" id="serverPwd" ref="pwd" placeholder="Contrase&ntilde;a" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onClick={this.aceptar}>OK</button>
                     </div>
                 </div>
             </div>

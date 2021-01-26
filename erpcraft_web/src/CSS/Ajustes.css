@@ -77,3 +77,10 @@ div#tabServers h3 img {
     margin-right: 10px;
     margin-left: 25px;
 }
+
+div#tabServers div#autoregistrarSrvScript code {
+    display: block;
+    background-color: black;
+    color: white;
+    padding-left: 20px;
+}

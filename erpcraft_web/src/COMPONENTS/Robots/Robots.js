@@ -8,6 +8,11 @@ import singularIco from './../../IMG/singular.svg';
 import referenciaIco from './../../IMG/referencia.svg';
 import otrasTablasIco from './../../IMG/otras_tablas.svg';
 
+import inventarioIco from './../../IMG/inventario.png';
+import mapaIco from './../../IMG/mapa.png';
+import logIco from './../../IMG/log.svg';
+import minandoIco from './../../IMG/robot_estado/minando.png';
+
 import './../../CSS/Robots.css';
 
 class Robots extends Component {
@@ -26,6 +31,7 @@ class Robots extends Component {
         this.nuevoRobot = this.nuevoRobot.bind(this);
         this.autoregistroRobot = this.autoregistroRobot.bind(this);
         this.buscar = this.buscar.bind(this);
+        this.referencias = this.referencias.bind(this);
     }
 
     nuevoRobot() {
@@ -53,9 +59,16 @@ class Robots extends Component {
         this.handleBuscar(query);
     }
 
+    referencias() {
+        ReactDOM.unmountComponentAtNode(this.refs.renderRobotModal);
+        ReactDOM.render(<RobotsReferenciasSelectModal
+
+        />, this.refs.renderRobotModal);
+    }
+
     render() {
         return <div id="tabRobots">
-            <div ref="renderRobotModal"></div>
+            <div ref="renderRobotModal" id="renderRobotModal"></div>
             <h3><img src={robotIco} />Robots</h3>
             <div className="input-group busqueda">
                 <input type="text" className="form-control" ref="name" onChange={this.buscar} />
@@ -80,7 +93,7 @@ class Robots extends Component {
                 </button>
                 <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     <a className="dropdown-item" href="#"><img src={singularIco} />Singulares</a>
-                    <a className="dropdown-item" href="#"><img src={referenciaIco} />Referencias</a>
+                    <a className="dropdown-item" href="#" onClick={this.referencias}><img src={referenciaIco} />Referencias</a>
                 </div>
             </div>
             <button type="button" className="btn btn-primary" onClick={this.nuevoRobot}>A&ntilde;adir robot</button>
@@ -89,6 +102,120 @@ class Robots extends Component {
         </div>;
     }
 };
+
+class RobotsReferenciasSelectModal extends Component {
+    constructor({ }) {
+        super();
+
+        this.logs = this.logs.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#robotsReferencias').modal({ show: true });
+    }
+
+    logs() {
+        window.$('#robotsReferencias').modal('hide');
+        ReactDOM.unmountComponentAtNode(document.getElementById("renderRobotModal"));
+        ReactDOM.render(<RobotReferenciasResultsModal
+            referencia={2}
+        />, document.getElementById("renderRobotModal"));
+    }
+
+    render() {
+        return <div class="modal fade" id="robotsReferencias" tabindex="-1" role="dialog" aria-labelledby="robotsReferenciasLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="robotsReferenciasLabel">Seleccionar tabla</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Nombre</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><img src={inventarioIco} /></th>
+                                    <td>Inventario</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><img src={mapaIco} /></th>
+                                    <td>Historial GPS</td>
+                                </tr>
+                                <tr onClick={this.logs}>
+                                    <th scope="row"><img src={logIco} /></th>
+                                    <td>Logs</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><img src={minandoIco} /></th>
+                                    <td>&Oacute;rdenes de minado</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
+
+class RobotReferenciasResultsModal extends Component {
+    constructor({ referencia }) {
+        super();
+
+        this.referencia = referencia;
+    }
+
+    componentDidMount() {
+        window.$('#robotsReferenciasModal').modal({ show: true });
+
+        switch (this.referencia) {
+            case 2: {
+                ReactDOM.render(<table class="table table-dark">
+                    <thead>
+                        <tr>
+                            <th scope="col">Robot</th>
+                            <th scope="col">#</th>
+                            <th scope="col">T&iacute;tulo</th>
+                            <th scope="col">Mensaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>, this.refs.body);
+                break;
+            }
+        }
+    }
+
+    render() {
+        return <div class="modal fade bd-example-modal-xl" tabindex="-1" role="dialog" id="robotsReferenciasModal" aria-labelledby="robotsReferenciasModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="robotsReferenciasModalLabel">Registros</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" ref="body">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
 
 export default Robots;
 

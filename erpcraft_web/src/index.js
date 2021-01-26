@@ -1446,6 +1446,7 @@ async function tabAjustes() {
         handleLimpiar={ajustesEjecutarLimpieza}
         handleEliminar={deleteAjustes}
         tabAjustesPush={tabAjustesPush}
+        pwdAjuste={pwdAjuste}
     />, document.getElementById('renderTab'));
 
 };
@@ -1505,6 +1506,17 @@ function deleteAjustes(ajusteId) {
 function activarAjustes(ajusteId) {
     return new Promise((resolve) => {
         client.emit('ajustes', 'activar', '' + ajusteId, (_, response) => {
+            resolve();
+        });
+    });
+};
+
+function pwdAjuste(idAjuste, pwd) {
+    return new Promise((resolve) => {
+        client.emit('ajustes', 'pwd', JSON.stringify({
+            id: idAjuste,
+            pwd: pwd
+        }), (_, response) => {
             resolve();
         });
     });
@@ -1573,6 +1585,7 @@ function tabServidores() {
         handleUpdate={updateServer}
         handleDelete={deleteServer}
         handlePwd={pwdAutoregServer}
+        getAjustes={getAjustes}
     />, document.getElementById('renderTab'));
 };
 

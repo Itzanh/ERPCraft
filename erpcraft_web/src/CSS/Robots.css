@@ -440,3 +440,9 @@ div#robotAutoregister div#robotRegResult code {
     color: white;
     padding-left: 20px;
 }
+
+/* ROBOT REFERENCIAS */
+
+div#tabRobots div#robotsReferencias table img {
+    height: 30px;
+}

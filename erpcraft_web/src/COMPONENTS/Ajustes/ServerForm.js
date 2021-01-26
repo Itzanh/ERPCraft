@@ -167,7 +167,7 @@ class ServerFormPwd extends Component {
                         </button>
                     </div>
                     <div class="modal-body">
-                        <p>La contrase&ntilde;a de autoregistro permite a que se registren dispositivos nuevos desde el juego sin necesidad de introducir sus datos y su UUID manualmente, usando una contrase&ntilde;a que se ha de configurar.</p>
+                        <p>La contrase&ntilde;a de autoregistro permite que se registren dispositivos nuevos desde el juego sin necesidad de introducir sus datos y su UUID manualmente, usando una contrase&ntilde;a que se ha de configurar.</p>
                         <label>Contrase&ntilde;a</label>
                         <input type="password" className="form-control" id="serverPwd" ref="pwd" placeholder="Contrase&ntilde;a" />
                     </div>

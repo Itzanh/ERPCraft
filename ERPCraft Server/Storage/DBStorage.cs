@@ -258,7 +258,7 @@ namespace ERPCraft_Server.Storage
         public List<Ajuste> getAjustes()
         {
             List<Ajuste> ajustes = new List<Ajuste>();
-            string sql = "SELECT id,name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif FROM public.config ORDER BY id ASC";
+            string sql = "SELECT id,name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif,permitir_autoreg,pwd,salt,iteraciones FROM public.config ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -272,7 +272,7 @@ namespace ERPCraft_Server.Storage
 
         public Ajuste getAjuste()
         {
-            string sql = "SELECT id,name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif FROM public.config WHERE act = true";
+            string sql = "SELECT id,name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif,permitir_autoreg,pwd,salt,iteraciones FROM public.config WHERE act = true";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
             if (!rdr.HasRows)
@@ -288,7 +288,7 @@ namespace ERPCraft_Server.Storage
 
         public Ajuste getAjuste(short id)
         {
-            string sql = "SELECT id,name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif FROM public.config WHERE id = @id";
+            string sql = "SELECT id,name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif,permitir_autoreg,pwd,salt,iteraciones FROM public.config WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -305,7 +305,7 @@ namespace ERPCraft_Server.Storage
 
         public short addAjuste(Ajuste ajuste)
         {
-            string sql = "INSERT INTO public.config(name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif) VALUES (@name,false,@lim_rob_gps,@dias_rob_gps,@lim_robot_log,@dias_rob_log,@lim_drn_gps,@dias_drn_gps,@lim_drn_log,@dias_drn_log,@lim_bat_hist,@horas_bat_hist,@vacuum_lim,@reindex_lim,@ping_int,@timeout,@web_port,@oc_port,@hash_rounds,@lim_notif,@horas_notif) RETURNING id";
+            string sql = "INSERT INTO public.config(name,act,lim_rob_gps,dias_rob_gps,lim_robot_log,dias_rob_log,lim_drn_gps,dias_drn_gps,lim_drn_log,dias_drn_log,lim_bat_hist,horas_bat_hist,vacuum_lim,reindex_lim,ping_int,timeout,web_port,oc_port,hash_rounds,lim_notif,horas_notif,permitir_autoreg) VALUES (@name,false,@lim_rob_gps,@dias_rob_gps,@lim_robot_log,@dias_rob_log,@lim_drn_gps,@dias_drn_gps,@lim_drn_log,@dias_drn_log,@lim_bat_hist,@horas_bat_hist,@vacuum_lim,@reindex_lim,@ping_int,@timeout,@web_port,@oc_port,@hash_rounds,@lim_notif,@horas_notif,@permitir_autoreg) RETURNING id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", ajuste.name);
             cmd.Parameters.AddWithValue("@lim_rob_gps", ajuste.limpiarRobotGps);
@@ -327,6 +327,7 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@hash_rounds", ajuste.hashIteraciones);
             cmd.Parameters.AddWithValue("@lim_notif", ajuste.limpiarNotificaciones);
             cmd.Parameters.AddWithValue("@horas_notif", ajuste.horasNotificaciones);
+            cmd.Parameters.AddWithValue("@permitir_autoreg", ajuste.permitirAutoregistrar);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
             rdr.Read();
             short id = rdr.GetInt16(0);
@@ -340,7 +341,7 @@ namespace ERPCraft_Server.Storage
 
         public bool updateAjuste(Ajuste ajuste)
         {
-            string sql = "UPDATE public.config SET name=@name,lim_rob_gps=@lim_rob_gps,dias_rob_gps=@dias_rob_gps,lim_robot_log=@lim_robot_log,dias_rob_log=@dias_rob_log,lim_drn_gps=@lim_drn_gps,dias_drn_gps=@dias_drn_gps,lim_drn_log=@lim_drn_log,dias_drn_log=@dias_drn_log,lim_bat_hist=@lim_bat_hist,horas_bat_hist=@horas_bat_hist,vacuum_lim=@vacuum_lim,reindex_lim=@reindex_lim,ping_int=@ping_int,timeout=@timeout,web_port=@web_port,oc_port=@oc_port,hash_rounds=@hash_rounds,lim_notif=@lim_notif,horas_notif=@horas_notif WHERE id=@id";
+            string sql = "UPDATE public.config SET name=@name,lim_rob_gps=@lim_rob_gps,dias_rob_gps=@dias_rob_gps,lim_robot_log=@lim_robot_log,dias_rob_log=@dias_rob_log,lim_drn_gps=@lim_drn_gps,dias_drn_gps=@dias_drn_gps,lim_drn_log=@lim_drn_log,dias_drn_log=@dias_drn_log,lim_bat_hist=@lim_bat_hist,horas_bat_hist=@horas_bat_hist,vacuum_lim=@vacuum_lim,reindex_lim=@reindex_lim,ping_int=@ping_int,timeout=@timeout,web_port=@web_port,oc_port=@oc_port,hash_rounds=@hash_rounds,lim_notif=@lim_notif,horas_notif=@horas_notif,permitir_autoreg=@permitir_autoreg WHERE id=@id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", ajuste.id);
             cmd.Parameters.AddWithValue("@name", ajuste.name);
@@ -363,6 +364,7 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@hash_rounds", ajuste.hashIteraciones);
             cmd.Parameters.AddWithValue("@lim_notif", ajuste.limpiarNotificaciones);
             cmd.Parameters.AddWithValue("@horas_notif", ajuste.horasNotificaciones);
+            cmd.Parameters.AddWithValue("@permitir_autoreg", ajuste.permitirAutoregistrar);
             if (cmd.ExecuteNonQuery() == 0)
                 return false;
 
@@ -371,6 +373,17 @@ namespace ERPCraft_Server.Storage
 
             Program.websocketPubSub.onPush("config", serverHashes.SubscriptionChangeType.update, ajuste.id, JsonConvert.SerializeObject(getAjuste(ajuste.id)));
             return true;
+        }
+
+        public bool updateAjuste(short id, string hash, string salt, int hashIteraciones)
+        {
+            string sql = "UPDATE public.config SET pwd=@pwd,salt=@salt,iteraciones=@iteraciones WHERE id=@id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.Parameters.AddWithValue("@pwd", hash);
+            cmd.Parameters.AddWithValue("@salt", salt);
+            cmd.Parameters.AddWithValue("@iteraciones", hashIteraciones);
+            return cmd.ExecuteNonQuery() > 0;
         }
 
         public bool deleteAjuste(short id)
@@ -581,6 +594,33 @@ namespace ERPCraft_Server.Storage
             catch (Exception) { return false; }
 
             Program.websocketPubSub.onPush("servers", serverHashes.SubscriptionChangeType.insert, 0, JsonConvert.SerializeObject(getServer(server.uuid)));
+            return true;
+        }
+
+        /// <summary>
+        /// Se usa para los servidores que se autoregistren en el sistema, se usan parámetros por defecto
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        public bool addServer(Guid uuid)
+        {
+            string sql = "INSERT INTO public.servers(uuid,name,autoreg,notif_on,notif_off) VALUES (@uuid,@name,@autoreg,@notif_on,@notif_off)";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@uuid", uuid);
+            cmd.Parameters.AddWithValue("@name", "Servidor autoregistrado #" + uuid.ToString().Substring(0, 4));
+            cmd.Parameters.AddWithValue("@autoreg", false);
+            cmd.Parameters.AddWithValue("@notif_on", false);
+            cmd.Parameters.AddWithValue("@notif_off", false);
+            try
+            {
+                if (cmd.ExecuteNonQuery() == 0)
+                {
+                    return false;
+                }
+            }
+            catch (Exception e) { Console.WriteLine(e.ToString()); return false; }
+
+            Program.websocketPubSub.onPush("servers", serverHashes.SubscriptionChangeType.insert, 0, JsonConvert.SerializeObject(getServer(uuid)));
             return true;
         }
 
@@ -1455,6 +1495,72 @@ namespace ERPCraft_Server.Storage
 
             if (r.notificacionDesconexion)
                 addNotificacion(new Notificacion("Robot offline", "El robot " + r.name + "#" + r.id + " se ha desconectado.", NotificacionOrigen.RobotDesconectado));
+        }
+
+        public List<RobotInventario> loadRobotReferenceInventario(short[] ids)
+        {
+            List<RobotInventario> inventario = new List<RobotInventario>();
+            List<RobotInventarioGet> inventarioGet = new List<RobotInventarioGet>();
+            for (int i = 0; i < ids.Length; i++)
+            {
+                string sql = "SELECT num_slot, cant, art FROM rob_inventario WHERE rob = @robot ORDER BY num_slot ASC";
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@robot", ids[i]);
+                NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    RobotInventarioGet slot = new RobotInventarioGet(rdr);
+                    inventarioGet.Add(slot);
+                }
+                rdr.Close();
+            }
+
+            foreach (RobotInventarioGet inv in inventarioGet)
+            {
+                inventario.Add(
+                    new RobotInventario(inv.numeroSlot, inv.cant, inv.articulo == 0 ? null : getArticuloSlot(inv.articulo)));
+            }
+
+            return inventario;
+        }
+
+        public List<RobotGPS> loadRobotReferenceGPS(short[] ids)
+        {
+            List<RobotGPS> gps = new List<RobotGPS>();
+            for (int i = 0; i < ids.Length; i++)
+            {
+                string sql = "SELECT id, pos_x, pos_y, pos_z FROM rob_gps WHERE rob = @robot ORDER BY id DESC";
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@robot", ids[i]);
+                NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    gps.Add(new RobotGPS(rdr));
+                }
+                rdr.Close();
+            }
+            return gps;
+        }
+
+        public List<RobotLog> loadRobotReferenceLog(short[] ids)
+        {
+            List<RobotLog> logs = new List<RobotLog>();
+            for (int i = 0; i < ids.Length; i++)
+            {
+                string sql = "SELECT id, titulo, msg FROM rob_logs WHERE rob = @robot ORDER BY id DESC";
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@robot", ids[i]);
+                NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    logs.Add(new RobotLog(rdr));
+                }
+                rdr.Close();
+            }
+            return logs;
         }
 
         // ROBOT - INVENTARIO

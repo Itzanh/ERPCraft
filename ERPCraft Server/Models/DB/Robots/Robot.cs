@@ -120,5 +120,19 @@ namespace ERPCraft_Server.Models.DB.Robots
         }
     }
 
+    public enum RobotReferencesTable
+    {
+        RobotInventario,
+        RobotGPS,
+        RobotLogs,
+        RobotOrdenesMinado
+    }
+
+    public class RobotReferences
+    {
+        public RobotReferencesTable reference;
+        public short[] ids;
+    }
+
 
 }

@@ -35,6 +35,10 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return ejecutarLimpieza(db);
                     }
+                case "pwd":
+                    {
+                        return changePwdAjuste(db, message);
+                    }
             }
 
             return "ERR";
@@ -110,6 +114,23 @@ namespace ERPCraft_Server.Controller.AdminControllers
         {
             db.limpiar();
             return "OK";
+        }
+
+        private static string changePwdAjuste(DBStorage db, string message)
+        {
+            AjustePwd pwd;
+            try
+            {
+                pwd = (AjustePwd)JsonConvert.DeserializeObject(message, typeof(AjustePwd));
+            }
+            catch (Exception) { return "ERR"; }
+            if (pwd == null || pwd.id <= 0 || pwd.pwd == null || pwd.pwd.Length == 0)
+                return "ERR";
+
+            string salt = Usuario.generateSalt();
+            string hash = Usuario.hash(salt + pwd.pwd, Program.ajuste.hashIteraciones);
+
+            return db.updateAjuste(pwd.id, hash, salt, Program.ajuste.hashIteraciones) ? "OK" : "ERR";
         }
 
         // API KEY

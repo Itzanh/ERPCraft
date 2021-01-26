@@ -8,7 +8,7 @@ import Ajuste from "./Ajuste";
 import AjusteForm from "./AjusteForm";
 
 class Ajustes extends Component {
-    constructor({ handleGet, handleAdd, handleUpdate, handleActivar, handleLimpiar, handleEliminar, tabAjustesPush }) {
+    constructor({ handleGet, handleAdd, handleUpdate, handleActivar, handleLimpiar, handleEliminar, tabAjustesPush, pwdAjuste }) {
         super();
 
         this.handleGet = handleGet;
@@ -18,6 +18,7 @@ class Ajustes extends Component {
         this.handleLimpiar = handleLimpiar;
         this.handleEliminar = handleEliminar;
         this.tabAjustesPush = tabAjustesPush;
+        this.pwdAjuste = pwdAjuste;
 
         this.ajusteSel = null;
         this.ajusteSeleccionado = this.ajusteSeleccionado.bind(this);
@@ -112,6 +113,7 @@ class Ajustes extends Component {
             handleActivar={this.handleActivar}
             handleLimpiar={this.handleLimpiar}
             handleEliminar={this.handleEliminar}
+            pwdAjuste={this.pwdAjuste}
         />, document.getElementById("renderAjuste"));
     }
 
