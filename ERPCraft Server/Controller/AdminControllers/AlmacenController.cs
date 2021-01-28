@@ -51,6 +51,18 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return deleteNotificaciones(message, db);
                     }
+                case "getAE2StorageCells":
+                    {
+                        return getAE2StorageCells(db, message);
+                    }
+                case "addAE2StorageCell":
+                    {
+                        return addAE2StorageCell(db, message);
+                    }
+                case "deleteAE2StorageCell":
+                    {
+                        return deleteAE2StorageCell(db, message);
+                    }
             }
 
             return "ERR";
@@ -176,6 +188,48 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 return "ERR";
 
             return db.deleteNotificacionAlmacen(notificacion.idAlmacen, notificacion.id) ? "OK" : "ERR";
+        }
+
+        private static string getAE2StorageCells(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getStrorageCells(id));
+        }
+
+        private static string addAE2StorageCell(DBStorage db, string message)
+        {
+            AE2StorageCell storageCell;
+            try
+            {
+                storageCell = (AE2StorageCell)JsonConvert.DeserializeObject(message, typeof(AE2StorageCell));
+            }
+            catch (Exception) { return "ERR"; }
+            if (storageCell == null || storageCell.idAlmacen <= 0 || storageCell.tier <= 0)
+                return "ERR";
+
+            return db.addStorageCell(storageCell) ? "OK" : "ERR";
+        }
+
+        private static string deleteAE2StorageCell(DBStorage db, string message)
+        {
+            AE2StorageCellDelete storageCell;
+            try
+            {
+                storageCell = (AE2StorageCellDelete)JsonConvert.DeserializeObject(message, typeof(AE2StorageCellDelete));
+            }
+            catch (Exception) { return "ERR"; }
+            if (storageCell == null || storageCell.idAlmacen <= 0 || storageCell.id <= 0)
+                return "ERR";
+
+            return db.deleteStorageCell(storageCell) ? "OK" : "ERR";
         }
     }
 }

@@ -8,12 +8,17 @@ namespace ERPCraft_Server.Models.DB.Almacen
         public short id;
         public string name;
         public string descripcion;
-        public short slots;
+        public short tipos;
         public int items;
         public bool off;
         public Guid uuid;
         public DateTime dateAdd;
         public DateTime dateLastUpdate;
+        public short stacks;
+        public char almacenamiento;
+        public short maximoStacks;
+        public short maximoTipos;
+        public int maximoItems;
 
         public Almacen()
         {
@@ -24,12 +29,17 @@ namespace ERPCraft_Server.Models.DB.Almacen
             this.id = rdr.GetInt16(0);
             this.name = rdr.GetString(1);
             this.descripcion = rdr.GetString(2);
-            this.slots = rdr.GetInt16(3);
+            this.tipos = rdr.GetInt16(3);
             this.items = rdr.GetInt32(4);
             this.off = rdr.GetBoolean(5);
             this.uuid = rdr.GetGuid(6);
             this.dateAdd = rdr.GetDateTime(7);
             this.dateLastUpdate = rdr.GetDateTime(8);
+            this.stacks = rdr.GetInt16(9);
+            this.almacenamiento = rdr.GetChar(10);
+            this.maximoStacks = rdr.GetInt16(11);
+            this.maximoTipos = rdr.GetInt16(12);
+            this.maximoItems = rdr.GetInt32(13);
         }
 
         public bool isValid()
@@ -152,5 +162,31 @@ namespace ERPCraft_Server.Models.DB.Almacen
         {
             return !(idAlmacen <= 0 || id <= 0);
         }
+    }
+
+    public class AE2StorageCell
+    {
+        public short idAlmacen;
+        public short id;
+        public short tier;
+        public DateTime dateAdd;
+
+        public AE2StorageCell()
+        {
+        }
+
+        public AE2StorageCell(NpgsqlDataReader rdr)
+        {
+            this.idAlmacen = rdr.GetInt16(0);
+            this.id = rdr.GetInt16(1);
+            this.tier = rdr.GetInt16(2);
+            this.dateAdd = rdr.GetDateTime(3);
+        }
+    }
+
+    public class AE2StorageCellDelete
+    {
+        public short idAlmacen;
+        public short id;
     }
 }

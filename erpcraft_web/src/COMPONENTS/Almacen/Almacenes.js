@@ -1,17 +1,56 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
-import inventarioIco from './../../IMG/inventario.png';
-import flashlightIco from './../../IMG/flashlight.svg';
-import deleteIco from './../../IMG/delete.svg';
-import './../../CSS/Almacen.css';
-
+// Componentes
 import FormAlert from "../FormAlert";
 import ArticuloLocalizador from "../Articulos/ArticuloLocalizador";
 
+// CSS
+import './../../CSS/Almacen.css';
+
+// Iconos
+import inventarioIco from './../../IMG/inventario.png';
+import flashlightIco from './../../IMG/flashlight.svg';
+import deleteIco from './../../IMG/delete.svg';
+
+// Tipos de almacen
+import chestIco from './../../IMG/almacen_tipo/chest.png';
+import double_chestIco from './../../IMG/almacen_tipo/double_chest.gif';
+import me_chestIco from './../../IMG/almacen_tipo/me_chest.png';
+import ender_chestIco from './../../IMG/almacen_tipo/ender_chest.png';
+
+// Tipos de almacenamiento de AE2
+import storageCell1K from './../../IMG/ae2_storage/StorageCell.1k.png';
+import storageCell4K from './../../IMG/ae2_storage/StorageCell.4k.png';
+import storageCell16K from './../../IMG/ae2_storage/StorageCell.16k.png';
+import storageCel64K from './../../IMG/ae2_storage/StorageCell.64k.png';
+
+const almacenTipoImg = {
+    "C": chestIco,
+    "D": double_chestIco,
+    "M": me_chestIco,
+    "O": ender_chestIco
+};
+
+const storageCell = {
+    1: "1k ME Storage Cell",
+    2: "4k ME Storage Cell",
+    3: "16k ME Storage Cell",
+    4: "64k ME Storage Cell"
+};
+
+const storageCellImg = {
+    1: storageCell1K,
+    2: storageCell4K,
+    3: storageCell16K,
+    4: storageCel64K
+};
+
+
 class Almacenes extends Component {
     constructor({ getAlmacenes, getAlmacenInventario, almacenInventarioPush, getArticuloImg, tabAlmacenPush, handleAdd, handleEdit, handleDelete,
-        getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos }) {
+        getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos,
+        getAlmacenStorageCells, addAlmacenStorageCell, deleteAlmacenStorageCell }) {
         super();
         this.almacen = null;
         this.imgCache = {};
@@ -31,6 +70,10 @@ class Almacenes extends Component {
         this.deleteAlmacenNotificaciones = deleteAlmacenNotificaciones;
         this.getArticulos = getArticulos;
 
+        this.getAlmacenStorageCells = getAlmacenStorageCells;
+        this.addAlmacenStorageCell = addAlmacenStorageCell;
+        this.deleteAlmacenStorageCell = deleteAlmacenStorageCell;
+
         this.getInventario = this.getInventario.bind(this);
         this.crear = this.crear.bind(this);
         this.editar = this.editar.bind(this);
@@ -41,22 +84,38 @@ class Almacenes extends Component {
         this.renderAlmacenes();
     }
 
+    almacenPorcentajeOcupado(almacen) {
+        switch (almacen.almacenamiento) {
+            case "C": {
+            }
+            case "D": {
+                return Math.floor((almacen.stacks / almacen.maximoStacks) * 100);
+            }
+            case "M": {
+                if (almacen.maximoTipos == 0 || almacen.maximoItems == 0) {
+                    return 0;
+                }
+                return Math.floor(Math.max(((almacen.tipos / almacen.maximoTipos) * 100), ((almacen.items / almacen.maximoItems) * 100)));
+            }
+            case "O": {
+                var porcentajeUsado = 0;
+                if (almacen.maximoStacks > 0) {
+                    porcentajeUsado = (almacen.stacks / almacen.maximoStacks) * 100;
+                }
+                if (almacen.maximoTipos > 0) {
+                    porcentajeUsado = Math.max(porcentajeUsado, ((almacen.tipos / almacen.maximoTipos) * 100));
+                }
+                if (almacen.maximoItems > 0) {
+                    porcentajeUsado = Math.max(porcentajeUsado, ((almacen.items / almacen.maximoItems) * 100));
+                }
+                return Math.floor(porcentajeUsado);
+            }
+        }
+    }
+
     async renderAlmacenes() {
         const almacenes = await this.getAlmacenes();
-
-        await ReactDOM.unmountComponentAtNode(this.refs.renderAlmacenes);
-        ReactDOM.render(almacenes.map((element, i) => {
-            return <Almacen
-                key={i}
-
-                id={element.id}
-                name={element.name}
-                selectAlmacen={(idAlmacen) => {
-                    this.almacen = element;
-                    this.getInventario(idAlmacen);
-                }}
-            />
-        }), this.refs.renderAlmacenes);
+        await this.renderAlmacenesList(almacenes);
 
         this.tabAlmacenPush(async (changeType, pos, newAlmacen) => {
 
@@ -88,21 +147,27 @@ class Almacenes extends Component {
                 }
             }
 
-            await ReactDOM.unmountComponentAtNode(this.refs.renderAlmacenes);
-            ReactDOM.render(almacenes.map((element, i) => {
-                return <Almacen
-                    key={i}
-
-                    id={element.id}
-                    name={element.name}
-                    selectAlmacen={(idAlmacen) => {
-                        this.almacen = element;
-                        this.getInventario(idAlmacen);
-                    }}
-                />
-            }), this.refs.renderAlmacenes);
+            this.renderAlmacenesList(almacenes);
         });
     };
+
+    async renderAlmacenesList(almacenes) {
+        await ReactDOM.unmountComponentAtNode(this.refs.renderAlmacenes);
+        ReactDOM.render(almacenes.map((element, i) => {
+            return <Almacen
+                key={i}
+
+                id={element.id}
+                name={element.name}
+                ocupado={this.almacenPorcentajeOcupado(element)}
+                almacenamiento={element.almacenamiento}
+                selectAlmacen={(idAlmacen) => {
+                    this.almacen = element;
+                    this.getInventario(idAlmacen);
+                }}
+            />
+        }), this.refs.renderAlmacenes);
+    }
 
     async getInventario(idAlmacen) {
         const inventario = await this.getAlmacenInventario(idAlmacen);
@@ -177,6 +242,10 @@ class Almacenes extends Component {
             addAlmacenNotificaciones={this.addAlmacenNotificaciones}
             deleteAlmacenNotificaciones={this.deleteAlmacenNotificaciones}
             getArticulos={this.getArticulos}
+
+            getAlmacenStorageCells={this.getAlmacenStorageCells}
+            addAlmacenStorageCell={this.addAlmacenStorageCell}
+            deleteAlmacenStorageCell={this.deleteAlmacenStorageCell}
         />, this.refs.renderModal);
     };
 
@@ -206,6 +275,7 @@ class Almacenes extends Component {
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Nombre</th>
+                                <th scope="col">%</th>
                             </tr>
                         </thead>
                         <tbody ref="renderAlmacenes"></tbody>
@@ -221,11 +291,13 @@ class Almacenes extends Component {
 };
 
 class Almacen extends Component {
-    constructor({ id, name, selectAlmacen }) {
+    constructor({ id, name, ocupado, almacenamiento, selectAlmacen }) {
         super();
 
         this.id = id;
         this.name = name;
+        this.ocupado = ocupado;
+        this.almacenamiento = almacenamiento;
         this.selectAlmacen = selectAlmacen;
 
         this.select = this.select.bind(this);
@@ -239,12 +311,15 @@ class Almacen extends Component {
         return <tr onClick={this.select}>
             <th scope="row">{this.id}</th>
             <td>{this.name}</td>
+            <td>{this.ocupado}%</td>
+            <td><img src={almacenTipoImg[this.almacenamiento]} /></td>
         </tr>
     }
 };
 
 class AlmacenForm extends Component {
-    constructor({ almacen, handleAdd, handleEdit, handleDelete, getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos }) {
+    constructor({ almacen, handleAdd, handleEdit, handleDelete, getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos,
+        getAlmacenStorageCells, addAlmacenStorageCell, deleteAlmacenStorageCell }) {
         super();
 
         this.almacen = almacen;
@@ -258,8 +333,14 @@ class AlmacenForm extends Component {
         this.deleteAlmacenNotificaciones = deleteAlmacenNotificaciones;
         this.getArticulos = getArticulos;
 
+        this.getAlmacenStorageCells = getAlmacenStorageCells;
+        this.addAlmacenStorageCell = addAlmacenStorageCell;
+        this.deleteAlmacenStorageCell = deleteAlmacenStorageCell;
+
         this.aceptar = this.aceptar.bind(this);
         this.notificaciones = this.notificaciones.bind(this);
+        this.setAlmacenImg = this.setAlmacenImg.bind(this);
+        this.storageCells = this.storageCells.bind(this);
     }
 
     componentDidMount() {
@@ -287,6 +368,10 @@ class AlmacenForm extends Component {
         almacen.uuid = this.refs.uuid.value;
         almacen.descripcion = this.refs.descripcion.value;
         almacen.off = this.refs.off.checked;
+        almacen.almacenamiento = this.refs.tipo.value;
+        almacen.maximoStacks = parseInt(this.refs.maximoStacks.value);
+        almacen.maximoTipos = parseInt(this.refs.maximoTipos.value);
+        almacen.maximoItems = parseInt(this.refs.maximoItems.value);
 
         if (almacen.name == null || almacen.name.length == 0) {
             this.showAlert("El nombre no puede estar vacio.");
@@ -333,6 +418,44 @@ class AlmacenForm extends Component {
         />, document.getElementById("renderModalAlmacen"));
     }
 
+    async storageCells() {
+        await ReactDOM.unmountComponentAtNode(document.getElementById("renderModalAlmacen"));
+        ReactDOM.render(<AlmacenStorageCells
+            idAlmacen={this.almacen.id}
+            getStorageCells={this.getAlmacenStorageCells}
+            addStorageCell={this.addAlmacenStorageCell}
+            deleteStorageCell={this.deleteAlmacenStorageCell}
+        />, document.getElementById("renderModalAlmacen"));
+    }
+
+    setAlmacenImg() {
+        this.refs.tipoImg.src = almacenTipoImg[(this.refs.tipo.value)];
+
+        switch (this.refs.tipo.value) {
+            case "C": {
+                this.refs.maximoStacks.value = 27;
+                this.refs.maximoTipos.value = 0;
+                this.refs.maximoItems.value = 0;
+                break;
+            }
+            case "D": {
+                this.refs.maximoStacks.value = 54;
+                this.refs.maximoTipos.value = 0;
+                this.refs.maximoItems.value = 0;
+                break;
+            }
+            case "M": {
+
+            }
+            case "O": {
+                this.refs.maximoStacks.value = 0;
+                this.refs.maximoTipos.value = 0;
+                this.refs.maximoItems.value = 0;
+                break;
+            }
+        }
+    }
+
     render() {
         return <div className="modal fade" id="almacenModal" tabIndex="-1" role="dialog" aria-labelledby="almacenModalLabel" aria-hidden="true">
             <div className="modal-dialog" role="document">
@@ -355,12 +478,48 @@ class AlmacenForm extends Component {
 
                         <div className="form-row">
                             <div className="col">
-                                <label>Slots usados</label>
-                                <input type="number" className="form-control" defaultValue={this.almacen != null ? this.almacen.slots : ''} readOnly={true} />
+                                <label>Tipos</label>
+                                <input type="number" className="form-control" defaultValue={this.almacen != null ? this.almacen.tipos : ''} readOnly={true} />
                             </div>
                             <div className="col">
-                                <label>&Iacute;tems usados</label>
+                                <label>Stacks</label>
+                                <input type="number" className="form-control" defaultValue={this.almacen != null ? this.almacen.stacks : ''} readOnly={true} />
+                            </div>
+                            <div className="col">
+                                <label>&Iacute;tems</label>
                                 <input type="number" className="form-control" defaultValue={this.almacen != null ? this.almacen.items : ''} readOnly={true} />
+                            </div>
+                        </div>
+
+                        <div className="form-row" id="tipoAlmacenModal">
+                            <div className="col">
+                                <img src={almacenTipoImg[(this.almacen != null ? this.almacen.almacenamiento : 'C')]} ref="tipoImg" />
+                            </div>
+                            <div className="col">
+                                <select name="tipo" ref="tipo" className="form-control" defaultValue={this.almacen != null ? this.almacen.almacenamiento : 'C'} onChange={this.setAlmacenImg}>
+                                    <option value="C">Cofre</option>
+                                    <option value="D">Cofre doble</option>
+                                    <option value="M">Almacenamiento ME</option>
+                                    <option value="O">Otro</option>
+                                </select>
+                            </div>
+                            <div className="col">
+                                <button type="button" className="btn btn-success" onClick={this.storageCells}>AE2</button>
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="col">
+                                <label>M&aacute;ximo de stacks</label>
+                                <input type="number" className="form-control" ref="maximoStacks" defaultValue={this.almacen != null ? this.almacen.maximoStacks : '0'} />
+                            </div>
+                            <div className="col">
+                                <label>M&aacute;ximo de tipos</label>
+                                <input type="number" className="form-control" ref="maximoTipos" defaultValue={this.almacen != null ? this.almacen.maximoTipos : '0'} />
+                            </div>
+                            <div className="col">
+                                <label>M&aacute;ximo de &iacute;tems</label>
+                                <input type="number" className="form-control" ref="maximoItems" defaultValue={this.almacen != null ? this.almacen.maximoItems : '0'} />
                             </div>
                         </div>
 
@@ -608,6 +767,103 @@ class AlmacenNotificaciones extends Component {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+};
+
+class AlmacenStorageCells extends Component {
+    constructor({ idAlmacen, getStorageCells, addStorageCell, deleteStorageCell }) {
+        super();
+
+        this.idAlmacen = idAlmacen;
+        this.getStorageCells = getStorageCells;
+        this.addStorageCell = addStorageCell;
+        this.deleteStorageCell = deleteStorageCell;
+
+        this.addStorageCells = this.addStorageCells.bind(this);
+        this.deleteStorageCells = this.deleteStorageCells.bind(this);
+    }
+
+    componentDidMount() {
+        window.$('#almStorageCells').modal({ show: true });
+        this.renderStorageCells();
+    }
+
+    async renderStorageCells() {
+        const storageCells = await this.getStorageCells(this.idAlmacen);
+        ReactDOM.unmountComponentAtNode(this.refs.cells);
+        ReactDOM.render(storageCells.map((element, i) => {
+            return <tr>
+                <th scope="col">{element.id}</th>
+                <td><img src={storageCellImg[element.tier]} /></td>
+                <td>{storageCell[element.tier]}</td>
+                <td>{element.dateAdd}</td>
+                <td><img src={deleteIco} onClick={() => {
+                    this.deleteStorageCells(element.id);
+                }} /></td>
+            </tr>
+        }), this.refs.cells);
+    }
+
+    async addStorageCells() {
+        const storageCell = {};
+        storageCell.idAlmacen = this.idAlmacen;
+        storageCell.tier = parseInt(this.refs.tipo.value);
+
+        await this.addStorageCell(storageCell);
+        this.renderStorageCells();
+    }
+
+    async deleteStorageCells(id) {
+        await this.deleteStorageCell(this.idAlmacen, id);
+        this.renderStorageCells();
+    }
+
+    render() {
+        return <div class="modal fade bd-example-modal-lg" id="almStorageCells" tabindex="-1" role="dialog" aria-labelledby="almStorageCellsLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="almStorageCellsLabel">AE2 Storage Cells</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col"></th>
+                                    <th scope="col">Tier</th>
+                                    <th scope="col">Fecha de creaci&oacute;n</th>
+                                    <th scope="col">Borrar</th>
+                                </tr>
+                            </thead>
+                            <tbody ref="cells">
+                            </tbody>
+                        </table>
+                        <div className="form-row">
+                            <div className="col">
+                            </div>
+                            <div className="col">
+                                <select name="tipo" ref="tipo" className="form-control">
+                                    <option value="1">1k ME Storage Cell</option>
+                                    <option value="2">4k ME Storage Cell</option>
+                                    <option value="3">16k ME Storage Cell</option>
+                                    <option value="4">64k ME Storage Cell</option>
+                                </select>
+                            </div>
+                            <div className="col">
+                                <button type="button" class="btn btn-primary" onClick={this.addStorageCells}>Crear</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
                     </div>
                 </div>
             </div>

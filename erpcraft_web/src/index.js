@@ -1651,6 +1651,10 @@ function tabAlmacen() {
         addAlmacenNotificaciones={addAlmacenNotificaciones}
         deleteAlmacenNotificaciones={deleteAlmacenNotificaciones}
         getArticulos={localizarArticulos}
+
+        getAlmacenStorageCells={getAlmacenStorageCells}
+        addAlmacenStorageCell={addAlmacenStorageCell}
+        deleteAlmacenStorageCell={deleteAlmacenStorageCell}
     />, document.getElementById('renderTab'));
 };
 
@@ -1739,6 +1743,38 @@ function addAlmacenNotificaciones(notificacion) {
 function deleteAlmacenNotificaciones(idAlmacen, id) {
     return new Promise((resolve, reject) => {
         client.emit('almacen', 'deleteNotificacion', JSON.stringify({ idAlmacen, id }), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function getAlmacenStorageCells(idAlmacen) {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'getAE2StorageCells', '' + idAlmacen, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function addAlmacenStorageCell(storageCell) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'addAE2StorageCell', JSON.stringify(storageCell), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function deleteAlmacenStorageCell(idAlmacen, id) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'deleteAE2StorageCell', JSON.stringify({ idAlmacen, id }), (_, response) => {
             if (response == "OK") {
                 resolve();
             } else {

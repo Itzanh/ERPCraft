@@ -163,5 +163,6 @@ namespace ERPCraft_Server.Controller.AdminControllers
 
             return db.deleteArticulo(id) ? "OK" : "ERR";
         }
+
     }
 }

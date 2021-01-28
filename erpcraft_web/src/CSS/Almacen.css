@@ -8,6 +8,19 @@ div#tabAlmacenes div#almColumnas > div.col:nth-child(1) {
     max-width: 25%;
 }
 
+    div#tabAlmacenes div#almColumnas > div.col:nth-child(1) table tbody tr td:nth-child(3) {
+        width: 10%;
+    }
+
+    div#tabAlmacenes div#almColumnas > div.col:nth-child(1) table tbody tr td:nth-child(4) {
+        padding: 0;
+        width: 10%;
+    }
+
+        div#tabAlmacenes div#almColumnas > div.col:nth-child(1) table tbody tr td:nth-child(4) img {
+            height: 40px;
+        }
+
 div#tabAlmacenes div#almColumnas > div.col:nth-child(2) {
     border-left-style: solid;
     border-left-color: black;
@@ -36,6 +49,23 @@ div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen {
         div#tabAlmacenes div#almColumnas div#renderSlotsAlmacen div.card h5 {
             color: black;
         }
+
+div#tabAlmacenes div#almacenModal div#tipoAlmacenModal {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+    div#tabAlmacenes div#almacenModal div#tipoAlmacenModal div.col:nth-child(1) {
+        max-width: 15%;
+    }
+
+    div#tabAlmacenes div#almacenModal div#tipoAlmacenModal div.col:nth-child(3) {
+        max-width: 15%;
+    }
+
+    div#tabAlmacenes div#almacenModal div#tipoAlmacenModal img {
+        height: 50px;
+    }
 
 /* ALMACEN NOTIFICACIONES */
 
@@ -84,3 +114,17 @@ div#tabAlmacenes div#almNotificacionesModal table tbody tr td:nth-child(6) {
     div#tabAlmacenes div#almNotificacionesModal table tbody tr td:nth-child(6) img {
         height: 40px;
     }
+
+/* ALMACEN AE2 */
+
+div#tabAlmacenes div#almStorageCells table tbody tr td:nth-child(2) {
+    padding: 0;
+}
+
+    div#tabAlmacenes div#almStorageCells table tbody tr td:nth-child(2) img {
+        height: 40px;
+    }
+
+div#tabAlmacenes div#almStorageCells table tbody tr td:nth-child(5) {
+    padding: 0;
+}

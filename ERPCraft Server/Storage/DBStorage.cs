@@ -2775,7 +2775,7 @@ namespace ERPCraft_Server.Storage
         public List<Almacen> getAlmacenes()
         {
             List<Almacen> almacenes = new List<Almacen>();
-            string sql = "SELECT id,name,dsc,slots,items,off,uuid,date_add,date_inv_upd FROM almacenes ORDER BY id ASC";
+            string sql = "SELECT id,name,dsc,tipos,items,off,uuid,date_add,date_inv_upd,stacks,almacenamiento,max_stacks,max_tipos,max_items FROM almacenes ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -2850,12 +2850,16 @@ namespace ERPCraft_Server.Storage
 
         public bool addAlmacen(Almacen almacen)
         {
-            string sql = "INSERT INTO almacenes (name, dsc, off, uuid) VALUES (@name, @dsc, @off, @uuid) RETURNING id";
+            string sql = "INSERT INTO almacenes (name, dsc, off, uuid, almacenamiento, max_stacks, max_tipos, max_items) VALUES (@name, @dsc, @off, @uuid, @almacenamiento, @max_stacks, @max_tipos, @max_items) RETURNING id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", almacen.name);
             cmd.Parameters.AddWithValue("@dsc", almacen.descripcion);
             cmd.Parameters.AddWithValue("@off", almacen.off);
             cmd.Parameters.AddWithValue("@uuid", almacen.uuid);
+            cmd.Parameters.AddWithValue("@almacenamiento", almacen.almacenamiento);
+            cmd.Parameters.AddWithValue("@max_stacks", almacen.maximoStacks);
+            cmd.Parameters.AddWithValue("@max_tipos", almacen.maximoTipos);
+            cmd.Parameters.AddWithValue("@max_items", almacen.maximoItems);
             NpgsqlDataReader rdr;
             try
             {
@@ -2879,13 +2883,17 @@ namespace ERPCraft_Server.Storage
 
         public bool updateAlmacen(Almacen almacen)
         {
-            string sql = "UPDATE almacenes SET name = @name,dsc = @dsc,off=@off,uuid=@uuid WHERE id = @id";
+            string sql = "UPDATE almacenes SET name = @name,dsc = @dsc,off=@off,uuid=@uuid,almacenamiento=@almacenamiento,max_stacks=@max_stacks,max_tipos=@max_tipos,max_items=@max_items WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", almacen.id);
             cmd.Parameters.AddWithValue("@name", almacen.name);
             cmd.Parameters.AddWithValue("@dsc", almacen.descripcion);
             cmd.Parameters.AddWithValue("@off", almacen.off);
             cmd.Parameters.AddWithValue("@uuid", almacen.uuid);
+            cmd.Parameters.AddWithValue("@almacenamiento", almacen.almacenamiento);
+            cmd.Parameters.AddWithValue("@max_stacks", almacen.maximoStacks);
+            cmd.Parameters.AddWithValue("@max_tipos", almacen.maximoTipos);
+            cmd.Parameters.AddWithValue("@max_items", almacen.maximoItems);
             bool ok;
             try
             {
@@ -3111,14 +3119,24 @@ namespace ERPCraft_Server.Storage
 
             // actualizar el almacén con la fecha de actualización, y los items y slots utilitzados
             int items = 0;
+            int stacks = 0;
             for (int i = 0; i < inventario.Count; i++)
+            {
                 items += inventario[i].cantidad;
+                if (inventario[i].cantidad > 0)
+                {
+                    if (inventario[i].cantidad % 64 != 0)
+                        stacks++;
+                    stacks += inventario[i].cantidad / 64;
+                }
+            }
 
-            sql = "UPDATE almacenes SET date_inv_upd = CURRENT_TIMESTAMP(3), slots = @slots, items = @items WHERE id = @id";
+            sql = "UPDATE almacenes SET date_inv_upd = CURRENT_TIMESTAMP(3), tipos = @tipos, items = @items, stacks = @stacks WHERE id = @id";
             cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", idAlmacen);
-            cmd.Parameters.AddWithValue("@slots", inventario.Count);
+            cmd.Parameters.AddWithValue("@tipos", inventario.Count);
             cmd.Parameters.AddWithValue("@items", items);
+            cmd.Parameters.AddWithValue("@stacks", stacks);
             cmd.ExecuteNonQuery();
 
             trans.Commit();
@@ -3127,7 +3145,7 @@ namespace ERPCraft_Server.Storage
             Program.websocketPubSub.onPush("almacenInv#" + idAlmacen, serverHashes.SubscriptionChangeType.update, 0, JsonConvert.SerializeObject(getInventarioAlmacen(idAlmacen)));
         }
 
-        /* NOTIFICACIONES DE ALMACÉN */
+        // NOTIFICACIONES DE ALMACÉN
 
         public List<AlmacenInventarioNotificacion> getNotificacionesAlmacen(short idAlmacen)
         {
@@ -3262,6 +3280,144 @@ namespace ERPCraft_Server.Storage
                     addNotificacion(new Notificacion("Inventario de almacén", notificacion.name, NotificacionOrigen.AlmacenInventario));
                 }
             }
+        }
+
+        // ALMACÉN - AE2 STORAGE CELLS
+
+        public List<AE2StorageCell> getStrorageCells(short idAlmacen)
+        {
+            List<AE2StorageCell> storageCells = new List<AE2StorageCell>();
+            string sql = "SELECT alm,id,tier,date_add FROM alm_ae2_storage_cells WHERE alm = @alm";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                storageCells.Add(new AE2StorageCell(rdr));
+            rdr.Close();
+
+            return storageCells;
+        }
+
+        public bool addStorageCell(AE2StorageCell storageCell)
+        {
+            string sql = "INSERT INTO alm_ae2_storage_cells (alm,tier) VALUES (@alm,@tier)";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", storageCell.idAlmacen);
+            cmd.Parameters.AddWithValue("@tier", storageCell.tier);
+            if (cmd.ExecuteNonQuery() == 0)
+                return false;
+
+            sql = "UPDATE almacenes SET max_tipos=max_tipos+63,max_items=max_items+@max_items WHERE id=@alm";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", storageCell.idAlmacen);
+            int maxItems;
+            switch (storageCell.tier)
+            {
+                case 1:
+                    {
+                        maxItems = 8192;
+                        break;
+                    }
+                case 2:
+                    {
+                        maxItems = 32768;
+                        break;
+                    }
+                case 3:
+                    {
+                        maxItems = 131072;
+                        break;
+                    }
+                case 4:
+                    {
+                        maxItems = 524288;
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+            cmd.Parameters.AddWithValue("@max_items", maxItems);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool deleteStorageCell(AE2StorageCellDelete storageCell)
+        {
+            string sql = "SELECT tier FROM alm_ae2_storage_cells WHERE id=@id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", storageCell.idAlmacen);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return false;
+            }
+            rdr.Read();
+            short tier = rdr.GetInt16(0);
+            rdr.Close();
+
+            sql = "DELETE FROM alm_ae2_storage_cells WHERE alm=@alm AND id=@id";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", storageCell.idAlmacen);
+            cmd.Parameters.AddWithValue("@id", storageCell.id);
+            if (cmd.ExecuteNonQuery() == 0)
+                return false;
+
+            sql = "SELECT max_tipos,max_items FROM almacenes WHERE id=@alm";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", storageCell.idAlmacen);
+            rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return false;
+            }
+            rdr.Read();
+            short maxTipos = rdr.GetInt16(0);
+            int maxItems = rdr.GetInt32(1);
+            rdr.Close();
+
+            maxTipos -= 63;
+            switch (tier)
+            {
+                case 1:
+                    {
+                        maxItems -= 8192;
+                        break;
+                    }
+                case 2:
+                    {
+                        maxItems -= 32768;
+                        break;
+                    }
+                case 3:
+                    {
+                        maxItems -= 131072;
+                        break;
+                    }
+                case 4:
+                    {
+                        maxItems -= 524288;
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+            if (maxTipos < 0)
+                maxTipos = 0;
+            if (maxItems < 0)
+                maxItems = 0;
+
+            sql = "UPDATE almacenes SET max_tipos=@max_tipos,max_items=@max_items WHERE id=@id";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", storageCell.idAlmacen);
+            cmd.Parameters.AddWithValue("@max_tipos", maxTipos);
+            cmd.Parameters.AddWithValue("@max_items", maxItems);
+            return cmd.ExecuteNonQuery() > 0;
         }
 
         /* MOVIMIENTOS DE ALMACÉN */
