@@ -101,7 +101,7 @@ namespace ERPCraft_Server.Models.DB.Robots
     public class RobotQuery
     {
         public string text;
-        public bool off = false;
+        public bool off;
 
         public RobotQuery()
         {

@@ -785,7 +785,7 @@ namespace ERPCraft_Server.Storage
 
         public Usuario getUsuario(short id)
         {
-            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off,date_add FROM usuarios WHERE id = @id AND off = false";
+            string sql = "SELECT id,name,pwd,salt,iteraciones,ultima_con,dsc,off,date_add FROM usuarios WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();

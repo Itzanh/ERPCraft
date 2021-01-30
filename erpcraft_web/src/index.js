@@ -1580,7 +1580,7 @@ function tabServidores() {
     ReactDOM.unmountComponentAtNode(document.getElementById('renderTab'));
     ReactDOM.render(<Servers
         getServers={getServidores}
-        handleApiKeysChange={subscribeServers}
+        handleServersChange={subscribeServers}
         handleAdd={addServer}
         handleUpdate={updateServer}
         handleDelete={deleteServer}

@@ -6,11 +6,11 @@ import Server from "./Server";
 import ServerForm from "./ServerForm";
 
 class Servers extends Component {
-    constructor({ getServers, handleApiKeysChange, handleAdd, handleUpdate, handleDelete, handlePwd, getAjustes }) {
+    constructor({ getServers, handleServersChange, handleAdd, handleUpdate, handleDelete, handlePwd, getAjustes }) {
         super();
 
         this.getServers = getServers;
-        this.handleApiKeysChange = handleApiKeysChange;
+        this.handleServersChange = handleServersChange;
         this.handleAdd = handleAdd;
         this.handleUpdate = handleUpdate;
         this.handleDelete = handleDelete;
@@ -49,7 +49,7 @@ class Servers extends Component {
             />
         }), document.getElementById("renderServers"));
 
-        this.handleApiKeysChange(async (_, topicName, changeType, pos, value) => {
+        this.handleServersChange(async (_, topicName, changeType, pos, value) => {
             var newServer;
             if (changeType != 2) {
                 newServer = JSON.parse(value);
@@ -92,6 +92,7 @@ class Servers extends Component {
                     name={element.name}
                     online={element.online}
                     ultimaConexion={element.ultimaConexion}
+                    dateAdd={element.dateAdd}
 
                     handleEdit={() => {
                         this.editar(element);

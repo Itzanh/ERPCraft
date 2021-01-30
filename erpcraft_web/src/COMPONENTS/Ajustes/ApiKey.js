@@ -12,7 +12,6 @@ class ApiKey extends Component {
         this.uuid = uuid;
         this.ultimaConexion = this.formatearFechaTiempo(ultimaConexion);
         this.dateAdd = this.formatearFechaTiempo(dateAdd);
-        console.log(ultimaConexion, dateAdd);
 
         this.handleReset = handleReset;
         this.handleDelete = handleDelete;

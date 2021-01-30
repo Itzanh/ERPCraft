@@ -13,13 +13,21 @@ import cpu1 from './../../IMG/robot_composicion/cpu/cpu1.png';
 import cpu2 from './../../IMG/robot_composicion/cpu/cpu2.png';
 import cpu3 from './../../IMG/robot_composicion/cpu/cpu3.png';
 
-// IMG
+// RAM
 import ram1 from './../../IMG/robot_composicion/ram/ram1.png';
 import ram15 from './../../IMG/robot_composicion/ram/ram1.5.png';
 import ram2 from './../../IMG/robot_composicion/ram/ram2.png';
 import ram25 from './../../IMG/robot_composicion/ram/ram2.5.png';
 import ram3 from './../../IMG/robot_composicion/ram/ram3.png';
 import ram35 from './../../IMG/robot_composicion/ram/ram3.5.png';
+
+// EEPROM
+import eepromBios from './../../IMG/robot_composicion/eeprom/eeprom.png';
+
+// HDD
+import hdd1 from './../../IMG/robot_composicion/hdd/hdd1.png';
+import hdd2 from './../../IMG/robot_composicion/hdd/hdd2.png';
+import hdd3 from './../../IMG/robot_composicion/hdd/hdd3.png';
 
 const computerCase = ["Computer Case (Tier 1)", "Computer Case (Tier 2)", "Computer Case (Tier 3)"];
 const computerCaseImg = [teir1case, teir2case, teir3case];
@@ -29,6 +37,12 @@ const cpuImg = [cpu1, cpu2, cpu3];
 
 const ram = ["Memory (Tier 1)", "Memory (Tier 1.5)", "Memory (Tier 2)", "Memory (Tier 2.5)", "Memory (Tier 3)", "Memory (Tier 3.5)"];
 const ramImg = [ram1, ram15, ram2, ram25, ram3, ram35];
+
+const eeprom = ["EEPROM (lua BIOS)"];
+const eepromImg = [eepromBios];
+
+const hdd = ["Hard Disk Drive (Tier 1) (1MB)", "Hard Disk Drive (Tier 2) (2MB)", "Hard Disk Drive (Tier 3) (4MB)"];
+const hddImg = [hdd1, hdd2, hdd3];
 
 class RobotComposicion extends Component {
     constructor({ }) {
@@ -41,6 +55,7 @@ class RobotComposicion extends Component {
 
         this.renderComponents = this.renderComponents.bind(this);
         this.renderCPU = this.renderCPU.bind(this);
+        this.renderEeprom = this.renderEeprom.bind(this);
     }
 
     componentDidMount() {
@@ -80,6 +95,17 @@ class RobotComposicion extends Component {
                 }
             }}>
                 <td><img src={ramImg[i]} /></td>
+                <td>{element}</td>
+            </tr>
+        }), document.getElementById("renderComponents"));
+    }
+
+    renderEeprom() {
+        ReactDOM.render(eeprom.map((element, i) => {
+            return <tr onClick={() => {
+                this.refs.eeprom.src = eepromImg[i];
+            }}>
+                <td><img src={eepromImg[i]} /></td>
                 <td>{element}</td>
             </tr>
         }), document.getElementById("renderComponents"));
@@ -179,7 +205,9 @@ class RobotComposicion extends Component {
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <div id="computerCase" className="slot" />
+                                                        <div id="computerCase" className="slot" onClick={this.renderEeprom}>
+                                                            <img ref="eeprom" />
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 <tr>
