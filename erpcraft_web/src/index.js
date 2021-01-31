@@ -302,10 +302,28 @@ async function editarRobot(robot, robots, i) {
         handleDeleteLogs={deleteRobotLogs}
         handleClearLogs={clearRobotLogs}
         handleComando={robotCommand}
+        robotGetEnsamblado={robotGetEnsamblado}
+        robotSetEnsablado={robotSetEnsablado}
     />, document.getElementById('renderTab'));
 
     await getRobotInventario(robot);
     renderRobotGPS(robot);
+};
+
+function robotGetEnsamblado(robotId) {
+    return new Promise((resolve) => {
+        client.emit('robot', 'assemblerGet', '' + robotId, async (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+}
+
+function robotSetEnsablado(ensamblado) {
+    return new Promise((resolve) => {
+        client.emit('robot', 'assemblerSet', JSON.stringify(ensamblado), async (_, response) => {
+            resolve();
+        });
+    });
 };
 
 // ROBOT - INVENTARIO

@@ -63,6 +63,14 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return robotLoadReferences(db, message);
                     }
+                case "assemblerGet":
+                    {
+                        return getEnsambladoRobot(db, message);
+                    }
+                case "assemblerSet":
+                    {
+                        return setEnsambladoRobot(db, message);
+                    }
             }
 
             return "ERR";
@@ -269,6 +277,34 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     }
             }
             return null;
+        }
+
+        private static string getEnsambladoRobot(DBStorage db, string message)
+        {
+            short robotId;
+            try
+            {
+                robotId = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (robotId <= 0)
+                return "ERR";
+
+            return db.getRobotEnsamblado(robotId);
+        }
+
+        private static string setEnsambladoRobot(DBStorage db, string message)
+        {
+            RobotEnsambladoSet ensamblado;
+            try
+            {
+                ensamblado = (RobotEnsambladoSet)JsonConvert.DeserializeObject(message, typeof(RobotEnsambladoSet));
+            }
+            catch (Exception) { return "ERR"; }
+            if (ensamblado.robotId <= 0)
+                return "ERR";
+
+            return db.setRobotEnsamblado(ensamblado.robotId, ensamblado.toRobotEnsamblado()) ? "OK" : "ERR";
         }
     }
 }

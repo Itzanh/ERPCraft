@@ -32,7 +32,8 @@ const imagenEstadosRobot = {
 };
 
 class RobotForm extends Component {
-    constructor({ robot, robotChange, handleCancelar, handleAddRobot, handleEditRobot, handleEliminar, handleLogs, handleDeleteLogs, handleClearLogs, handleComando }) {
+    constructor({ robot, robotChange, handleCancelar, handleAddRobot, handleEditRobot, handleEliminar, handleLogs, handleDeleteLogs, handleClearLogs, handleComando,
+        robotGetEnsamblado, robotSetEnsablado }) {
         super();
 
         this.robot = robot;
@@ -50,6 +51,8 @@ class RobotForm extends Component {
         this.handleDeleteLogs = handleDeleteLogs;
         this.handleClearLogs = handleClearLogs;
         this.handleComando = handleComando;
+        this.robotGetEnsamblado = robotGetEnsamblado;
+        this.robotSetEnsablado = robotSetEnsablado;
 
         this.calcularPorcentajeBateria = this.calcularPorcentajeBateria.bind(this);
         this.eliminarPrompt = this.eliminarPrompt.bind(this);
@@ -280,13 +283,16 @@ class RobotForm extends Component {
         />, document.getElementById('renderRobotFormModal'));
     }
 
-    composicion() {
+    async composicion() {
         if (this.robot == null) {
             return;
         }
+        const ensamblado = await this.robotGetEnsamblado(this.robot.id);
         ReactDOM.unmountComponentAtNode(document.getElementById('renderRobotFormModal'));
         ReactDOM.render(<RobotComposicion
-
+            robotId={this.robot.id}
+            ensamblado={ensamblado}
+            robotSetEnsablado={this.robotSetEnsablado}
         />, document.getElementById('renderRobotFormModal'));
     }
 

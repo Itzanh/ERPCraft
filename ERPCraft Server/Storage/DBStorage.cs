@@ -1563,6 +1563,37 @@ namespace ERPCraft_Server.Storage
             return logs;
         }
 
+        public string getRobotEnsamblado(short id)
+        {
+            string sql = "SELECT ensamblado FROM robots WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return "null";
+            }
+            rdr.Read();
+            if (rdr.IsDBNull(0))
+            {
+                rdr.Close();
+                return "null";
+            }
+            string json = rdr.GetString(0);
+            rdr.Close();
+            return json;
+        }
+
+        public bool setRobotEnsamblado(short id, RobotEnsamblado ensamblado)
+        {
+            string sql = "UPDATE robots SET ensamblado = CAST(@ensamblado AS json) WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.Parameters.AddWithValue("@ensamblado", JsonConvert.SerializeObject(ensamblado));
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
         // ROBOT - INVENTARIO
 
         public List<RobotInventario> getRobotInventario(short idRobot)

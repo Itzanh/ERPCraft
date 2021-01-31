@@ -160,6 +160,7 @@
     <Compile Include="Models\DB\Notificacion.cs" />
     <Compile Include="Models\DB\Robots\OrdenMinado.cs" />
     <Compile Include="Models\DB\Robots\Robot.cs" />
+    <Compile Include="Models\DB\Robots\RobotEnsamblado.cs" />
     <Compile Include="Models\DB\Robots\RobotGPS.cs" />
     <Compile Include="Models\DB\Robots\RobotInventario.cs" />
     <Compile Include="Models\DB\Robots\RobotLog.cs" />
