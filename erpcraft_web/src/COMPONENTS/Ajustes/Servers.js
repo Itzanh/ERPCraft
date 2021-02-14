@@ -366,7 +366,7 @@ class ServerAutoregistrarScript extends Component {
                             local m = component.modem
                             <br />
                             <br />
-                            print("Introduce la contrase&nilde;a de autoregistro de ERPCraft")
+                            print("Introduce la contrase&ntilde;a de autoregistro de ERPCraft")
                             <br />
                             server_pwd = io.read()
                             <br />
@@ -391,7 +391,7 @@ class ServerAutoregistrarScript extends Component {
                             <br />
                             handle:setTimeout(0.1)
                             <br />
-                            handle:write("AUTOREGISTER                        " .. m.address .. server_pwd)
+                            <pre>handle:write("AUTOREGISTER                        " .. m.address .. server_pwd)</pre>
                             <br />
                             handle:flush()
                         </code>

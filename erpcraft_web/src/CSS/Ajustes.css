@@ -94,3 +94,8 @@ div#tabServers div#autoregistrarSrvScript code {
     color: white;
     padding-left: 20px;
 }
+
+    div#tabServers div#autoregistrarSrvScript code pre {
+        font-size: inherit;
+        color: inherit;
+    }
