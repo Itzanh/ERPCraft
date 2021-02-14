@@ -101,6 +101,8 @@ class RobotForm extends Component {
         this.refs.numeroStacks.value = this.robot.numeroStacks;
         this.refs.numeroItems.value = this.robot.numeroItems;
         this.refs.upgradeGps.checked = this.robot.upgradeGps;
+        this.refs.upgradeInvController.checked = this.robot.upgradeInventoryController;
+        this.refs.upgradeGeolyzer.checked = this.robot.upgradeGeolyzer;
         this.refs.offX.value = this.robot.offsetPosX;
         this.refs.offY.value = this.robot.offsetPosY;
         this.refs.offZ.value = this.robot.offsetPosZ;
@@ -141,6 +143,8 @@ class RobotForm extends Component {
         robot.offsetPosY = parseInt(this.refs.offY.value);
         robot.offsetPosZ = parseInt(this.refs.offZ.value);
         robot.off = this.refs.off.checked;
+        robot.upgradeInventoryController = this.refs.upgradeInvController.checked;
+        robot.upgradeGeolyzer = this.refs.upgradeGeolyzer.checked;
         if (this.robot != null) {
             robot.notificacionConexion = this.robot.notificacionConexion;
             robot.notificacionDesconexion = this.robot.notificacionDesconexion;
@@ -389,6 +393,13 @@ class RobotForm extends Component {
                         <div className="col">
                             <label>&Iacute;tems en el inventario</label>
                             <input type="number" className="form-control" ref="numeroItems" readOnly defaultValue={this.robot != null ? this.robot.numeroItems : '0'} />
+                        </div>
+                        <div className="col">
+                            <input type="checkbox" name="upgrade_inv_con" ref="upgradeInvController" defaultChecked={this.robot != null && this.robot.upgradeInventoryController} />
+                            <label>&iquest;Upgrade de controlador de inventario?</label>
+                            <br />
+                            <input type="checkbox" name="upgrade_geo" ref="upgradeGeolyzer" defaultChecked={this.robot != null && this.robot.upgradeGeolyzer} />
+                            <label>&iquest;Upgrade de geolyzer?</label>
                         </div>
                     </div>
 

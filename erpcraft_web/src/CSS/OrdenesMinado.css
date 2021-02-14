@@ -200,6 +200,25 @@ div#tabOrdenesMinado div#ordenMinadoModal div#inventarioOrdenMinadoContenido {
                 margin-top: 40%;
             }
 
+div#tabOrdenesMinado div#ordenMinadoModal div.robotWarning {
+    border-style: solid;
+    border-width: 1px;
+    border-color: red;
+    border-radius: 25px;
+    background-color: #ff00001c;
+}
+
+    div#tabOrdenesMinado div#ordenMinadoModal div.robotWarning div.col:nth-child(1) {
+        max-width: 20%;
+    }
+
+        div#tabOrdenesMinado div#ordenMinadoModal div.robotWarning div.col:nth-child(1) img {
+            height: 100px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
 /* GESTION DEL PASILLO */
 
 div#tabOrdenesMinado div#gestionPasillo > div.modal-dialog.modal-xl {
@@ -331,3 +350,31 @@ div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevas
 div#tabOrdenesMinado div#gestionPasillo div#gesPasilloMainForm div#ordenesNuevasMenu.form-row div.col:nth-child(7) {
     max-width: 8%;
 }
+
+div#tabOrdenesMinado div#gestionPasillo div.robotWarning {
+    border-style: solid;
+    border-width: 1px;
+    border-color: red;
+    border-radius: 15px;
+    background-color: #ff00001c;
+}
+
+    div#tabOrdenesMinado div#gestionPasillo div.robotWarning div.col:nth-child(1) {
+        max-width: 5%;
+    }
+
+        div#tabOrdenesMinado div#gestionPasillo div.robotWarning div.col:nth-child(1) img {
+            height: 30px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+    div#tabOrdenesMinado div#gestionPasillo div.robotWarning div.col:nth-child(2) h5 {
+        display: inline;
+    }
+
+    div#tabOrdenesMinado div#gestionPasillo div.robotWarning div.col:nth-child(2) p {
+        display: inline;
+        margin-left: 20px;
+    }

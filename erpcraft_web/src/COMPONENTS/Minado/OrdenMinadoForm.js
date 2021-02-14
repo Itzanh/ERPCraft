@@ -6,6 +6,8 @@ import RobotLocalizador from "../Robots/RobotLocalizador";
 
 // IMG
 
+import robotIco from './../../IMG/robot.png';
+
 import queueIco from './../../IMG/orden_minado_estado/queue.svg';
 import readyIco from './../../IMG/orden_minado_estado/ready.svg';
 import runningIco from './../../IMG/orden_minado_estado/running.svg';
@@ -34,7 +36,8 @@ const ordenesMinadoEstadoImg = {
 };
 
 class OrdenMinadoForm extends Component {
-    constructor({ orden, localizarRobots, getRobotName, handleAdd, handleEdit, handleDelete, handleInventario, ordenMinadoInventarioPush, getOrdenMinadoInventarioArticuloImg }) {
+    constructor({ orden, localizarRobots, getRobotName, handleAdd, handleEdit, handleDelete, handleInventario, ordenMinadoInventarioPush, getOrdenMinadoInventarioArticuloImg,
+        robotHasInventoryController, robotHasGeolyzer }) {
         super();
 
         this.orden = orden;
@@ -46,6 +49,8 @@ class OrdenMinadoForm extends Component {
         this.handleInventario = handleInventario;
         this.ordenMinadoInventarioPush = ordenMinadoInventarioPush;
         this.getOrdenMinadoInventarioArticuloImg = getOrdenMinadoInventarioArticuloImg;
+        this.robotHasInventoryController = robotHasInventoryController;
+        this.robotHasGeolyzer = robotHasGeolyzer;
 
         this.getInventario = this.getInventario.bind(this);
         this.localizarRobot = this.localizarRobot.bind(this);
@@ -53,6 +58,7 @@ class OrdenMinadoForm extends Component {
         this.robotName = this.robotName.bind(this);
         this.eliminar = this.eliminar.bind(this);
         this.aceptar = this.aceptar.bind(this);
+        this.checkGeolyzerWarning = this.checkGeolyzerWarning.bind(this);
     }
 
     componentDidMount() {
@@ -92,7 +98,56 @@ class OrdenMinadoForm extends Component {
     busquedaRobot(id, name) {
         this.refs.robId.value = id;
         this.refs.robName.value = name;
+
+        if (id != 0) {
+            // inventory controller warning
+            this.robotHasInventoryController(id).then((upgradeInentoryController) => {
+                if (upgradeInentoryController) {
+                    this.refs.robotInvConWarnings.style.visibility = 'hidden';
+                    this.refs.robotInvConWarnings.style.height = '0';
+                } else {
+                    this.refs.robotInvConWarnings.style.visibility = 'visible';
+                    this.refs.robotInvConWarnings.style.height = 'inherit';
+                }
+            });
+
+            // modo economico warning
+            if (this.refs.modoMinadoE.checked) {
+                this.robotHasGeolyzer(id).then((upgradeGeolyzer) => {
+                    if (upgradeGeolyzer) {
+                        this.refs.robotEcoWarnings.style.visibility = 'hidden';
+                        this.refs.robotEcoWarnings.style.height = '0';
+                    } else {
+                        this.refs.robotEcoWarnings.style.visibility = 'visible';
+                        this.refs.robotEcoWarnings.style.height = 'inherit';
+                    }
+                });
+            } else {
+                this.refs.robotEcoWarnings.style.visibility = 'hidden';
+                this.refs.robotEcoWarnings.style.height = '0';
+            }
+        }
     };
+
+    checkGeolyzerWarning() {
+        if (this.refs.robId.value == '0')
+            return;
+
+        if (this.refs.modoMinadoE.checked) {
+            this.robotHasGeolyzer(parseInt(this.refs.robId.value)).then((upgradeGeolyzer) => {
+                if (upgradeGeolyzer) {
+                    this.refs.robotEcoWarnings.style.visibility = 'hidden';
+                    this.refs.robotEcoWarnings.style.height = '0';
+                } else {
+                    this.refs.robotEcoWarnings.style.visibility = 'visible';
+                    this.refs.robotEcoWarnings.style.height = 'inherit';
+                }
+            });
+        } else {
+            this.refs.robotEcoWarnings.style.visibility = 'hidden';
+            this.refs.robotEcoWarnings.style.height = '0';
+        }
+    }
 
     async robotName() {
         if (this.orden && this.orden.robot > 0) {
@@ -389,12 +444,12 @@ class OrdenMinadoForm extends Component {
                             </div>
                             <div className="col">
                                 <div className="btn-group btn-group-toggle" data-toggle="buttons">
-                                    <label className={"btn btn-primary" + (this.orden != null ? (this.orden.modoMinado == "O" ? " active" : "") : " active")}>
+                                    <label className={"btn btn-primary" + (this.orden != null ? (this.orden.modoMinado == "O" ? " active" : "") : " active")} onClick={this.checkGeolyzerWarning}>
                                         <input type="radio" name="modoMinado" id="opti" data-toggle="tooltip" data-placement="top" data-html="true" title={"<div className='tooltipOrdenMinado'><img src=" + optimoIco + " />Estrategia de miner&iacute;a m&aacute;s r&aacute;pida aunque menos eficiente.<ul><li>Todos los picos del robot deben de ser de hierro o superior, para poder romper todos los elementos que se esperen minar sin considerar nada m&aacute;s. El robot volver&aacute; al origen y conseguir&aacute; un nuevo pico si se le termina.</li><li>El robot no recargar&aacute; tanto el pico.</li><li>Dependiendo de los materiales que se encuentren, puede ser contraproducente.</li></ul></div>"}
                                             ref="modoMinadoO" />
                                         <img src={ironPickaxeIco} />Modo optimizado
                                     </label>
-                                    <label className={"btn btn-primary" + (this.orden != null && this.orden.modoMinado == "E" ? " active" : "")}>
+                                    <label className={"btn btn-primary" + (this.orden != null && this.orden.modoMinado == "E" ? " active" : "")} onClick={this.checkGeolyzerWarning}>
                                         <input type="radio" name="modoMinado" id="eco"
                                             data-toggle="tooltip" data-placement="top" data-html="true" title={"<div className='tooltipOrdenMinado'><img src=" + ecoIco + " />Estategia de miner&iacute;a m&aacute;s lenta aunque m&aacute;s barata.<ul><li>El robot ocupar&aacute; dos posiciones en el inventario para picos, uno ser&iacute;a de piedra (m&aacute;s econ&oacute;mico), y otro de un material m&aacute;s &oacute;ptimo, como el herro. El robot elegir&aacute; el tipo de pico adecuado cada vez, usando solo el &oacute;ptimo cuando sea necesario.</li><li>La miner&iacute;a ser&aacute; mucho m&aacute;s lenta y el robot perder&aacute; mucho m&aacute;s tiempo recargando.</li><li>Minado mucho m&aacute;s f&aacute;cil de rentabilizar.</li></ul></div>"}
                                             ref="modoMinadoE" defaultChecked={this.orden != null ? this.orden.modoMinado == "E" : false} />
@@ -406,6 +461,26 @@ class OrdenMinadoForm extends Component {
 
                         <h5>&Iacute;tems obtenidos</h5>
                         <div className="row row-cols-1 row-cols-md-4" id="inventarioOrdenMinadoContenido"></div>
+
+                        <div className="form-row robotWarning" ref="robotInvConWarnings" style={{ 'visibility': 'hidden', 'height': '0' }}>
+                            <div className="col">
+                                <img src={robotIco} />
+                            </div>
+                            <div className="col">
+                                <h5>Robot incompatible</h5>
+                                <p>Este robot no es compatible con el minado porque en al ficha de este robot aparece que no dispone de un controlador de inventario como mejora. Si dispone de el en el juego, activa ese check, y si no, desensambla el robot e introduce la mejora.</p>
+                            </div>
+                        </div>
+
+                        <div className="form-row robotWarning" ref="robotEcoWarnings" style={{ 'visibility': 'hidden', 'height': '0' }}>
+                            <div className="col">
+                                <img src={stonePickaxeIco} />
+                            </div>
+                            <div className="col">
+                                <h5>Robot incompatible</h5>
+                                <p>Este robot no es compatible con el minado econ&oacute;mico porque en al ficha de este robot aparece que no dispone de un Geolyzer como mejora. Es necesario el Geolyzer para poder detectar los &iacute;tems y utilizar la herramienta de manera econ&oacute;mica.</p>
+                            </div>
+                        </div>
 
                     </div>
                     <div className="modal-footer">

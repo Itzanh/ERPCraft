@@ -71,6 +71,14 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return setEnsambladoRobot(db, message);
                     }
+                case "hasInventoryController":
+                    {
+                        return robotHasInventoryController(db, message);
+                    }
+                case "hasGeolyzer":
+                    {
+                        return robotHasGeolyzer(db, message);
+                    }
             }
 
             return "ERR";
@@ -306,5 +314,35 @@ namespace ERPCraft_Server.Controller.AdminControllers
 
             return db.setRobotEnsamblado(ensamblado.robotId, ensamblado.toRobotEnsamblado()) ? "OK" : "ERR";
         }
+
+        private static string robotHasInventoryController(DBStorage db, string message)
+        {
+            short robotId;
+            try
+            {
+                robotId = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (robotId <= 0)
+                return "ERR";
+
+            return db.getRobotInventoryController(robotId).ToString().ToLower();
+        }
+
+        private static string robotHasGeolyzer(DBStorage db, string message)
+        {
+            short robotId;
+            try
+            {
+                robotId = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (robotId <= 0)
+                return "ERR";
+
+            return db.getRobotGeolyzer(robotId).ToString().ToLower();
+        }
+
+
     }
 }

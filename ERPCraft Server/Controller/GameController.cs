@@ -437,16 +437,17 @@ namespace ERPCraft_Server.Controller
 
         private static void comandoRobRegister(Guid serveruuid, string uuid, string mensaje, DBStorage db)
         {
-            // server_password;name;num_slots;energia_act;total_ene;generador_upgrade;generador_items;gps_upgrade;pos_x;pos_y;pos_z
+            // server_password;name;num_slots;energia_act;total_ene;generador_upgrade;generador_items;gps_upgrade;pos_x;pos_y;pos_z;inventory_controller;geolyzer
             Console.WriteLine("uuid " + uuid + " msg " + mensaje);
             string[] data = mensaje.Split(';');
-            if (data.Length != 11)
+            if (data.Length != 13)
                 return;
 
             try
             {
                 db.autoRegisterRobot(serveruuid, data[0], uuid, data[1], Int16.Parse(data[2]), Int32.Parse(data[3]), Int32.Parse(data[4]), data[5].Equals("1"),
-                    Int16.Parse(data[6]), data[7].Equals("1"), Int16.Parse(data[8]), Int16.Parse(data[9]), Int16.Parse(data[10]));
+                    Int16.Parse(data[6]), data[7].Equals("1"), Int16.Parse(data[8]), Int16.Parse(data[9]), Int16.Parse(data[10])
+                    , data[11].Equals("1"), data[12].Equals("1"));
             }
             catch (Exception) { return; }
         }

@@ -1451,6 +1451,8 @@ async function tabOrdenesMinado() {
         ordenMinadoInventarioPush={ordenMinadoInventarioPush}
         getOrdenMinadoInventarioArticuloImg={getArticuloImg}
         tabOrdenesMinadoPush={tabOrdenesMinadoPush}
+        robotHasInventoryController={robotHasInventoryController}
+        robotHasGeolyzer={robotHasGeolyzer}
     />, document.getElementById('renderTab'));
 };
 
@@ -1554,6 +1556,22 @@ function ordenMinadoInventarioPush(ordenId, callback) {
         }
 
         callback(JSON.parse(value));
+    });
+};
+
+function robotHasInventoryController(robotId) {
+    return new Promise((resolve) => {
+        client.emit('robot', 'hasInventoryController', '' + robotId, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function robotHasGeolyzer(robotId) {
+    return new Promise((resolve) => {
+        client.emit('robot', 'hasGeolyzer', '' + robotId, (_, response) => {
+            resolve(JSON.parse(response));
+        });
     });
 };
 

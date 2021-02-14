@@ -15,7 +15,8 @@ import RobotLocalizador from "../Robots/RobotLocalizador";
 import GestionPasillo from "./GestionPasillo";
 
 class OrdenesMinado extends Component {
-    constructor({ getOrdenes, localizarRobots, getRobotName, handleAdd, handleEdit, handleDelete, handleInventario, ordenMinadoInventarioPush, getOrdenMinadoInventarioArticuloImg, tabOrdenesMinadoPush, addOrdenesMinadoArray }) {
+    constructor({ getOrdenes, localizarRobots, getRobotName, handleAdd, handleEdit, handleDelete, handleInventario, ordenMinadoInventarioPush,
+        getOrdenMinadoInventarioArticuloImg, tabOrdenesMinadoPush, addOrdenesMinadoArray, robotHasInventoryController, robotHasGeolyzer }) {
         super();
 
         this.getOrdenes = getOrdenes;
@@ -29,6 +30,8 @@ class OrdenesMinado extends Component {
         this.getOrdenMinadoInventarioArticuloImg = getOrdenMinadoInventarioArticuloImg;
         this.tabOrdenesMinadoPush = tabOrdenesMinadoPush;
         this.addOrdenesMinadoArray = addOrdenesMinadoArray;
+        this.robotHasInventoryController = robotHasInventoryController;
+        this.robotHasGeolyzer = robotHasGeolyzer;
 
         this.localizarRobot = this.localizarRobot.bind(this);
         this.busquedaRobot = this.busquedaRobot.bind(this);
@@ -187,6 +190,8 @@ class OrdenesMinado extends Component {
             handleInventario={this.handleInventario}
             ordenMinadoInventarioPush={this.ordenMinadoInventarioPush}
             getOrdenMinadoInventarioArticuloImg={this.getOrdenMinadoInventarioArticuloImg}
+            robotHasInventoryController={this.robotHasInventoryController}
+            robotHasGeolyzer={this.robotHasGeolyzer}
 
         />, document.getElementById("renderOrdenesMinadoModal"));
     }
@@ -220,6 +225,9 @@ class OrdenesMinado extends Component {
             localizarRobots={this.localizarRobots}
             handleAdd={this.handleAdd}
 
+            robotHasInventoryController={this.robotHasInventoryController}
+            robotHasGeolyzer={this.robotHasGeolyzer}
+
         />, document.getElementById("renderOrdenesMinadoModal"));
     }
 
@@ -230,6 +238,9 @@ class OrdenesMinado extends Component {
             localizarRobots={this.localizarRobots}
             getOrdenes={this.getOrdenes}
             addOrdenesMinadoArray={this.addOrdenesMinadoArray}
+
+            robotHasInventoryController={this.robotHasInventoryController}
+            robotHasGeolyzer={this.robotHasGeolyzer}
 
         />, document.getElementById("renderOrdenesMinadoModal"));
     }

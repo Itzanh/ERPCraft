@@ -1159,7 +1159,7 @@ namespace ERPCraft_Server.Storage
         public List<Robot> getRobots(RobotQuery query)
         {
             List<Robot> robots = new List<Robot>();
-            StringBuilder sql = new StringBuilder("SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z, notif_con, notif_descon, notif_bat_baj FROM robots");
+            StringBuilder sql = new StringBuilder("SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z, notif_con, notif_descon, notif_bat_baj, upgrade_inv_con, upgrade_geo FROM robots");
 
             if (query.off && (!query.text.Equals(string.Empty)))
                 sql.Append(" WHERE (uuid::text ILIKE @text OR name ILIKE @text)");
@@ -1184,7 +1184,7 @@ namespace ERPCraft_Server.Storage
 
         public Robot getRobot(short id)
         {
-            string sql = "SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z, notif_con, notif_descon, notif_bat_baj FROM robots WHERE off = false AND id = @id";
+            string sql = "SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z, notif_con, notif_descon, notif_bat_baj, upgrade_inv_con, upgrade_geo FROM robots WHERE off = false AND id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("id", id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -1201,7 +1201,7 @@ namespace ERPCraft_Server.Storage
 
         public Robot getRobot(Guid uuid)
         {
-            string sql = "SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z, notif_con, notif_descon, notif_bat_baj FROM robots WHERE off = false AND uuid = @uuid";
+            string sql = "SELECT id, name, uuid, tier, num_slots, num_stacks, num_items, estado, total_energia, energia_actual, upgrade_gen, items_gen, fecha_con, fecha_descon, dsc, upgrade_gps, pos_x, pos_y, pos_z, complejidad, date_add, date_upd, off, off_pos_x, off_pos_y, off_pos_z, notif_con, notif_descon, notif_bat_baj, upgrade_inv_con, upgrade_geo FROM robots WHERE off = false AND uuid = @uuid";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("uuid", uuid);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -1246,7 +1246,7 @@ namespace ERPCraft_Server.Storage
 
         public short addRobot(Robot r)
         {
-            string sql = "INSERT INTO robots (name,uuid,tier,num_slots,total_energia,energia_actual,upgrade_gen,items_gen,dsc,upgrade_gps,pos_x,pos_y,pos_z,complejidad,off_pos_x,off_pos_y,off_pos_z) VALUES (@name,@uuid,@tier,@num_slots,@total_energia,@energia_actual,@upgrade_gen,@items_gen,@dsc,@upgrade_gps,@pos_x,@pos_y,@pos_z,@complejidad,@off_pos_x,@off_pos_y,@off_pos_z) RETURNING id";
+            string sql = "INSERT INTO robots (name,uuid,tier,num_slots,total_energia,energia_actual,upgrade_gen,items_gen,dsc,upgrade_gps,pos_x,pos_y,pos_z,complejidad,off_pos_x,off_pos_y,off_pos_z,upgrade_inv_con,upgrade_geo) VALUES (@name,@uuid,@tier,@num_slots,@total_energia,@energia_actual,@upgrade_gen,@items_gen,@dsc,@upgrade_gps,@pos_x,@pos_y,@pos_z,@complejidad,@off_pos_x,@off_pos_y,@off_pos_z,@upgrade_inv_con,@upgrade_geo) RETURNING id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", r.name);
             cmd.Parameters.AddWithValue("@uuid", r.uuid);
@@ -1265,6 +1265,8 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@off_pos_x", r.offsetPosX);
             cmd.Parameters.AddWithValue("@off_pos_y", r.offsetPosY);
             cmd.Parameters.AddWithValue("@off_pos_z", r.offsetPosZ);
+            cmd.Parameters.AddWithValue("@upgrade_inv_con", r.upgradeInventoryController);
+            cmd.Parameters.AddWithValue("@upgrade_geo", r.upgradeGeolyzer);
             NpgsqlDataReader rdr;
             try
             {
@@ -1287,7 +1289,7 @@ namespace ERPCraft_Server.Storage
 
         public bool updateRobot(Robot r)
         {
-            string sql = "UPDATE robots SET name=@name, uuid=@uuid, tier=@tier, num_slots=@num_slots, total_energia=@total_energia, energia_actual=@energia_actual, upgrade_gen=@upgrade_gen, items_gen=@items_gen, dsc=@dsc, upgrade_gps=@upgrade_gps, pos_x=@pos_x, pos_y=@pos_y, pos_z=@pos_z, complejidad=@complejidad, off = @off, off_pos_x = @off_pos_x, off_pos_y = @off_pos_y, off_pos_z = @off_pos_z, notif_con = @notif_con, notif_descon = @notif_descon, notif_bat_baj = @notif_bat_baj, date_upd = CURRENT_TIMESTAMP(3) WHERE id = @id";
+            string sql = "UPDATE robots SET name=@name, uuid=@uuid, tier=@tier, num_slots=@num_slots, total_energia=@total_energia, energia_actual=@energia_actual, upgrade_gen=@upgrade_gen, items_gen=@items_gen, dsc=@dsc, upgrade_gps=@upgrade_gps, pos_x=@pos_x, pos_y=@pos_y, pos_z=@pos_z, complejidad=@complejidad, off = @off, off_pos_x = @off_pos_x, off_pos_y = @off_pos_y, off_pos_z = @off_pos_z, notif_con = @notif_con, notif_descon = @notif_descon, notif_bat_baj = @notif_bat_baj, upgrade_inv_con = @upgrade_inv_con, upgrade_geo = @upgrade_geo, date_upd = CURRENT_TIMESTAMP(3) WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("id", r.id);
             cmd.Parameters.AddWithValue("name", r.name);
@@ -1311,6 +1313,8 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("notif_con", r.notificacionConexion);
             cmd.Parameters.AddWithValue("notif_descon", r.notificacionDesconexion);
             cmd.Parameters.AddWithValue("notif_bat_baj", r.notificacionBateriaBaja);
+            cmd.Parameters.AddWithValue("@upgrade_inv_con", r.upgradeInventoryController);
+            cmd.Parameters.AddWithValue("@upgrade_geo", r.upgradeGeolyzer);
             cmd.Prepare();
             try
             {
@@ -1406,7 +1410,7 @@ namespace ERPCraft_Server.Storage
             }
         }
 
-        public void autoRegisterRobot(Guid serveruuid, string serverpwd, string uuid, string name, short num_slots, int energiaActual, int totalEnergia, bool generatorUpgrade, short numItems, bool gpsUpgrade, short posX, short posY, short posZ)
+        public void autoRegisterRobot(Guid serveruuid, string serverpwd, string uuid, string name, short num_slots, int energiaActual, int totalEnergia, bool generatorUpgrade, short numItems, bool gpsUpgrade, short posX, short posY, short posZ, bool inventory_controller, bool geolyzer)
         {
             // autentificar por el servidor
             string sql = "SELECT pwd,salt,iteraciones FROM servers WHERE uuid = @uuid AND autoreg = true";
@@ -1427,7 +1431,7 @@ namespace ERPCraft_Server.Storage
                 return;
 
             // insertar robot con los atributos obtenidos
-            sql = "INSERT INTO robots (name,uuid,num_slots,total_energia,energia_actual,pos_x,pos_y,pos_z,upgrade_gen,items_gen,upgrade_gps) VALUES (@name,@uuid,@num_slots,@total_energia,@energia_actual,@pos_x,@pos_y,@pos_z,@upgrade_gen,@items_gen,@upgrade_gps) RETURNING id";
+            sql = "INSERT INTO robots (name,uuid,num_slots,total_energia,energia_actual,pos_x,pos_y,pos_z,upgrade_gen,items_gen,upgrade_gps,upgrade_inv_con,upgrade_geo) VALUES (@name,@uuid,@num_slots,@total_energia,@energia_actual,@pos_x,@pos_y,@pos_z,@upgrade_gen,@items_gen,@upgrade_gps,@upgrade_inv_con,@upgrade_geo) RETURNING id";
             cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", name);
             cmd.Parameters.AddWithValue("@uuid", Guid.Parse(uuid));
@@ -1437,9 +1441,11 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@pos_x", posX);
             cmd.Parameters.AddWithValue("@pos_y", posY);
             cmd.Parameters.AddWithValue("@pos_z", posZ);
-            cmd.Parameters.AddWithValue("upgrade_gen", generatorUpgrade);
-            cmd.Parameters.AddWithValue("items_gen", numItems);
-            cmd.Parameters.AddWithValue("upgrade_gps", gpsUpgrade);
+            cmd.Parameters.AddWithValue("@upgrade_gen", generatorUpgrade);
+            cmd.Parameters.AddWithValue("@items_gen", numItems);
+            cmd.Parameters.AddWithValue("@upgrade_gps", gpsUpgrade);
+            cmd.Parameters.AddWithValue("@upgrade_inv_con", inventory_controller);
+            cmd.Parameters.AddWithValue("@upgrade_geo", geolyzer);
             try
             {
                 rdr = cmd.ExecuteReader();
@@ -1592,6 +1598,40 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@id", id);
             cmd.Parameters.AddWithValue("@ensamblado", JsonConvert.SerializeObject(ensamblado));
             return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool getRobotInventoryController(short idRobot)
+        {
+            string sql = "SELECT upgrade_inv_con FROM robots WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", idRobot);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return false;
+            }
+            rdr.Read();
+            bool upgradeInventoryController = rdr.GetBoolean(0);
+            rdr.Close();
+            return upgradeInventoryController;
+        }
+
+        public bool getRobotGeolyzer(short idRobot)
+        {
+            string sql = "SELECT upgrade_geo FROM robots WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", idRobot);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return false;
+            }
+            rdr.Read();
+            bool upgradeGeolyzer = rdr.GetBoolean(0);
+            rdr.Close();
+            return upgradeGeolyzer;
         }
 
         // ROBOT - INVENTARIO

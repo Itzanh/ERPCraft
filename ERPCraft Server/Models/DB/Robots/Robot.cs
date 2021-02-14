@@ -16,6 +16,8 @@ namespace ERPCraft_Server.Models.DB.Robots
         public int totalEnergia;
         public int energiaActual;
         public bool upgradeGenerador;
+        public bool upgradeInventoryController;
+        public bool upgradeGeolyzer;
         public short itemsGenerador;
         public DateTime fechaConexion;
         public DateTime fechaDesconexion;
@@ -71,6 +73,8 @@ namespace ERPCraft_Server.Models.DB.Robots
             this.notificacionConexion = rdr.GetBoolean(26);
             this.notificacionDesconexion = rdr.GetBoolean(27);
             this.notificacionBateriaBaja = rdr.GetBoolean(28);
+            this.upgradeInventoryController = rdr.GetBoolean(29);
+            this.upgradeGeolyzer = rdr.GetBoolean(30);
         }
 
         public bool isValid()

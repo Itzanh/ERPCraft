@@ -51,4 +51,16 @@ else
   str = str .. ";0;0;0;0"
 end
 
+if component.isAvailable("inventory_controller") then
+  str = str .. ";1"
+else
+  str = str .. ";0"
+end
+
+if component.isAvailable("geolyzer") then
+  str = str .. ";1"
+else
+  str = str .. ";0"
+end
+
 m.send(SERVER_ADDR, SERVER_PORT, "robRegister--" .. str)
