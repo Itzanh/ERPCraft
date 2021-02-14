@@ -1851,7 +1851,11 @@ function getAlmacenInventario(idAlmacen) {
     });
 };
 
-function almacenInventarioPush(id, callback) {
+function almacenInventarioPush(id, callback, idAlmacenAnterior) {
+    if (idAlmacenAnterior != null) {
+        client.unsubscribe('almacenInv#' + idAlmacenAnterior);
+    }
+
     client.subscribe('almacenInv#' + id, async (_, topicName, changeType, pos, value) => {
         if (changeType != 1) {
             return;

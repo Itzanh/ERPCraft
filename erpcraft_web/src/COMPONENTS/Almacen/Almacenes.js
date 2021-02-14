@@ -184,21 +184,22 @@ class Almacenes extends Component {
                 ocupado={this.almacenPorcentajeOcupado(element)}
                 almacenamiento={element.almacenamiento}
                 selectAlmacen={(idAlmacen) => {
+                    const idAlmacenAnterior = this.almacen == null ? null : this.almacen.id;
                     this.almacen = element;
-                    this.getInventario(idAlmacen);
+                    this.getInventario(idAlmacen, idAlmacenAnterior);
                 }}
             />
         }), this.refs.renderAlmacenes);
     }
 
-    async getInventario(idAlmacen) {
+    async getInventario(idAlmacen, idAlmacenAnterior) {
         const inventario = await this.getAlmacenInventario(idAlmacen);
 
         this.renderInventario(inventario);
 
         this.almacenInventarioPush(idAlmacen, (inventario) => {
             this.renderInventario(inventario);
-        });
+        }, idAlmacenAnterior);
 
     };
 
@@ -215,6 +216,7 @@ class Almacenes extends Component {
     }
 
     async renderInventario(inventario) {
+        // render inventario
         await ReactDOM.unmountComponentAtNode(this.refs.renderSlots);
         ReactDOM.render(inventario.map((element, i) => {
             return <AlmacenesFormInventarioSlot
@@ -226,6 +228,7 @@ class Almacenes extends Component {
             />
         }), this.refs.renderSlots);
 
+        // obtener imágenes de los artículos
         for (let i = 0; i < inventario.length; i++) {
             const articulo = inventario[i].articulo;
 
@@ -233,19 +236,20 @@ class Almacenes extends Component {
                 const img = await this.getArticuloImgCache(articulo.id);
                 inventario[i].img = img;
             }
-
-            ReactDOM.unmountComponentAtNode(this.refs.renderSlots);
-            ReactDOM.render(inventario.map((element, i) => {
-                return <AlmacenesFormInventarioSlot
-                    key={i}
-
-                    cant={element.cantidad}
-                    cantDisp={element.cantidadDisponible}
-                    articulo={element.articulo}
-                    img={element.img}
-                />
-            }), this.refs.renderSlots);
         }
+
+        // render inventario con imágenes
+        ReactDOM.unmountComponentAtNode(this.refs.renderSlots);
+        ReactDOM.render(inventario.map((element, i) => {
+            return <AlmacenesFormInventarioSlot
+                key={i}
+
+                cant={element.cantidad}
+                cantDisp={element.cantidadDisponible}
+                articulo={element.articulo}
+                img={element.img}
+            />
+        }), this.refs.renderSlots);
     };
 
     async crear() {
@@ -853,7 +857,7 @@ class AlmacenStorageCells extends Component {
                 <th scope="col">{element.id}</th>
                 <td><img src={storageCellImg[element.tier]} /></td>
                 <td>{storageCell[element.tier]}</td>
-                <td>{element.dateAdd}</td>
+                <td>{this.formatearFechaTiempo(element.dateAdd)}</td>
                 <td><img src={deleteIco} onClick={() => {
                     this.deleteStorageCells(element.id);
                 }} /></td>
@@ -873,6 +877,16 @@ class AlmacenStorageCells extends Component {
     async deleteStorageCells(id) {
         await this.deleteStorageCell(this.idAlmacen, id);
         this.renderStorageCells();
+    }
+
+    formatearFechaTiempo(fechaTiempo) {
+        const fecha = new Date(fechaTiempo);
+        return fecha.getDate() + '/'
+            + (fecha.getMonth() + 1) + '/'
+            + fecha.getFullYear() + ' '
+            + fecha.getHours() + ':'
+            + fecha.getMinutes() + ':'
+            + fecha.getSeconds();
     }
 
     render() {
