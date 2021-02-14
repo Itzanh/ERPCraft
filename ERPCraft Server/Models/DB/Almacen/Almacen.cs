@@ -199,5 +199,9 @@ namespace ERPCraft_Server.Models.DB.Almacen
     {
         public short idAlmacen;
         public short id;
+
+        public AE2StorageCellDelete()
+        {
+        }
     }
 }

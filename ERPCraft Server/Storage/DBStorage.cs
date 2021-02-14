@@ -2954,7 +2954,7 @@ namespace ERPCraft_Server.Storage
             }
             rdr.Close();
 
-            foreach (Tuple<short,int> slot in inventario)
+            foreach (Tuple<short, int> slot in inventario)
             {
                 sql = "UPDATE articulos SET cant = cant - @cant WHERE id = @id";
                 cmd = new NpgsqlCommand(sql, conn);
@@ -3392,12 +3392,16 @@ namespace ERPCraft_Server.Storage
 
         public bool addStorageCell(AE2StorageCell storageCell)
         {
+            NpgsqlTransaction trans = conn.BeginTransaction();
             string sql = "INSERT INTO alm_ae2_storage_cells (alm,tier) VALUES (@alm,@tier)";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@alm", storageCell.idAlmacen);
             cmd.Parameters.AddWithValue("@tier", storageCell.tier);
             if (cmd.ExecuteNonQuery() == 0)
+            {
+                trans.Rollback();
                 return false;
+            }
 
             sql = "UPDATE almacenes SET max_tipos=max_tipos+63,max_items=max_items+@max_items WHERE id=@alm";
             cmd = new NpgsqlCommand(sql, conn);
@@ -3427,18 +3431,27 @@ namespace ERPCraft_Server.Storage
                     }
                 default:
                     {
+                        trans.Rollback();
                         return false;
                     }
             }
             cmd.Parameters.AddWithValue("@max_items", maxItems);
-            return cmd.ExecuteNonQuery() > 0;
+            if (cmd.ExecuteNonQuery() == 0)
+            {
+                trans.Rollback();
+                return false;
+            }
+
+            trans.Commit();
+            return true;
         }
 
         public bool deleteStorageCell(AE2StorageCellDelete storageCell)
         {
-            string sql = "SELECT tier FROM alm_ae2_storage_cells WHERE id=@id";
+            string sql = "SELECT tier FROM alm_ae2_storage_cells WHERE alm=@alm AND id=@id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", storageCell.idAlmacen);
+            cmd.Parameters.AddWithValue("@alm", storageCell.idAlmacen);
+            cmd.Parameters.AddWithValue("@id", storageCell.id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
             if (!rdr.HasRows)
             {
@@ -3449,12 +3462,16 @@ namespace ERPCraft_Server.Storage
             short tier = rdr.GetInt16(0);
             rdr.Close();
 
+            NpgsqlTransaction trans = conn.BeginTransaction();
             sql = "DELETE FROM alm_ae2_storage_cells WHERE alm=@alm AND id=@id";
             cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@alm", storageCell.idAlmacen);
             cmd.Parameters.AddWithValue("@id", storageCell.id);
             if (cmd.ExecuteNonQuery() == 0)
+            {
+                trans.Rollback();
                 return false;
+            }
 
             sql = "SELECT max_tipos,max_items FROM almacenes WHERE id=@alm";
             cmd = new NpgsqlCommand(sql, conn);
@@ -3463,6 +3480,7 @@ namespace ERPCraft_Server.Storage
             if (!rdr.HasRows)
             {
                 rdr.Close();
+                trans.Rollback();
                 return false;
             }
             rdr.Read();
@@ -3495,6 +3513,7 @@ namespace ERPCraft_Server.Storage
                     }
                 default:
                     {
+                        trans.Rollback();
                         return false;
                     }
             }
@@ -3508,7 +3527,14 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@id", storageCell.idAlmacen);
             cmd.Parameters.AddWithValue("@max_tipos", maxTipos);
             cmd.Parameters.AddWithValue("@max_items", maxItems);
-            return cmd.ExecuteNonQuery() > 0;
+            if (cmd.ExecuteNonQuery() == 0)
+            {
+                trans.Rollback();
+                return false;
+            }
+
+            trans.Commit();
+            return true;
         }
 
         /* MOVIMIENTOS DE ALMACÉN */
