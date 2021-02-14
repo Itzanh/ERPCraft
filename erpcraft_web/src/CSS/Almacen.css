@@ -128,3 +128,82 @@ div#tabAlmacenes div#almStorageCells table tbody tr td:nth-child(2) {
 div#tabAlmacenes div#almStorageCells table tbody tr td:nth-child(5) {
     padding: 0;
 }
+
+/* ALMACEN CRAFTING */
+
+div#almacenCrafteo div.modal-dialog {
+    max-width: 1700px;
+}
+
+div#almacenCrafteo div.modal-header select {
+    max-width: 25%;
+}
+
+div#almacenCrafteo div.modal-header h5 {
+    margin-top: 10px;
+    margin-left: 25px;
+}
+
+div#almacenCrafteo div.modal-header button:nth-child(2) {
+    margin-top: 10px;
+}
+
+div#almacenCrafteo div.localizador img {
+    margin-left: 1%;
+    height: 40px;
+    background-color: #17a2b8;
+    padding: 2px;
+    border-radius: .25rem;
+}
+
+div#almacenCrafteo div.localizador input[type="number"] {
+    max-width: 20%;
+    margin-left: 1%;
+    display: inline-block;
+}
+
+div#almacenCrafteo div.localizador input[type="text"] {
+    max-width: 300px;
+    margin-left: 1%;
+    display: inline-block;
+}
+
+div#almacenCrafteo div#formAddOrdenFabricacion > div.col:nth-child(1) {
+    max-width: 20%;
+}
+
+div#almacenCrafteo div#formAddOrdenFabricacion > div.col:nth-child(2) {
+    max-width: 15%;
+}
+
+div#almacenCrafteo div#formAddOrdenFabricacion > div.col:nth-child(4) {
+    max-width: 15%;
+}
+
+div#almacenCrafteo div#formAddOrdenFabricacion > div.col:nth-child(5) {
+    max-width: 10%;
+}
+
+div#almacenCrafteo table#ordenesFabricacion tr td:nth-child(11) {
+    padding: 0;
+}
+
+    div#almacenCrafteo table#ordenesFabricacion tr td:nth-child(11) img {
+        height: 40px;
+    }
+
+div#almacenCrafteo div#formBusOrdenFabricacion > div.col:nth-child(1) {
+    max-width: 15%;
+}
+
+div#almacenCrafteo div#formBusOrdenFabricacion > div.col:nth-child(2) {
+    max-width: 31%;
+}
+
+div#almacenCrafteo div#formBusOrdenFabricacion > div.col:nth-child(4) {
+    max-width: 12%;
+}
+
+div#almacenCrafteo div#formBusOrdenFabricacion > div.col:nth-child(5) {
+    max-width: 10%;
+}

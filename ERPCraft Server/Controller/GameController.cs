@@ -87,7 +87,7 @@ namespace ERPCraft_Server.Controller
             }));
             limpieza.Start();
 
-            Console.WriteLine("Esperant connexions de OC Servers");
+            Console.WriteLine("Waiting connections from OpenComputers servers");
             while (true)
             {
                 TcpClient client = listener.AcceptTcpClient();
@@ -419,6 +419,17 @@ namespace ERPCraft_Server.Controller
                         comandoDroneGps(uuid, msg, server.db);
                         break;
                     }
+                /* FABRICACIÓN */
+                case "getOrdFab":
+                    {
+                        comandoGetOrdenesFabricacion(uuid, server.db, server.server);
+                        break;
+                    }
+                case "setOrdFab":
+                    {
+                        comandoSetOrdenFabricacion(uuid, server.db, msg);
+                        break;
+                    }
             }
         }
 
@@ -667,7 +678,6 @@ namespace ERPCraft_Server.Controller
         private static void comandoDroneOnline(string uuid, string mensaje, DBStorage db)
         {
             // name;energia_act;total_ene;pos_x,pos_y;pos_z
-            Console.WriteLine("uuid " + uuid + " msg " + mensaje);
             string[] data = mensaje.Split(';');
             if (data.Length != 6)
                 return;
@@ -729,6 +739,165 @@ namespace ERPCraft_Server.Controller
                     db.addDroneGps(Guid.Parse(uuid), Int16.Parse(data[0]), Int16.Parse(data[1]), Int16.Parse(data[2]));
                 }
                 catch (Exception) { return; }
+            }
+        }
+
+        /* FABRICACIÓN */
+
+        private static void comandoGetOrdenesFabricacion(string uuid, DBStorage db, TcpClient server)
+        {
+            Fabricacion fabricacion = db.getFabricacion(Guid.Parse(uuid));
+            if (fabricacion == null)
+                return;
+
+            OrdenFabricacion ordenFabricacion = db.getNextOrdenFabricacion(fabricacion.idAlmacen, fabricacion.id);
+            if (ordenFabricacion == null)
+            {
+                enviarMensaje(server, "MSG$$" + uuid + "&&IDLE");
+                return;
+            }
+
+            if (fabricacion.tipo == 'R')
+                robotGetOrdenesFabricacion(uuid, db, server, fabricacion, ordenFabricacion);
+            else if (fabricacion.tipo == 'A')
+                meGetOrdenesFabricacion(db, ordenFabricacion, uuid, server);
+        }
+
+        private static void robotGetOrdenesFabricacion(string uuid, DBStorage db, TcpClient server, Fabricacion fabricacion, OrdenFabricacion ordenFabricacion)
+        {
+            StringBuilder str = new StringBuilder();
+            // id;cantidad;c=craft/s=smelt,
+            str.Append("MSG$$").Append(uuid).Append("&&").Append(ordenFabricacion.id).Append(";").Append(ordenFabricacion.cantidad).Append(";");
+
+            if (ordenFabricacion.idCrafteo != null)
+            {
+                str.Append("C");
+                Crafteo crafteo = db.getCrafteo((int)ordenFabricacion.idCrafteo);
+                // minecraft_id:cant;minecraft_id:cant;minecraft_id:cant;minecraft_id:cant;minecraft_id:cant;minecraft_id:cant... (x9)
+                if (crafteo.idArticuloSlot1 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot1).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot1);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot2 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot2).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot2);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot3 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot3).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot3);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot4 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot4).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot4);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot5 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot5).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot5);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot6 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot6).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot6);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot7 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot7).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot7);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot8 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot8).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot8);
+                else
+                    str.Append(";;").Append(0);
+                if (crafteo.idArticuloSlot9 != null)
+                    str.Append(";").Append(db.getArticulo((short)crafteo.idArticuloSlot9).minecraftID).Append(";").Append(crafteo.cantidadArticuloSlot9);
+                else
+                    str.Append(";;").Append(0);
+            }
+            else if (ordenFabricacion.idSmelting != null)
+            {
+                str.Append("S;");
+                Smelting smelting = db.getSmelting((int)ordenFabricacion.idSmelting);
+                // minecraft_id;cant
+                str.Append(db.getArticulo(smelting.idArticuloEntrada).minecraftID).Append(";").Append(fabricacion.hornoSide);
+            }
+            else
+            {
+                return;
+            }
+
+            str.Append(";" + fabricacion.cofreSide);
+            db.setOrdenFabricacionReady(ordenFabricacion.id, ordenFabricacion.idAlmacen, ordenFabricacion.idFabricacion);
+            Console.WriteLine(str.ToString());
+            enviarMensaje(server, str.ToString());
+        }
+
+        private static void meGetOrdenesFabricacion(DBStorage db, OrdenFabricacion ordenFabricacion, string uuid, TcpClient server)
+        {
+            string articuloMinecraftID;
+            if (ordenFabricacion.idCrafteo != null)
+            {
+                Crafteo crafteo = db.getCrafteo((int)ordenFabricacion.idCrafteo);
+                if (crafteo == null)
+                    return;
+                Articulo articulo = db.getArticulo(crafteo.idArticuloResultado);
+                if (articulo == null)
+                    return;
+                articuloMinecraftID = articulo.minecraftID;
+            }
+            else if (ordenFabricacion.idSmelting != null)
+            {
+                Smelting smelting = db.getSmelting((int)ordenFabricacion.idSmelting);
+                if (smelting == null)
+                    return;
+                Articulo articulo = db.getArticulo(smelting.idArticuloResultado);
+                if (articulo == null)
+                    return;
+                articuloMinecraftID = articulo.minecraftID;
+            }
+            else
+            {
+                return;
+            }
+            enviarMensaje(server, "MSG$$" + uuid + "&&" + ordenFabricacion.id + ";" + articuloMinecraftID + ";" + ordenFabricacion.cantidad);
+        }
+
+        private static void comandoSetOrdenFabricacion(string uuid, DBStorage db, string msg)
+        {
+            Fabricacion fabricacion = db.getFabricacion(Guid.Parse(uuid));
+            if (fabricacion == null)
+                return;
+
+            string[] data = msg.Split(';');
+            if (data.Length != 3)
+                return;
+
+            int id;
+            try
+            {
+                id = Int32.Parse(data[0]);
+            }
+            catch (Exception) { return; }
+            if (id <= 0)
+                return;
+
+            if (data[1].Equals("OK"))
+            {
+                db.setResultadoOrdenFabricaicon(id, fabricacion.idAlmacen, fabricacion.id, true);
+            }
+            else if (data[1].Equals("ERR"))
+            {
+                short errorCode;
+                try
+                {
+                    errorCode = Int16.Parse(data[2]);
+                }
+                catch (Exception) { return; }
+                if (errorCode <= 0)
+                    return;
+
+                db.setResultadoOrdenFabricaicon(id, fabricacion.idAlmacen, fabricacion.id, false, errorCode);
+            }
+            else
+            {
+                return;
             }
         }
     }

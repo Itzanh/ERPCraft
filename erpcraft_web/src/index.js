@@ -729,6 +729,19 @@ async function tabArticulos() {
     await ReactDOM.render(<Articulos
         handleAddArticulo={addArticulo}
         handleSearch={getArticulos}
+        localizarArticulos={localizarArticulos}
+        getArticuloName={getArticuloName}
+        getArticuloImg={getArticuloImg}
+        // CRAFTING
+        getCrafting={getCrafting}
+        addCrafting={addCrafting}
+        updateCrafting={updateCrafting}
+        deleteCrafting={deleteCrafting}
+        // SMELTING
+        getSmelting={getSmelting}
+        addSmelting={addSmelting}
+        updateSmelting={updateSmelting}
+        deleteSmelting={deleteSmelting}
     />, document.getElementById('renderTab'));
 
     getArticulos();
@@ -938,6 +951,98 @@ function getArticuloImg(artImg) {
             resolve();
         });
         client.emit('articulos', 'getImg', '' + artImg);
+    });
+};
+
+// CRAFTING
+
+function getCrafting() {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'getCrafts', '', (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+}
+
+function addCrafting(crafting) {
+    return new Promise((resolve, reject) => {
+        client.emit('articulos', 'addCraft', JSON.stringify(crafting), (_, response) => {
+            if (response === 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function updateCrafting(crafting) {
+    return new Promise((resolve, reject) => {
+        client.emit('articulos', 'editCraft', JSON.stringify(crafting), (_, response) => {
+            if (response === 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function deleteCrafting(idCrafting) {
+    return new Promise((resolve, reject) => {
+        client.emit('articulos', 'deleteCraft', '' + idCrafting, (_, response) => {
+            if (response === 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+// SMELTING
+
+function getSmelting() {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'getSmelting', '', (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function addSmelting(smelting) {
+    return new Promise((resolve, reject) => {
+        client.emit('articulos', 'addSmelting', JSON.stringify(smelting), (_, response) => {
+            if (response === 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function updateSmelting(smelting) {
+    return new Promise((resolve, reject) => {
+        client.emit('articulos', 'editSmelting', JSON.stringify(smelting), (_, response) => {
+            if (response === 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function deleteSmelting(idSmelting) {
+    return new Promise((resolve, reject) => {
+        client.emit('articulos', 'deleteSmelting', '' + idSmelting, (_, response) => {
+            if (response === 'OK') {
+                resolve();
+            } else {
+                reject();
+            }
+        });
     });
 };
 
@@ -1655,6 +1760,7 @@ function pwdAutoregServer(uuid, pwd) {
 function tabAlmacen() {
     ReactDOM.unmountComponentAtNode(document.getElementById('renderTab'));
     ReactDOM.render(<Almacenes
+        // ALMACENES
         getAlmacenes={getAlmacenes}
         getAlmacenInventario={getAlmacenInventario}
         almacenInventarioPush={almacenInventarioPush}
@@ -1665,14 +1771,31 @@ function tabAlmacen() {
         handleEdit={editAlmacen}
         handleDelete={deleteAlmacen}
 
+        // NOTIFICACIONES
         getAlmacenNotificaciones={getAlmacenNotificaciones}
         addAlmacenNotificaciones={addAlmacenNotificaciones}
         deleteAlmacenNotificaciones={deleteAlmacenNotificaciones}
         getArticulos={localizarArticulos}
 
+        // STORAGE CELLS
         getAlmacenStorageCells={getAlmacenStorageCells}
         addAlmacenStorageCell={addAlmacenStorageCell}
         deleteAlmacenStorageCell={deleteAlmacenStorageCell}
+
+        // FABRICACION
+        getFabricaciones={getFabricaciones}
+        addFabricacion={addFabricacion}
+        editFabricacion={editFabricacion}
+        deleteFabricacion={deleteFabricacion}
+
+        // ORDENES DE FABRICACION
+        localizarCrafteos={localizarCrafteos}
+        localizarSmeltings={localizarSmeltings}
+        addOrdenFabricacion={addOrdenFabricacion}
+        getOrdenFabricacion={getOrdenFabricacion}
+        searchOrdenesFabricacion={searchOrdenesFabricacion}
+        previewCrafteo={previewCrafteo}
+        deleteOrdenFabricacion={deleteOrdenFabricacion}
     />, document.getElementById('renderTab'));
 };
 
@@ -1793,6 +1916,110 @@ function addAlmacenStorageCell(storageCell) {
 function deleteAlmacenStorageCell(idAlmacen, id) {
     return new Promise((resolve, reject) => {
         client.emit('almacen', 'deleteAE2StorageCell', JSON.stringify({ idAlmacen, id }), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function getFabricaciones(idAlmacen, head = false) {
+    return new Promise((resolve) => {
+        client.emit('almacen', head == true ? 'headFabricaciones' : 'getFabricaciones', '' + idAlmacen, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function addFabricacion(fabricacion) {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'addFabricacion', JSON.stringify(fabricacion), (_, response) => {
+            resolve(parseInt(response));
+        });
+    });
+};
+
+function editFabricacion(fabricacion) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'editFabricacion', JSON.stringify(fabricacion), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function deleteFabricacion(id, idAlmacen) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'deleteFabricacion', JSON.stringify({ id, idAlmacen }), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function localizarCrafteos() {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'localizarCraft', '', (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function localizarSmeltings() {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'localizarSmelting', '', (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function getOrdenFabricacion(idAlmacen, idFabricacion) {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'getOrdenesFabricacion', JSON.stringify({ idAlmacen: idAlmacen, idFabricacion: idFabricacion }), (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function searchOrdenesFabricacion(search) {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'searchOrdenesFabricacion', JSON.stringify(search), (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function addOrdenFabricacion(ordenFabricacion) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'addOrdenFabricacion', JSON.stringify(ordenFabricacion), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function previewCrafteo(idAlmacen, idReceta, tipo) {
+    return new Promise((resolve) => {
+        client.emit('almacen', 'previewCrafteo', JSON.stringify({ idAlmacen: idAlmacen, idReceta: idReceta, tipo: tipo }), (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function deleteOrdenFabricacion(id, idAlmacen, idFabricacion) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'deleteOrdenFabricacion', JSON.stringify({ id, idAlmacen, idFabricacion }), (_, response) => {
             if (response == "OK") {
                 resolve();
             } else {

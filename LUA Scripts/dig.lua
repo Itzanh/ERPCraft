@@ -126,7 +126,7 @@ local function responderPing()
     print("Got a message from " .. from .. " on port " .. port .. ": " .. tostring(message))
   
     if (message == "PING") then
-      m.broadcast(32325, "PONG--")
+      m.send(SERVER_ADDR, SERVER_PORT, "PONG--")
 	elseif (string.sub(message, 0, 3) == "CMD") then
 	  f = load(string.sub(message, 6))
 	  f()
@@ -179,7 +179,7 @@ local function getOrdenMinado()
   local _, _, _, _, _, message = event.pull("modem_message")
   
   if (message == "PING") then
-    m.broadcast(32325, "PONG--")
+    m.send(SERVER_ADDR, SERVER_PORT, "PONG--")
 	return getOrdenMinado()
   elseif (string.sub(message, 0, 3) == "CMD") then
 	f = load(string.sub(message, 6))

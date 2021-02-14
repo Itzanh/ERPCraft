@@ -957,7 +957,7 @@ namespace ERPCraft_Server.Storage
 
         public Articulo getArticulo(short id)
         {
-            string sql = "SELECT * FROM articulos WHERE id = @id";
+            string sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -2941,13 +2941,41 @@ namespace ERPCraft_Server.Storage
 
         public bool deleteAlmacen(short id)
         {
-            string sql = "DELETE FROM almacenes WHERE id = @id";
+            NpgsqlTransaction trans = conn.BeginTransaction();
+            string sql = "SELECT art, cant FROM alm_inventario WHERE alm = @alm";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", id);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            List<Tuple<short, int>> inventario = new List<Tuple<short, int>>();
+
+            while (rdr.Read())
+            {
+                inventario.Add(new Tuple<short, int>(rdr.GetInt16(0), rdr.GetInt32(1)));
+            }
+            rdr.Close();
+
+            foreach (Tuple<short,int> slot in inventario)
+            {
+                sql = "UPDATE articulos SET cant = cant - @cant WHERE id = @id";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", slot.Item1);
+                cmd.Parameters.AddWithValue("@cant", slot.Item2);
+                if (cmd.ExecuteNonQuery() == 0)
+                {
+                    trans.Rollback();
+                    return false;
+                }
+            }
+
+            sql = "DELETE FROM almacenes WHERE id = @id";
+            cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             if (cmd.ExecuteNonQuery() == 0)
             {
+                trans.Rollback();
                 return false;
             }
+            trans.Commit();
 
             Program.websocketPubSub.onPush("almacen", serverHashes.SubscriptionChangeType.delete, id, string.Empty);
             Program.websocketPubSub.removeTopic("almacenInv#" + id);
@@ -2960,7 +2988,7 @@ namespace ERPCraft_Server.Storage
         {
             List<AlmacenInventario> inventario = new List<AlmacenInventario>();
             List<AlmacenInventarioGet> inventarioGet = new List<AlmacenInventarioGet>();
-            string sql = "SELECT alm,id,art,cant FROM alm_inventario WHERE alm = @alm ORDER BY id ASC";
+            string sql = "SELECT alm,id,art,cant,cant_disp FROM alm_inventario WHERE alm = @alm ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@alm", idAlmacen);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -2974,7 +3002,7 @@ namespace ERPCraft_Server.Storage
 
             foreach (AlmacenInventarioGet invGet in inventarioGet)
             {
-                inventario.Add(new AlmacenInventario(invGet.almacen, invGet.id, getArticuloSlot(invGet.articulo), invGet.cantidad));
+                inventario.Add(new AlmacenInventario(invGet.almacen, invGet.id, getArticuloSlot(invGet.articulo), invGet.cantidad, invGet.cantidadDisponible));
             }
 
             return inventario;
@@ -2982,6 +3010,9 @@ namespace ERPCraft_Server.Storage
 
         public void setInventarioAlmacen(short idAlmacen, List<AlmacenInventarioSet> inventario)
         {
+            if (idAlmacen <= 0)
+                return;
+
             NpgsqlTransaction trans = conn.BeginTransaction();
             // obtener los IDs de los artículos, si no se encuentra el ID en la base de datos, eliminar del array
             for (int i = (inventario.Count - 1); i >= 0; i--)
@@ -3083,26 +3114,29 @@ namespace ERPCraft_Server.Storage
                     rdr.Close();
 
                     // cantidad anterior del artículo
-                    sql = "SELECT cant FROM articulos WHERE id = @id";
+                    sql = "SELECT cant FROM alm_inventario WHERE alm = @alm AND art = @art";
                     cmd = new NpgsqlCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("@id", articulo);
+                    cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                    cmd.Parameters.AddWithValue("@art", articulo);
                     rdr = cmd.ExecuteReader();
                     rdr.Read();
                     int cantidadAnterior = rdr.GetInt32(0);
                     rdr.Close();
+                    int cantidadDiferencia = slot.cantidad - cantidadAnterior;
 
                     // modificar el slot del inventario
-                    sql = "UPDATE alm_inventario SET cant = @cant WHERE alm = @alm AND id = @id";
+                    sql = "UPDATE alm_inventario SET cant = @cant, cant_disp = cant_disp + @cant_disp WHERE alm = @alm AND id = @id";
                     cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@cant", slot.cantidad);
+                    cmd.Parameters.AddWithValue("@cant_disp", cantidadDiferencia);
                     cmd.Parameters.AddWithValue("@id", almSlotId);
                     cmd.Parameters.AddWithValue("@alm", idAlmacen);
                     cmd.ExecuteNonQuery();
 
                     // actualizar la cantidad del artículo
-                    int cantidadDiferencia = slot.cantidad - cantidadAnterior;
                     if (cantidadDiferencia != 0)
                     {
+                        // acumular la cantidad total de existencias del artículo
                         sql = "UPDATE articulos SET cant = cant + @cant WHERE id = @id";
                         cmd = new NpgsqlCommand(sql, conn);
                         cmd.Parameters.AddWithValue("@id", articulo);
@@ -3119,12 +3153,12 @@ namespace ERPCraft_Server.Storage
                     }
 
                 }
-                else // no existe un slot para este artículo
+                else if (slot.cantidad > 0) // no existe un slot para este artículo
                 {
                     rdr.Close();
 
                     // crear el slot para el artículo
-                    sql = "INSERT INTO alm_inventario (alm,art,cant) VALUES (@alm,@art,@cant)";
+                    sql = "INSERT INTO alm_inventario (alm,art,cant,cant_disp) VALUES (@alm,@art,@cant,@cant)";
                     cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@alm", idAlmacen);
                     cmd.Parameters.AddWithValue("@art", articulo);
@@ -3145,6 +3179,10 @@ namespace ERPCraft_Server.Storage
                     cmd.Parameters.AddWithValue("@art", articulo);
                     cmd.Parameters.AddWithValue("@cant", slot.cantidad);
                     cmd.ExecuteNonQuery();
+                }
+                else
+                {
+                    rdr.Close();
                 }
             }
 
@@ -3176,13 +3214,35 @@ namespace ERPCraft_Server.Storage
             Program.websocketPubSub.onPush("almacenInv#" + idAlmacen, serverHashes.SubscriptionChangeType.update, 0, JsonConvert.SerializeObject(getInventarioAlmacen(idAlmacen)));
         }
 
+        public AlmacenInventarioGet getInventarioAlmacen(short idAlmacen, short idArticulo)
+        {
+            string sql = "SELECT alm,id,art,cant,cant_disp FROM alm_inventario WHERE alm = @alm AND art = @art ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@art", idArticulo);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return new AlmacenInventarioGet(idAlmacen, idAlmacen, 0);
+            }
+
+            rdr.Read();
+            AlmacenInventarioGet slot = new AlmacenInventarioGet(rdr);
+            rdr.Close();
+
+            return slot;
+        }
+
         // NOTIFICACIONES DE ALMACÉN
 
         public List<AlmacenInventarioNotificacion> getNotificacionesAlmacen(short idAlmacen)
         {
             List<AlmacenInventarioNotificacion> notificaciones = new List<AlmacenInventarioNotificacion>();
-            string sql = "SELECT alm,id,name,art,modo,cantidad FROM alm_inv_notificacion ORDER BY id ASC";
+            string sql = "SELECT alm,id,name,art,modo,cantidad FROM alm_inv_notificacion WHERE alm = @alm ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", idAlmacen);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
@@ -3489,7 +3549,7 @@ namespace ERPCraft_Server.Storage
                     sql.Append(" AND");
                 sql.Append(" art = @art");
             }
-            if (query.dateInicio != DateTime.MinValue)
+            if (query.dateInicio > DateTime.MinValue)
             {
                 if (!primerParametro)
                     primerParametro = true;
@@ -3497,7 +3557,7 @@ namespace ERPCraft_Server.Storage
                     sql.Append(" AND");
                 sql.Append(" date_add >= @dateInicio");
             }
-            if (query.dateFin != DateTime.MinValue)
+            if (query.dateFin > DateTime.MinValue)
             {
                 if (primerParametro)
                     sql.Append(" AND");
@@ -3967,7 +4027,7 @@ namespace ERPCraft_Server.Storage
             {
                 rdr = cmd.ExecuteReader();
             }
-            catch (Exception e) { Console.WriteLine(e.ToString()); return false; }
+            catch (Exception) { return false; }
             rdr.Read();
             DateTime id = rdr.GetDateTime(0);
             rdr.Close();
@@ -3989,5 +4049,842 @@ namespace ERPCraft_Server.Storage
             return false;
         }
 
+        /* CRAFTEOS */
+
+        public List<Crafteo> getCrafteos()
+        {
+            List<Crafteo> crafteos = new List<Crafteo>();
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_slot1, cant_slot1, art_slot2, cant_slot2, art_slot3, cant_slot3, art_slot4, cant_slot4, art_slot5, cant_slot5, art_slot6, cant_slot6, art_slot7, cant_slot7, art_slot8, cant_slot8, art_slot9, cant_slot9, date_add, date_upd, off FROM crafting";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                crafteos.Add(new Crafteo(rdr));
+            rdr.Close();
+
+            return crafteos;
+        }
+
+        public Crafteo getCrafteo(int id)
+        {
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_slot1, cant_slot1, art_slot2, cant_slot2, art_slot3, cant_slot3, art_slot4, cant_slot4, art_slot5, cant_slot5, art_slot6, cant_slot6, art_slot7, cant_slot7, art_slot8, cant_slot8, art_slot9, cant_slot9, date_add, date_upd, off FROM crafting WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return null;
+            }
+
+            rdr.Read();
+            Crafteo crafteo = new Crafteo(rdr);
+            rdr.Close();
+
+            return crafteo;
+        }
+
+        public bool addCrafteo(Crafteo crafteo)
+        {
+            string sql = "INSERT INTO crafting(name, art_resultado, cant_resultado, art_slot1, cant_slot1, art_slot2, cant_slot2, art_slot3, cant_slot3, art_slot4, cant_slot4, art_slot5, cant_slot5, art_slot6, cant_slot6, art_slot7, cant_slot7, art_slot8, cant_slot8, art_slot9, cant_slot9) VALUES (@name, @art_resultado, @cant_resultado, @art_slot1, @cant_slot1, @art_slot2, @cant_slot2, @art_slot3, @cant_slot3, @art_slot4, @cant_slot4, @art_slot5, @cant_slot5, @art_slot6, @cant_slot6, @art_slot7, @cant_slot7, @art_slot8, @cant_slot8, @art_slot9, @cant_slot9)";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", crafteo.name);
+            cmd.Parameters.AddWithValue("@art_resultado", crafteo.idArticuloResultado);
+            cmd.Parameters.AddWithValue("@cant_resultado", crafteo.cantidadResultado);
+            if (crafteo.idArticuloSlot1 != null)
+                cmd.Parameters.AddWithValue("@art_slot1", crafteo.idArticuloSlot1);
+            else
+                cmd.Parameters.AddWithValue("@art_slot1", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot1", crafteo.cantidadArticuloSlot1);
+            if (crafteo.idArticuloSlot2 != null)
+                cmd.Parameters.AddWithValue("@art_slot2", crafteo.idArticuloSlot2);
+            else
+                cmd.Parameters.AddWithValue("@art_slot2", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot2", crafteo.cantidadArticuloSlot2);
+            if (crafteo.idArticuloSlot3 != null)
+                cmd.Parameters.AddWithValue("@art_slot3", crafteo.idArticuloSlot3);
+            else
+                cmd.Parameters.AddWithValue("@art_slot3", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot3", crafteo.cantidadArticuloSlot3);
+            if (crafteo.idArticuloSlot4 != null)
+                cmd.Parameters.AddWithValue("@art_slot4", crafteo.idArticuloSlot4);
+            else
+                cmd.Parameters.AddWithValue("@art_slot4", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot4", crafteo.cantidadArticuloSlot4);
+            if (crafteo.idArticuloSlot5 != null)
+                cmd.Parameters.AddWithValue("@art_slot5", crafteo.idArticuloSlot5);
+            else
+                cmd.Parameters.AddWithValue("@art_slot5", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot5", crafteo.cantidadArticuloSlot5);
+            if (crafteo.idArticuloSlot6 != null)
+                cmd.Parameters.AddWithValue("@art_slot6", crafteo.idArticuloSlot6);
+            else
+                cmd.Parameters.AddWithValue("@art_slot6", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot6", crafteo.cantidadArticuloSlot6);
+            if (crafteo.idArticuloSlot7 != null)
+                cmd.Parameters.AddWithValue("@art_slot7", crafteo.idArticuloSlot7);
+            else
+                cmd.Parameters.AddWithValue("@art_slot7", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot7", crafteo.cantidadArticuloSlot7);
+            if (crafteo.idArticuloSlot8 != null)
+                cmd.Parameters.AddWithValue("@art_slot8", crafteo.idArticuloSlot8);
+            else
+                cmd.Parameters.AddWithValue("@art_slot8", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot8", crafteo.cantidadArticuloSlot8);
+            if (crafteo.idArticuloSlot9 != null)
+                cmd.Parameters.AddWithValue("@art_slot9", crafteo.idArticuloSlot9);
+            else
+                cmd.Parameters.AddWithValue("@art_slot9", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot9", crafteo.cantidadArticuloSlot9);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool updateCrafteo(Crafteo crafteo)
+        {
+            string sql = "UPDATE crafting SET name=@name, art_resultado=@art_resultado, cant_resultado=@cant_resultado, art_slot1=@art_slot1, cant_slot1=@cant_slot1, art_slot2=@art_slot2, cant_slot2=@cant_slot2, art_slot3=@art_slot3, cant_slot3=@cant_slot3, art_slot4=@art_slot4, cant_slot4=@cant_slot4, art_slot5=@art_slot5, cant_slot5=@cant_slot5, art_slot6=@art_slot6, cant_slot6=@cant_slot6, art_slot7=@art_slot7, cant_slot7=@cant_slot7, art_slot8=@art_slot8, cant_slot8=@cant_slot8, art_slot9=@art_slot9, cant_slot9=@cant_slot9, off=@off, date_upd=CURRENT_TIMESTAMP(3) WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", crafteo.id);
+            cmd.Parameters.AddWithValue("@name", crafteo.name);
+            cmd.Parameters.AddWithValue("@art_resultado", crafteo.idArticuloResultado);
+            cmd.Parameters.AddWithValue("@cant_resultado", crafteo.cantidadResultado);
+            if (crafteo.idArticuloSlot1 != null)
+                cmd.Parameters.AddWithValue("@art_slot1", crafteo.idArticuloSlot1);
+            else
+                cmd.Parameters.AddWithValue("@art_slot1", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot1", crafteo.cantidadArticuloSlot2);
+            if (crafteo.idArticuloSlot2 != null)
+                cmd.Parameters.AddWithValue("@art_slot2", crafteo.idArticuloSlot2);
+            else
+                cmd.Parameters.AddWithValue("@art_slot2", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot2", crafteo.cantidadArticuloSlot2);
+            if (crafteo.idArticuloSlot3 != null)
+                cmd.Parameters.AddWithValue("@art_slot3", crafteo.idArticuloSlot3);
+            else
+                cmd.Parameters.AddWithValue("@art_slot3", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot3", crafteo.cantidadArticuloSlot3);
+            if (crafteo.idArticuloSlot4 != null)
+                cmd.Parameters.AddWithValue("@art_slot4", crafteo.idArticuloSlot4);
+            else
+                cmd.Parameters.AddWithValue("@art_slot4", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot4", crafteo.cantidadArticuloSlot4);
+            if (crafteo.idArticuloSlot5 != null)
+                cmd.Parameters.AddWithValue("@art_slot5", crafteo.idArticuloSlot5);
+            else
+                cmd.Parameters.AddWithValue("@art_slot5", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot5", crafteo.cantidadArticuloSlot5);
+            if (crafteo.idArticuloSlot6 != null)
+                cmd.Parameters.AddWithValue("@art_slot6", crafteo.idArticuloSlot6);
+            else
+                cmd.Parameters.AddWithValue("@art_slot6", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot6", crafteo.cantidadArticuloSlot6);
+            if (crafteo.idArticuloSlot7 != null)
+                cmd.Parameters.AddWithValue("@art_slot7", crafteo.idArticuloSlot7);
+            else
+                cmd.Parameters.AddWithValue("@art_slot7", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot7", crafteo.cantidadArticuloSlot7);
+            if (crafteo.idArticuloSlot8 != null)
+                cmd.Parameters.AddWithValue("@art_slot8", crafteo.idArticuloSlot8);
+            else
+                cmd.Parameters.AddWithValue("@art_slot8", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot8", crafteo.cantidadArticuloSlot8);
+            if (crafteo.idArticuloSlot9 != null)
+                cmd.Parameters.AddWithValue("@art_slot9", crafteo.idArticuloSlot9);
+            else
+                cmd.Parameters.AddWithValue("@art_slot9", DBNull.Value);
+            cmd.Parameters.AddWithValue("@cant_slot9", crafteo.cantidadArticuloSlot9);
+            cmd.Parameters.AddWithValue("@off", crafteo.off);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool deleteCrafteo(int id)
+        {
+            string sql = "DELETE FROM crafting WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public List<CrafteoHead> getCrafteosHead()
+        {
+            List<CrafteoHead> crafteos = new List<CrafteoHead>();
+            string sql = "SELECT id,name,(SELECT name FROM articulos WHERE id = crafting.art_resultado) FROM crafting WHERE off = false";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                crafteos.Add(new CrafteoHead(rdr));
+            rdr.Close();
+
+            return crafteos;
+        }
+
+        // HORNO
+
+        public List<Smelting> getSmelting()
+        {
+            List<Smelting> smeltings = new List<Smelting>();
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_entrada, cant_entrada, date_add, date_upd, off FROM smelting ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                smeltings.Add(new Smelting(rdr));
+            rdr.Close();
+
+            return smeltings;
+        }
+
+        public Smelting getSmelting(int id)
+        {
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_entrada, cant_entrada, date_add, date_upd, off FROM smelting WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return null;
+            }
+
+            rdr.Read();
+            Smelting smelting = new Smelting(rdr);
+            rdr.Close();
+
+            return smelting;
+        }
+
+        public bool addSmelting(Smelting smelting)
+        {
+            string sql = "INSERT INTO smelting(name, art_resultado, cant_resultado, art_entrada, cant_entrada) VALUES (@name, @art_resultado, @cant_resultado, @art_entrada, @cant_entrada)";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", smelting.name);
+            cmd.Parameters.AddWithValue("@art_resultado", smelting.idArticuloResultado);
+            cmd.Parameters.AddWithValue("@cant_resultado", smelting.cantidadResultado);
+            cmd.Parameters.AddWithValue("@art_entrada", smelting.idArticuloEntrada);
+            cmd.Parameters.AddWithValue("@cant_entrada", smelting.cantidadEntrada);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool updateSmelting(Smelting smelting)
+        {
+            string sql = "UPDATE public.smelting SET name=@name, art_resultado=@art_resultado, cant_resultado=@cant_resultado, art_entrada=@art_entrada, cant_entrada=@cant_entrada, date_upd=CURRENT_TIMESTAMP(3), off=@off WHERE id=@id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", smelting.id);
+            cmd.Parameters.AddWithValue("@name", smelting.name);
+            cmd.Parameters.AddWithValue("@art_resultado", smelting.idArticuloResultado);
+            cmd.Parameters.AddWithValue("@cant_resultado", smelting.cantidadResultado);
+            cmd.Parameters.AddWithValue("@art_entrada", smelting.idArticuloEntrada);
+            cmd.Parameters.AddWithValue("@cant_entrada", smelting.cantidadEntrada);
+            cmd.Parameters.AddWithValue("@off", smelting.off);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool deleteSmelting(int id)
+        {
+            string sql = "DELETE FROM smelting WHERE id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public List<SmeltingHead> getSmeltingHead()
+        {
+            List<SmeltingHead> smelting = new List<SmeltingHead>();
+            string sql = "SELECT id,name,(SELECT name FROM articulos WHERE id = smelting.art_resultado) FROM smelting WHERE off = false";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                smelting.Add(new SmeltingHead(rdr));
+            rdr.Close();
+
+            return smelting;
+        }
+
+        /* FABRICACIÓN */
+
+        public List<FabricacionHead> getFabricacionesHead(short idAlmacen)
+        {
+            List<FabricacionHead> fabricaciones = new List<FabricacionHead>();
+            string sql = "SELECT id, name FROM alm_fabricacion WHERE alm = @alm AND off = false ORDER BY id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                fabricaciones.Add(new FabricacionHead(rdr));
+            rdr.Close();
+
+            return fabricaciones;
+        }
+
+        public List<Fabricacion> getFabricaciones(short idAlmacen)
+        {
+            List<Fabricacion> fabricaciones = new List<Fabricacion>();
+            string sql = "SELECT id, alm, name, tipo, date_add, uuid, off, chest_side, furnace_side FROM alm_fabricacion WHERE alm = @alm ORDER BY id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                fabricaciones.Add(new Fabricacion(rdr));
+            rdr.Close();
+
+            return fabricaciones;
+        }
+
+        public Fabricacion getFabricacion(Guid uuid)
+        {
+            string sql = "SELECT id, alm, name, tipo, date_add, uuid, off, chest_side, furnace_side FROM alm_fabricacion WHERE uuid = @uuid AND off = false";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@uuid", uuid);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return null;
+            }
+
+            rdr.Read();
+            Fabricacion fabricacion = new Fabricacion(rdr);
+            rdr.Close();
+
+            return fabricacion;
+        }
+
+        public short addFabricacion(Fabricacion fabricacion)
+        {
+            string sql = "INSERT INTO alm_fabricacion(alm, name, tipo, uuid, off, chest_side, furnace_side) VALUES (@alm, @name, @tipo, @uuid, @off, @chest_side, @furnace_side) RETURNING id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", fabricacion.idAlmacen);
+            cmd.Parameters.AddWithValue("@name", fabricacion.name);
+            cmd.Parameters.AddWithValue("@tipo", fabricacion.tipo);
+            cmd.Parameters.AddWithValue("@uuid", fabricacion.uuid);
+            cmd.Parameters.AddWithValue("@off", fabricacion.off);
+            cmd.Parameters.AddWithValue("@chest_side", fabricacion.cofreSide);
+            cmd.Parameters.AddWithValue("@furnace_side", fabricacion.hornoSide);
+            NpgsqlDataReader rdr;
+            try
+            {
+                rdr = cmd.ExecuteReader();
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return 0;
+            }
+            rdr.Read();
+            short id = rdr.GetInt16(0);
+            rdr.Close();
+            return id;
+        }
+
+        public bool updateFabricacion(Fabricacion fabricacion)
+        {
+            string sql = "UPDATE alm_fabricacion SET name=@name,tipo=@tipo,uuid=@uuid,off=@off,chest_side=@chest_side,furnace_side=@furnace_side WHERE alm = @alm AND id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", fabricacion.idAlmacen);
+            cmd.Parameters.AddWithValue("@id", fabricacion.id);
+            cmd.Parameters.AddWithValue("@name", fabricacion.name);
+            cmd.Parameters.AddWithValue("@tipo", fabricacion.tipo);
+            cmd.Parameters.AddWithValue("@uuid", fabricacion.uuid);
+            cmd.Parameters.AddWithValue("@off", fabricacion.off);
+            cmd.Parameters.AddWithValue("@chest_side", fabricacion.cofreSide);
+            cmd.Parameters.AddWithValue("@furnace_side", fabricacion.hornoSide);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool deleteFabricacion(FabricacionDelete fabricacion)
+        {
+            string sql = "DELETE FROM alm_fabricacion WHERE alm = @alm AND id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", fabricacion.idAlmacen);
+            cmd.Parameters.AddWithValue("@id", fabricacion.id);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        /* ÓRDENES DE FABRICACIÓN */
+
+        public List<OrdenFabricacion> searchOrdenesFabricacion(OrdenFabricacionSearch query)
+        {
+            List<OrdenFabricacion> ordenesFabricacion = new List<OrdenFabricacion>();
+            StringBuilder sql = new StringBuilder("SELECT id, alm, name, fab, craft, smelt, date_add, date_fin, estado, cant, resultado, error_code FROM alm_ordenes_fab WHERE alm = @alm AND fab = @fab");
+            if (query.tipoReceta != 'T')
+            {
+                if (query.tipoReceta == 'C' && query.idReceta == 0)
+                    sql.Append(" AND craft IS NOT null");
+                else if (query.tipoReceta == 'C' && query.idReceta > 0)
+                    sql.Append(" AND craft = @craft");
+                else if (query.tipoReceta == 'S' && query.idReceta == 0)
+                    sql.Append(" AND smelt IS NOT null");
+                else if (query.tipoReceta == 'S' && query.idReceta > 0)
+                    sql.Append("AND smelt = @smelt");
+            }
+            if (query.inicio != DateTime.MinValue)
+                sql.Append(" AND date_add > @inicio");
+            if (query.fin != DateTime.MinValue)
+                sql.Append(" AND date_add < @fin");
+            if (query.estado != 4)
+            {
+                switch (query.estado)
+                {
+                    case 0:
+                        {
+                            sql.Append(" AND (estado = 'Q' OR estado = 'R')");
+                            break;
+                        }
+                    case 1:
+                        {
+                            sql.Append(" AND estado = 'Q'");
+                            break;
+                        }
+                    case 2:
+                        {
+                            sql.Append(" AND estado = 'R'");
+                            break;
+                        }
+                    case 3:
+                        {
+                            sql.Append(" AND estado = 'D'");
+                            break;
+                        }
+                }
+            }
+            sql.Append(" ORDER BY date_add ASC");
+            NpgsqlCommand cmd = new NpgsqlCommand(sql.ToString(), conn);
+            cmd.Parameters.AddWithValue("@alm", query.idAlmacen);
+            cmd.Parameters.AddWithValue("@fab", query.idFabricacion);
+            if (query.tipoReceta == 'C' && query.idReceta > 0)
+                cmd.Parameters.AddWithValue("@craft", query.idReceta);
+            else if (query.tipoReceta == 'S' && query.idReceta > 0)
+                cmd.Parameters.AddWithValue("@smelt", query.idReceta);
+            if (query.inicio != DateTime.MinValue)
+                cmd.Parameters.AddWithValue("@inicio", query.inicio);
+            if (query.fin != DateTime.MinValue)
+                cmd.Parameters.AddWithValue("@fin", query.fin);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                ordenesFabricacion.Add(new OrdenFabricacion(rdr));
+            rdr.Close();
+
+            return ordenesFabricacion;
+        }
+
+        public List<OrdenFabricacion> getOrdenesFabricacion(short idAlmacen, short idFabricacion)
+        {
+            List<OrdenFabricacion> ordenesFabricacion = new List<OrdenFabricacion>();
+            string sql = "SELECT id, alm, name, fab, craft, smelt, date_add, date_fin, estado, cant, resultado, error_code FROM alm_ordenes_fab WHERE alm = @alm AND fab = @fab AND (estado = 'Q' OR estado = 'R') ORDER BY date_add ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@fab", idFabricacion);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                ordenesFabricacion.Add(new OrdenFabricacion(rdr));
+            rdr.Close();
+
+            return ordenesFabricacion;
+        }
+
+        public OrdenFabricacion getNextOrdenFabricacion(short idAlmacen, short idFabricacion)
+        {
+            string sql = "SELECT id, alm, name, fab, craft, smelt, date_add, date_fin, estado, cant, resultado, error_code FROM alm_ordenes_fab WHERE alm = @alm AND fab = @fab AND estado = 'R' ORDER BY date_add ASC LIMIT 1";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@fab", idFabricacion);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+            }
+            else
+            {
+                rdr.Read();
+                OrdenFabricacion ordenFabricacion = new OrdenFabricacion(rdr);
+                rdr.Close();
+                return ordenFabricacion;
+            }
+
+            sql = "SELECT id, alm, name, fab, craft, smelt, date_add, date_fin, estado, cant, resultado, error_code FROM alm_ordenes_fab WHERE alm = @alm AND fab = @fab AND estado = 'Q' ORDER BY date_add ASC LIMIT 1";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@fab", idFabricacion);
+            rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return null;
+            }
+            else
+            {
+                rdr.Read();
+                OrdenFabricacion ordenFabricacion = new OrdenFabricacion(rdr);
+                rdr.Close();
+                return ordenFabricacion;
+            }
+        }
+
+        public bool setOrdenFabricacionReady(int id, short idAlmacen, short idFabricacion)
+        {
+            string sql = "UPDATE alm_ordenes_fab SET estado = 'R' WHERE alm = @alm AND fab = @fab AND id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@fab", idFabricacion);
+            cmd.Parameters.AddWithValue("@id", id);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool addOrdenFabricacion(OrdenFabricacion ordenFabricacion)
+        {
+            OrdenFabricacionPreview preview = ordenFabricacion.idCrafteo != null ?
+                previewCrafteo(ordenFabricacion.idAlmacen, (int)ordenFabricacion.idCrafteo) : previewSmelting(ordenFabricacion.idAlmacen, (int)ordenFabricacion.idSmelting);
+
+            if (preview == null)
+                return false;
+            if (ordenFabricacion.cantidad < preview.cantidadCrafteo || ordenFabricacion.cantidad > preview.maxCantidadCrafteo || (ordenFabricacion.cantidad % preview.cantidadCrafteo) != 0)
+                return false;
+
+            NpgsqlTransaction trans = conn.BeginTransaction();
+
+            string sql = "INSERT INTO alm_ordenes_fab(alm, name, fab, craft, smelt, cant) VALUES (@alm, @name, @fab, @craft, @smelt, @cant)";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", ordenFabricacion.idAlmacen);
+            cmd.Parameters.AddWithValue("@name", ordenFabricacion.name);
+            cmd.Parameters.AddWithValue("@fab", ordenFabricacion.idFabricacion);
+            if (ordenFabricacion.idCrafteo == null)
+                cmd.Parameters.AddWithValue("@craft", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@craft", ordenFabricacion.idCrafteo);
+            if (ordenFabricacion.idSmelting == null)
+                cmd.Parameters.AddWithValue("@smelt", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@smelt", ordenFabricacion.idSmelting);
+            cmd.Parameters.AddWithValue("@cant", ordenFabricacion.cantidad);
+
+            if (cmd.ExecuteNonQuery() == 0)
+                return false;
+
+            bool ok;
+            if (ordenFabricacion.idCrafteo != null)
+                ok = this.manageStockAvailableCrafteo(ordenFabricacion.idAlmacen, (int)(ordenFabricacion.idCrafteo), ordenFabricacion.cantidad, true);
+            else if (ordenFabricacion.idSmelting != null)
+                ok = this.manageStockAvailableSmelting(ordenFabricacion.idAlmacen, (int)(ordenFabricacion.idSmelting), ordenFabricacion.cantidad, true);
+            else
+                ok = false;
+
+            if (ok)
+            {
+                trans.Commit();
+                return true;
+            }
+            else
+            {
+                trans.Rollback();
+                return false;
+            }
+        }
+
+        private bool manageStockAvailableCrafteo(short idAlmacen, int idCrafteo, int cantidad, bool restarStock)
+        {
+            Crafteo crafteo = getCrafteo(idCrafteo);
+            string sql;
+            if (restarStock)
+                sql = "UPDATE alm_inventario SET cant_disp = cant_disp - @cant WHERE alm = @alm AND art = @id";
+            else
+                sql = "UPDATE alm_inventario SET cant_disp = cant_disp + @cant WHERE alm = @alm AND art = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+
+            if (crafteo.idArticuloSlot1 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot1);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot1 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot2 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot2);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot2 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot3 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot3);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot3 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot4 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot4);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot4 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot5 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot5);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot5 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot6 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot6);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot6 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot7 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot7);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot7 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot8 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot8);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot8 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            if (crafteo.idArticuloSlot9 != null)
+            {
+                cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot9);
+                cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot9 * cantidad);
+                if (cmd.ExecuteNonQuery() == 0)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private bool manageStockAvailableSmelting(short idAlmacen, int idSmelting, int cantidad, bool restarStock)
+        {
+            Smelting smelting = getSmelting(idSmelting);
+            string sql;
+            if (restarStock)
+                sql = "UPDATE alm_inventario SET cant_disp = cant_disp - @cant WHERE alm = @alm AND art = @id";
+            else
+                sql = "UPDATE alm_inventario SET cant_disp = cant_disp + @cant WHERE alm = @alm AND art = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@cant", smelting.cantidadEntrada * cantidad);
+            cmd.Parameters.AddWithValue("@id", smelting.idArticuloEntrada);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool deleteOrdenFabricacion(OrdenFabricacionDelete ordenFabricacion)
+        {
+            string sql = "SELECT craft, smelt, cant, estado FROM alm_ordenes_fab WHERE alm = @alm AND fab = @fab AND id = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", ordenFabricacion.idAlmacen);
+            cmd.Parameters.AddWithValue("@fab", ordenFabricacion.idFabricacion);
+            cmd.Parameters.AddWithValue("@id", ordenFabricacion.id);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return false;
+            }
+            rdr.Read();
+            int? idCrafteo;
+            if (rdr.IsDBNull(0))
+                idCrafteo = null;
+            else
+                idCrafteo = rdr.GetInt32(0);
+            int? idSmelting;
+            if (rdr.IsDBNull(1))
+                idSmelting = null;
+            else
+                idSmelting = rdr.GetInt32(1);
+            int cantidad = rdr.GetInt32(2);
+            char estado = rdr.GetChar(3);
+            rdr.Close();
+
+            NpgsqlTransaction trans = conn.BeginTransaction();
+            if (estado == 'Q' || estado == 'R')
+            {
+                bool ok;
+                if (idCrafteo != null)
+                    ok = this.manageStockAvailableCrafteo(ordenFabricacion.idAlmacen, (int)idCrafteo, cantidad, false);
+                else if (idSmelting != null)
+                    ok = this.manageStockAvailableSmelting(ordenFabricacion.idAlmacen, (int)idSmelting, cantidad, false);
+                else
+                    ok = false;
+
+                if (!ok)
+                {
+                    trans.Rollback();
+                    return false;
+                }
+            }
+
+            sql = "DELETE FROM alm_ordenes_fab WHERE alm = @alm AND fab = @fab AND id = @id";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", ordenFabricacion.idAlmacen);
+            cmd.Parameters.AddWithValue("@fab", ordenFabricacion.idFabricacion);
+            cmd.Parameters.AddWithValue("@id", ordenFabricacion.id);
+            if (cmd.ExecuteNonQuery() == 0)
+            {
+                trans.Rollback();
+                return false;
+            }
+
+            trans.Commit();
+            return true;
+        }
+
+        public OrdenFabricacionPreview previewCrafteo(short idAlmacen, int idCrafteo)
+        {
+            Crafteo crafteo = getCrafteo(idCrafteo);
+            if (crafteo == null)
+                return null;
+
+            List<FabricacionCrafteo> articulosCrafteo = new List<FabricacionCrafteo>();
+            if (crafteo.idArticuloSlot1 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot1, crafteo.cantidadArticuloSlot1);
+            if (crafteo.idArticuloSlot2 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot2, crafteo.cantidadArticuloSlot2);
+            if (crafteo.idArticuloSlot3 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot3, crafteo.cantidadArticuloSlot3);
+            if (crafteo.idArticuloSlot4 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot4, crafteo.cantidadArticuloSlot4);
+            if (crafteo.idArticuloSlot5 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot5, crafteo.cantidadArticuloSlot5);
+            if (crafteo.idArticuloSlot6 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot6, crafteo.cantidadArticuloSlot6);
+            if (crafteo.idArticuloSlot7 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot7, crafteo.cantidadArticuloSlot7);
+            if (crafteo.idArticuloSlot8 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot8, crafteo.cantidadArticuloSlot8);
+            if (crafteo.idArticuloSlot9 != null)
+                FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot9, crafteo.cantidadArticuloSlot9);
+
+            if (articulosCrafteo.Count < 0)
+                return null;
+            short maxCantidadCrafteo = Int16.MaxValue;
+            for (int i = 0; i < articulosCrafteo.Count; i++)
+            {
+                articulosCrafteo[i].cantidadDisponible = getInventarioAlmacen(idAlmacen, articulosCrafteo[i].idArticulo).cantidadDisponible;
+
+                if ((articulosCrafteo[i].cantidadDisponible / articulosCrafteo[i].cantidadCrafteo) < maxCantidadCrafteo)
+                {
+                    maxCantidadCrafteo = ((short)(articulosCrafteo[i].cantidadDisponible / articulosCrafteo[i].cantidadCrafteo));
+                }
+            }
+
+            return new OrdenFabricacionPreview(articulosCrafteo, crafteo.cantidadResultado, maxCantidadCrafteo);
+        }
+
+        public OrdenFabricacionPreview previewSmelting(short idAlmacen, int idSmelting)
+        {
+            Smelting smelting = getSmelting(idSmelting);
+            if (smelting == null)
+                return null;
+
+            int cantidad = getInventarioAlmacen(idAlmacen, smelting.idArticuloEntrada).cantidadDisponible;
+
+            List<FabricacionCrafteo> articulosCrafteo = new List<FabricacionCrafteo>();
+            articulosCrafteo.Add(new FabricacionCrafteo(smelting.idArticuloEntrada, smelting.cantidadEntrada, cantidad));
+
+            short maxCantidadCrafteo = ((short)(cantidad / smelting.cantidadEntrada));
+            return new OrdenFabricacionPreview(articulosCrafteo, smelting.cantidadResultado, maxCantidadCrafteo);
+        }
+
+        public bool setResultadoOrdenFabricaicon(int id, short idAlmacen, short idFabricacion, bool ok, short errorCode = 0)
+        {
+            // si la órden de fabricación se ha completado correctamente, desacumular la resta del stock disponible
+            if (ok)
+            {
+                // cargar la receta de la orden de fabricación
+                string sql = "SELECT craft, smelt, cant FROM alm_ordenes_fab WHERE alm = @alm AND fab = @fab AND id = @id";
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                cmd.Parameters.AddWithValue("@fab", idFabricacion);
+                cmd.Parameters.AddWithValue("@id", id);
+                NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+                if (!rdr.HasRows)
+                {
+                    rdr.Close();
+                    return false;
+                }
+                rdr.Read();
+                int? idCrafteo;
+                if (rdr.IsDBNull(0))
+                    idCrafteo = null;
+                else
+                    idCrafteo = rdr.GetInt32(0);
+                int? idSmelting;
+                if (rdr.IsDBNull(1))
+                    idSmelting = null;
+                else
+                    idSmelting = rdr.GetInt32(1);
+                int cantidad = rdr.GetInt32(2);
+                rdr.Close();
+
+                // deshacer cambios del stock disponible
+                NpgsqlTransaction trans = conn.BeginTransaction();
+                bool stockOk;
+                if (idCrafteo != null)
+                    stockOk = this.manageStockAvailableCrafteo(idAlmacen, (int)idCrafteo, cantidad, false);
+                else if (idSmelting != null)
+                    stockOk = this.manageStockAvailableSmelting(idAlmacen, (int)idSmelting, cantidad, false);
+                else
+                    stockOk = false;
+
+                if (!stockOk)
+                {
+                    trans.Rollback();
+                    return false;
+                }
+
+                // completar la orden de fabricación
+                sql = "UPDATE alm_ordenes_fab SET estado = 'D', date_fin = CURRENT_TIMESTAMP(3), resultado = cant WHERE alm = @alm AND fab = @fab AND id = @id";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                cmd.Parameters.AddWithValue("@fab", idFabricacion);
+                cmd.Parameters.AddWithValue("@id", id);
+                if (cmd.ExecuteNonQuery() == 0)
+                {
+                    trans.Rollback();
+                    return false;
+                }
+
+                trans.Commit();
+                return true;
+            }
+            else
+            {
+                // guardar el error de la órden de fabricación
+                string sql = "UPDATE alm_ordenes_fab SET estado = 'D', date_fin = CURRENT_TIMESTAMP(3), resultado = 0, error_code = @error_code WHERE alm = @alm AND fab = @fab AND id = @id";
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@alm", idAlmacen);
+                cmd.Parameters.AddWithValue("@fab", idFabricacion);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@error_code", errorCode);
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
     }
 }

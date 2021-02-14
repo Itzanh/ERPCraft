@@ -24,6 +24,7 @@ import storageCell1K from './../../IMG/ae2_storage/StorageCell.1k.png';
 import storageCell4K from './../../IMG/ae2_storage/StorageCell.4k.png';
 import storageCell16K from './../../IMG/ae2_storage/StorageCell.16k.png';
 import storageCel64K from './../../IMG/ae2_storage/StorageCell.64k.png';
+import AlmacenCrafteo from "./AlmacenCrafteo";
 
 const almacenTipoImg = {
     "C": chestIco,
@@ -50,11 +51,14 @@ const storageCellImg = {
 class Almacenes extends Component {
     constructor({ getAlmacenes, getAlmacenInventario, almacenInventarioPush, getArticuloImg, tabAlmacenPush, handleAdd, handleEdit, handleDelete,
         getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos,
-        getAlmacenStorageCells, addAlmacenStorageCell, deleteAlmacenStorageCell }) {
+        getAlmacenStorageCells, addAlmacenStorageCell, deleteAlmacenStorageCell,
+        getFabricaciones, addFabricacion, editFabricacion, deleteFabricacion,
+        localizarCrafteos, localizarSmeltings, addOrdenFabricacion, getOrdenFabricacion, searchOrdenesFabricacion, previewCrafteo, deleteOrdenFabricacion }) {
         super();
         this.almacen = null;
         this.imgCache = {};
 
+        // ALMACENES
         this.getAlmacenes = getAlmacenes;
         this.getAlmacenInventario = getAlmacenInventario;
         this.almacenInventarioPush = almacenInventarioPush;
@@ -65,19 +69,37 @@ class Almacenes extends Component {
         this.handleEdit = handleEdit;
         this.handleDelete = handleDelete;
 
+        // NOTIFICACIONES
         this.getAlmacenNotificaciones = getAlmacenNotificaciones;
         this.addAlmacenNotificaciones = addAlmacenNotificaciones;
         this.deleteAlmacenNotificaciones = deleteAlmacenNotificaciones;
         this.getArticulos = getArticulos;
 
+        // STORAGE CELLS
         this.getAlmacenStorageCells = getAlmacenStorageCells;
         this.addAlmacenStorageCell = addAlmacenStorageCell;
         this.deleteAlmacenStorageCell = deleteAlmacenStorageCell;
+
+        // FABRICACION
+        this.getFabricaciones = getFabricaciones;
+        this.addFabricacion = addFabricacion;
+        this.editFabricacion = editFabricacion;
+        this.deleteFabricacion = deleteFabricacion;
+
+        // ORDENES DE FABRICACION
+        this.localizarCrafteos = localizarCrafteos;
+        this.localizarSmeltings = localizarSmeltings;
+        this.addOrdenFabricacion = addOrdenFabricacion;
+        this.getOrdenFabricacion = getOrdenFabricacion;
+        this.searchOrdenesFabricacion = searchOrdenesFabricacion;
+        this.previewCrafteo = previewCrafteo;
+        this.deleteOrdenFabricacion = deleteOrdenFabricacion;
 
         this.getInventario = this.getInventario.bind(this);
         this.crear = this.crear.bind(this);
         this.editar = this.editar.bind(this);
         this.borrar = this.borrar.bind(this);
+        this.craft = this.craft.bind(this);
     }
 
     componentDidMount() {
@@ -199,6 +221,7 @@ class Almacenes extends Component {
                 key={i}
 
                 cant={element.cantidad}
+                cantDisp={element.cantidadDisponible}
                 articulo={element.articulo}
             />
         }), this.refs.renderSlots);
@@ -217,6 +240,7 @@ class Almacenes extends Component {
                     key={i}
 
                     cant={element.cantidad}
+                    cantDisp={element.cantidadDisponible}
                     articulo={element.articulo}
                     img={element.img}
                 />
@@ -232,6 +256,9 @@ class Almacenes extends Component {
     }
 
     async editar() {
+        if (this.almacen == null) {
+            return;
+        }
         await ReactDOM.unmountComponentAtNode(this.refs.renderModal);
         ReactDOM.render(<AlmacenForm
             almacen={this.almacen}
@@ -260,6 +287,29 @@ class Almacenes extends Component {
         />, this.refs.renderModal);
     }
 
+    async craft() {
+        if (this.almacen == null) {
+            return;
+        }
+        await ReactDOM.unmountComponentAtNode(this.refs.renderModal);
+        ReactDOM.render(<AlmacenCrafteo
+            idAlmacen={this.almacen.id}
+            // FABRICACION
+            getFabricaciones={this.getFabricaciones}
+            addFabricacion={this.addFabricacion}
+            editFabricacion={this.editFabricacion}
+            deleteFabricacion={this.deleteFabricacion}
+            // ORDENES DE FABRICACION
+            localizarCrafteos={this.localizarCrafteos}
+            localizarSmeltings={this.localizarSmeltings}
+            addOrdenFabricacion={this.addOrdenFabricacion}
+            getOrdenFabricacion={this.getOrdenFabricacion}
+            searchOrdenesFabricacion={this.searchOrdenesFabricacion}
+            previewCrafteo={this.previewCrafteo}
+            deleteOrdenFabricacion={this.deleteOrdenFabricacion}
+        />, this.refs.renderModal);
+    }
+
     render() {
         return <div id="tabAlmacenes">
             <div ref="renderModal" id="renderModalAlmacen" />
@@ -270,6 +320,7 @@ class Almacenes extends Component {
                     <button type="button" className="btn btn-primary" onClick={this.crear}>Crear</button>
                     <button type="button" className="btn btn-success" onClick={this.editar}>Editar</button>
                     <button type="button" className="btn btn-danger" onClick={this.borrar}>Borrar</button>
+                    <button type="button" class="btn btn-warning" onClick={this.craft}>Crafteo</button>
                     <table className="table table-dark">
                         <thead>
                             <tr>
@@ -594,10 +645,11 @@ class AlmacenFormDeleteConfirm extends Component {
 };
 
 class AlmacenesFormInventarioSlot extends Component {
-    constructor({ cant, articulo, img }) {
+    constructor({ cant, cantDisp, articulo, img }) {
         super();
 
         this.cant = cant;
+        this.cantDisp = cantDisp;
         this.articulo = articulo;
         this.img = img;
     }
@@ -612,7 +664,8 @@ class AlmacenesFormInventarioSlot extends Component {
                 <div className="col">
                     <div className="card-body">
                         <h5 className="card-title">{this.articulo == null ? '' : this.articulo.name}</h5>
-                        <h6 className="card-subtitle mb-2 text-muted">{this.articulo == null ? '' : this.cant}</h6>
+                        <h6 className="card-subtitle mb-2 text-muted">Cantidad: {this.articulo == null ? '' : this.cant}</h6>
+                        <h6 className="card-subtitle mb-2 text-muted">Disponible: {this.articulo == null ? '' : this.cantDisp}</h6>
                     </div>
                 </div>
             </div>

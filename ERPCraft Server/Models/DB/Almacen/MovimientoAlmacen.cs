@@ -49,7 +49,7 @@ namespace ERPCraft_Server.Models.DB.Almacen
 
         public bool isDefault()
         {
-            return (almacen == 0 && articulo == 0 && dateInicio == DateTime.MinValue && dateFin == DateTime.MinValue);
+            return (almacen == 0 && articulo == 0 && dateInicio <= DateTime.MinValue && dateFin <= DateTime.MinValue);
         }
     }
 

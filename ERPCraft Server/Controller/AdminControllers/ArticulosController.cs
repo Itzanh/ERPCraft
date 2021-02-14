@@ -44,6 +44,46 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return localizarArticulos(db);
                     }
+                case "getCrafts":
+                    {
+                        return getCrafts(db);
+                    }
+                case "addCraft":
+                    {
+                        return addCraft(db, message);
+                    }
+                case "editCraft":
+                    {
+                        return editCraft(db, message);
+                    }
+                case "deleteCraft":
+                    {
+                        return deleteCraft(db, message);
+                    }
+                case "localizarCraft":
+                    {
+                        return localizarCraft(db);
+                    }
+                case "getSmelting":
+                    {
+                        return getSmelting(db);
+                    }
+                case "addSmelting":
+                    {
+                        return addSmelting(db, message);
+                    }
+                case "editSmelting":
+                    {
+                        return editSmelting(db, message);
+                    }
+                case "deleteSmelting":
+                    {
+                        return deleteSmelting(db, message);
+                    }
+                case "localizarSmelting":
+                    {
+                        return localizarSmelting(db);
+                    }
             }
 
             return "ERR";
@@ -162,6 +202,114 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 return "ERR";
 
             return db.deleteArticulo(id) ? "OK" : "ERR";
+        }
+
+        // CRAFTS
+
+        private static string getCrafts(DBStorage db)
+        {
+            return JsonConvert.SerializeObject(db.getCrafteos());
+        }
+
+        private static string addCraft(DBStorage db, string message)
+        {
+            Crafteo crafteo;
+            try
+            {
+                crafteo = (Crafteo)JsonConvert.DeserializeObject(message, typeof(Crafteo));
+            }
+            catch (Exception) { return "ERR"; }
+            if (crafteo == null || !crafteo.isValid())
+                return "ERR";
+
+            return db.addCrafteo(crafteo) ? "OK" : "ERR";
+        }
+
+        private static string editCraft(DBStorage db, string message)
+        {
+            Crafteo crafteo;
+            try
+            {
+                crafteo = (Crafteo)JsonConvert.DeserializeObject(message, typeof(Crafteo));
+            }
+            catch (Exception) { return "ERR"; }
+            if (crafteo == null || crafteo.id <= 0 || !crafteo.isValid())
+                return "ERR";
+
+            return db.updateCrafteo(crafteo) ? "OK" : "ERR";
+        }
+
+        private static string deleteCraft(DBStorage db, string message)
+        {
+            int id;
+            try
+            {
+                id = Int32.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return db.deleteCrafteo(id) ? "OK" : "ERR";
+        }
+
+        private static string localizarCraft(DBStorage db)
+        {
+            return JsonConvert.SerializeObject(db.getCrafteosHead());
+        }
+
+        // SMELTING
+
+        private static string getSmelting(DBStorage db)
+        {
+            return JsonConvert.SerializeObject(db.getSmelting());
+        }
+
+        private static string addSmelting(DBStorage db, string message)
+        {
+            Smelting smelting;
+            try
+            {
+                smelting = (Smelting)JsonConvert.DeserializeObject(message, typeof(Smelting));
+            }
+            catch (Exception) { return "ERR"; }
+            if (smelting == null || !smelting.isValid())
+                return "ERR";
+
+            return db.addSmelting(smelting) ? "OK" : "ERR";
+        }
+
+        private static string editSmelting(DBStorage db, string message)
+        {
+            Smelting smelting;
+            try
+            {
+                smelting = (Smelting)JsonConvert.DeserializeObject(message, typeof(Smelting));
+            }
+            catch (Exception) { return "ERR"; }
+            if (smelting == null || smelting.id <= 0 || !smelting.isValid())
+                return "ERR";
+
+            return db.updateSmelting(smelting) ? "OK" : "ERR";
+        }
+
+        private static string deleteSmelting(DBStorage db, string message)
+        {
+            int id;
+            try
+            {
+                id = Int32.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return db.deleteSmelting(id) ? "OK" : "ERR";
+        }
+
+        private static string localizarSmelting(DBStorage db)
+        {
+            return JsonConvert.SerializeObject(db.getSmeltingHead());
         }
 
     }

@@ -1,13 +1,13 @@
 import { Component } from "react";
 import ReactDOM from 'react-dom';
 
-class ArticuloLocalizador extends Component {
-    constructor({ getArticulos, handleSelect }) {
+class SmeltingLocalizador extends Component {
+    constructor({ getSmeltings, handleSelect }) {
         super();
 
-        this.getArticulos = getArticulos;
+        this.getSmeltings = getSmeltings;
         this.handleSelect = handleSelect;
-        this.articulos = [];
+        this.smeltings = [];
 
         this.select = this.select.bind(this);
         this.cancelar = this.cancelar.bind(this);
@@ -15,39 +15,39 @@ class ArticuloLocalizador extends Component {
     }
 
     componentDidMount() {
-        window.$('#articuloLocalizador').modal({ show: true });
+        window.$('#smeltingLocalizador').modal({ show: true });
         this.renderArticulos();
     }
 
     async renderArticulos() {
-        this.articulos = await this.getArticulos();
+        this.smeltings = await this.getSmeltings();
 
-        this.printArticulos();
+        this.printSmeltings();
     }
 
-    async printArticulos() {
-        await ReactDOM.unmountComponentAtNode(document.getElementById("renderArticulosLocalizador"));
-        ReactDOM.render(this.articulos.map((element, i) => {
+    async printSmeltings() {
+        await ReactDOM.unmountComponentAtNode(document.getElementById("renderSmeltingLocalizador"));
+        ReactDOM.render(this.smeltings.map((element, i) => {
             return <ArticuloLocalizadorArticulo
                 key={i}
 
                 id={element.id}
                 name={element.name}
-                minecraftID={element.minecraftID}
+                articuloResultadoName={element.articuloResultadoName}
 
                 handleSelect={this.select}
             />
-        }), document.getElementById("renderArticulosLocalizador"));
+        }), document.getElementById("renderSmeltingLocalizador"));
     }
 
     select(id, name) {
         this.handleSelect(id, name);
-        window.$('#articuloLocalizador').modal('hide');
+        window.$('#smeltingLocalizador').modal('hide');
     }
 
     cancelar() {
         this.handleSelect(0, '');
-        window.$('#articuloLocalizador').modal('hide');
+        window.$('#smeltingLocalizador').modal('hide');
     }
 
     async filtrar() {
@@ -55,8 +55,8 @@ class ArticuloLocalizador extends Component {
         const txt = this.refs.txt.value;
         // no hacer búsqueda por defecto
         if (txt === '')
-            return this.printArticulos();
-        // C = Código, N = Nombre, M = ID de Minecarft
+            return this.printSmeltings();
+        // C = Código, N = Nombre, M = Nombre del artículo
         const tipoFiltro = this.refs.fil.value;
         // si se busca por código pero no es un número, no buscar
         if (tipoFiltro === 'C' && isNaN(txt))
@@ -80,32 +80,32 @@ class ArticuloLocalizador extends Component {
             }
             case "M": {
                 callback = (element) => {
-                    return element.minecraftID.startsWith(txt);
+                    return element.articuloResultadoName.startsWith(txt);
                 };
                 break;
             }
         }
 
-        await ReactDOM.unmountComponentAtNode(document.getElementById("renderArticulosLocalizador"));
-        ReactDOM.render(this.articulos.filter(callback).map((element, i) => {
+        await ReactDOM.unmountComponentAtNode(document.getElementById("renderSmeltingLocalizador"));
+        ReactDOM.render(this.smeltings.filter(callback).map((element, i) => {
             return <ArticuloLocalizadorArticulo
                 key={i}
 
                 id={element.id}
                 name={element.name}
-                minecraftID={element.minecraftID}
+                articuloResultadoName={element.articuloResultadoName}
 
                 handleSelect={this.select}
             />
-        }), document.getElementById("renderArticulosLocalizador"));
+        }), document.getElementById("renderSmeltingLocalizador"));
     }
 
     render() {
-        return <div className="modal fade bd-example-modal-lg" tabIndex="-1" role="dialog" aria-labelledby="articuloLocalizadorLabel" id="articuloLocalizador" aria-hidden="true">
+        return <div className="modal fade bd-example-modal-lg" tabIndex="-1" role="dialog" aria-labelledby="smeltingLocalizadorLabel" id="smeltingLocalizador" aria-hidden="true">
             <div className="modal-dialog modal-lg" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title" id="articuloLocalizadorLabel">Localizar Articulo</h5>
+                        <h5 className="modal-title" id="smeltingLocalizadorLabel">Localizar Horneo</h5>
                         <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -116,7 +116,7 @@ class ArticuloLocalizador extends Component {
                                 <select className="form-control" onChange={this.filtrar} ref="fil">
                                     <option value="C">C&oacute;digo</option>
                                     <option value="N">Nombre</option>
-                                    <option value="M">Minecraft ID</option>
+                                    <option value="M">Nombre del art&iacute;culo</option>
                                 </select>
                             </div>
                             <div className="col">
@@ -132,10 +132,10 @@ class ArticuloLocalizador extends Component {
                                 <tr>
                                     <th scope="col">#</th>
                                     <th scope="col">Nombre</th>
-                                    <th scope="col">Minecraft ID</th>
+                                    <th scope="col">Nombre del art&iacute;culo</th>
                                 </tr>
                             </thead>
-                            <tbody id="renderArticulosLocalizador">
+                            <tbody id="renderSmeltingLocalizador">
                             </tbody>
                         </table>
                     </div>
@@ -148,12 +148,12 @@ class ArticuloLocalizador extends Component {
 };
 
 class ArticuloLocalizadorArticulo extends Component {
-    constructor({ id, name, minecraftID, handleSelect }) {
+    constructor({ id, name, articuloResultadoName, handleSelect }) {
         super();
 
         this.id = id;
         this.name = name;
-        this.minecraftID = minecraftID;
+        this.articuloResultadoName = articuloResultadoName;
 
         this.handleSelect = handleSelect;
 
@@ -168,11 +168,11 @@ class ArticuloLocalizadorArticulo extends Component {
         return <tr onClick={this.select}>
             <th scope="row">{this.id}</th>
             <td>{this.name}</td>
-            <td>{this.minecraftID}</td>
+            <td>{this.articuloResultadoName}</td>
         </tr>
     }
 };
 
-export default ArticuloLocalizador;
+export default SmeltingLocalizador;
 
 

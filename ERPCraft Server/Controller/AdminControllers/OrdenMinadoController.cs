@@ -109,10 +109,10 @@ namespace ERPCraft_Server.Controller.AdminControllers
 
         private static string deleteOrdenesMinado(DBStorage db, string message)
         {
-            short idOrden;
+            int idOrden;
             try
             {
-                idOrden = Int16.Parse(message);
+                idOrden = Int32.Parse(message);
             }
             catch (Exception) { return "ERR"; }
             if (idOrden <= 0)

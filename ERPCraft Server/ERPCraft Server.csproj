@@ -146,10 +146,12 @@
     <Compile Include="Controller\WaitForWebSocket.cs" />
     <Compile Include="Controller\GameController.cs" />
     <Compile Include="Models\DB\Almacen\Almacen.cs" />
+    <Compile Include="Models\DB\Almacen\Fabricacion.cs" />
     <Compile Include="Models\DB\Almacen\MovimientoAlmacen.cs" />
     <Compile Include="Models\DB\Articulo.cs" />
     <Compile Include="Models\DB\ClaveDeAPI.cs" />
     <Compile Include="Models\DB\Ajuste.cs" />
+    <Compile Include="Models\DB\Crafteo.cs" />
     <Compile Include="Models\DB\Drones\Drone.cs" />
     <Compile Include="Models\DB\Drones\DroneGPS.cs" />
     <Compile Include="Models\DB\Drones\DroneInventario.cs" />

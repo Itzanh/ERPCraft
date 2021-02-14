@@ -73,3 +73,54 @@ div#editArticuloModal textarea {
 div#editArticuloModal input#artImgFile {
     display: none;
 }
+
+/* CRAFTEOS */
+
+div#recetasModal div#crafteosList table tbody tr td img {
+    height: 40px;
+}
+
+div#recetasModal div#crafteosList table tbody tr td:nth-child(3) {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+div#recetasModal div#crafteosList table tbody tr td:nth-child(6) {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+div#recetasModal td.slot div {
+    background-color: grey;
+    height: 60px;
+    width: 60px;
+    border-width: 2px;
+    border-style: solid;
+}
+
+    div#recetasModal td.slot div:hover {
+        background-color: darkgray;
+    }
+
+    div#recetasModal td.slot div img {
+        height: 55px;
+        width: 55px;
+    }
+
+div#recetasModal td.slot input {
+    width: 60px;
+}
+
+div#recetasModal div#creafteoPanel.form-row div.col:nth-child(1) {
+    max-width: 33%;
+}
+
+div#recetasModal div#smeltingPanel.form-row div.col:nth-child(1) {
+    max-width: 33%;
+}
+
+    div#recetasModal div#smeltingPanel.form-row div.col:nth-child(1) table {
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20%;
+    }

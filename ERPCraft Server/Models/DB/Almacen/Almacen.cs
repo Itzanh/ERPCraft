@@ -54,13 +54,15 @@ namespace ERPCraft_Server.Models.DB.Almacen
         public short id;
         public ArticuloSlot articulo;
         public int cantidad;
+        public int cantidadDisponible;
 
-        public AlmacenInventario(short almacen, short id, ArticuloSlot articulo, int cantidad)
+        public AlmacenInventario(short almacen, short id, ArticuloSlot articulo, int cantidad, int cantidadDisponible)
         {
             this.almacen = almacen;
             this.id = id;
             this.articulo = articulo;
             this.cantidad = cantidad;
+            this.cantidadDisponible = cantidadDisponible;
         }
     }
 
@@ -70,6 +72,14 @@ namespace ERPCraft_Server.Models.DB.Almacen
         public short id;
         public short articulo;
         public int cantidad;
+        public int cantidadDisponible;
+
+        public AlmacenInventarioGet(short almacen, short articulo, int cantidad)
+        {
+            this.almacen = almacen;
+            this.articulo = articulo;
+            this.cantidad = cantidad;
+        }
 
         public AlmacenInventarioGet(NpgsqlDataReader rdr)
         {
@@ -77,6 +87,7 @@ namespace ERPCraft_Server.Models.DB.Almacen
             this.id = rdr.GetInt16(1);
             this.articulo = rdr.GetInt16(2);
             this.cantidad = rdr.GetInt32(3);
+            this.cantidadDisponible = rdr.GetInt32(4);
         }
     }
 
