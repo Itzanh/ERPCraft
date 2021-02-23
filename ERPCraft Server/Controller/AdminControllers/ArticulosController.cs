@@ -44,9 +44,30 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return localizarArticulos(db);
                     }
+                case "getExistencias":
+                    {
+                        return getExistencias(db, message);
+                    }
+                case "getCrafteosArticuloUso":
+                    {
+                        return getCrafteosArticuloUso(db, message);
+                    }
+                case "getCrafteosArticuloResult":
+                    {
+                        return getCrafteosArticuloResult(db, message);
+                    }
+                case "getSmeltingArticuloUso":
+                    {
+                        return getSmeltingArticuloUso(db, message);
+                    }
+                case "getSmeltingArticuloResult":
+                    {
+                        return getSmeltingArticuloResult(db, message);
+                    }
+                // CRAFTEOS
                 case "getCrafts":
                     {
-                        return getCrafts(db);
+                        return getCrafts(db, message);
                     }
                 case "addCraft":
                     {
@@ -64,6 +85,7 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return localizarCraft(db);
                     }
+                // HORNEOS
                 case "getSmelting":
                     {
                         return getSmelting(db);
@@ -141,6 +163,76 @@ namespace ERPCraft_Server.Controller.AdminControllers
             return JsonConvert.SerializeObject(db.localizarArticulos());
         }
 
+        private static string getExistencias(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getInventarioArticulo(id));
+        }
+
+        private static string getCrafteosArticuloUso(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getCrafteosByComponent(id));
+        }
+
+        private static string getCrafteosArticuloResult(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getCrafteosByResult(id));
+        }
+
+        private static string getSmeltingArticuloUso(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getSmeltingByComponent(id));
+        }
+
+        private static string getSmeltingArticuloResult(DBStorage db, string message)
+        {
+            short id;
+            try
+            {
+                id = Int16.Parse(message);
+            }
+            catch (Exception) { return "ERR"; }
+            if (id <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getSmeltingByResult(id));
+        }
+
         public static void getArticuloImg(NetEventIO client, string message)
         {
             short id;
@@ -206,9 +298,18 @@ namespace ERPCraft_Server.Controller.AdminControllers
 
         // CRAFTS
 
-        private static string getCrafts(DBStorage db)
+        private static string getCrafts(DBStorage db, string message)
         {
-            return JsonConvert.SerializeObject(db.getCrafteos());
+            CrafteoQuery query;
+            try
+            {
+                query = (CrafteoQuery)JsonConvert.DeserializeObject(message, typeof(CrafteoQuery));
+            }
+            catch (Exception) { return "ERR"; }
+            if (query == null || query.offset < 0 || query.limit <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getCrafteos(query.offset, query.limit));
         }
 
         private static string addCraft(DBStorage db, string message)

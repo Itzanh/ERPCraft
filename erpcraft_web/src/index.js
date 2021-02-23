@@ -887,17 +887,21 @@ function editArticulo(articulo) {
     ReactDOM.unmountComponentAtNode(document.getElementById('renderArticulosModal'));
     ReactDOM.render(<EditArticulo
 
-        id={articulo.id}
-        name={articulo.name}
-        minecraftID={articulo.minecraftID}
-        cant={articulo.cantidad}
-        descripcion={articulo.descripcion}
-        img={articulo.img}
+        articulo={articulo}
 
         handleEdit={updateArticulo}
         handleSubirImagen={articuloSetImagen}
         handleQuitarImagen={articuloQuitarImagen}
         handleEliminar={deleteArticulo}
+
+        getInventarioArticulo={getInventarioArticulo}
+        getAlmacenName={getAlmacenName}
+        getArticuloImg={getArticuloImg}
+
+        getCrafteosArticuloUso={getCrafteosArticuloUso}
+        getCrafteosArticuloResult={getCrafteosArticuloResult}
+        getSmeltingArticuloUso={getSmeltingArticuloUso}
+        getSmeltingArticuloResult={getSmeltingArticuloResult}
 
     />, document.getElementById('renderArticulosModal'));
 };
@@ -954,11 +958,51 @@ function getArticuloImg(artImg) {
     });
 };
 
+function getInventarioArticulo(idArticulo) {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'getExistencias', '' + idArticulo, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function getCrafteosArticuloUso(idArticulo) {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'getCrafteosArticuloUso', '' + idArticulo, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function getCrafteosArticuloResult(idArticulo) {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'getCrafteosArticuloResult', '' + idArticulo, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function getSmeltingArticuloUso(idArticulo) {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'getSmeltingArticuloUso', '' + idArticulo, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
+function getSmeltingArticuloResult(idArticulo) {
+    return new Promise((resolve) => {
+        client.emit('articulos', 'getSmeltingArticuloResult', '' + idArticulo, (_, response) => {
+            resolve(JSON.parse(response));
+        });
+    });
+};
+
 // CRAFTING
 
-function getCrafting() {
+function getCrafting(offset, limit) {
     return new Promise((resolve) => {
-        client.emit('articulos', 'getCrafts', '', (_, response) => {
+        client.emit('articulos', 'getCrafts', JSON.stringify({ offset, limit }), (_, response) => {
             resolve(JSON.parse(response));
         });
     });

@@ -82,6 +82,19 @@ div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr td:nth-child(8) {
     width: 8%;
 }
 
+div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr.tableFooter {
+    background-color: #282c34;
+}
+
+    div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr.tableFooter th {
+        padding: 0;
+        padding-left: 20px;
+    }
+
+    div#tabOrdenesMinado table#tableTabOrdenesMinado tbody tr.tableFooter td {
+        padding: 0;
+    }
+
 /* ROBOT LOCALIZADOR */
 
 div#robotLocalizador div.modal-body div.form-row div.col:nth-child(1) {

@@ -51,6 +51,7 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return deleteNotificaciones(message, db);
                     }
+                // STORAGE CELLS
                 case "getAE2StorageCells":
                     {
                         return getAE2StorageCells(db, message);

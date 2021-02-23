@@ -74,6 +74,73 @@ div#editArticuloModal input#artImgFile {
     display: none;
 }
 
+div#editArticuloModal div#editArticuloDetallesButtons {
+    margin-top: 15px;
+}
+
+    div#editArticuloModal div#editArticuloDetallesButtons button:nth-child(1) {
+        margin-left: 80%;
+        margin-right: 15px;
+    }
+
+/* INVENTARIO */
+
+div#editArticuloModal table#editArticulosInventarioAlmacen tbody tr.tableFooter {
+    background-color: #282c34;
+}
+
+    div#editArticuloModal table#editArticulosInventarioAlmacen tbody tr.tableFooter th {
+        padding: 0;
+        padding-left: 20px;
+    }
+
+    div#editArticuloModal table#editArticulosInventarioAlmacen tbody tr.tableFooter td {
+        padding: 0;
+    }
+
+/* CRAFTEOS DEL ARTÍCULO */
+
+div#editArticuloModal div.creafteoPanel.form-row div.col:nth-child(1) {
+    max-width: 33%;
+}
+
+div#editArticuloModal div.creafteoPanel {
+    margin-top: 5px;
+    padding-bottom: 5px;
+    border-bottom-style: solid;
+    border-bottom-width: 2px;
+    border-bottom-color: blue;
+}
+
+/* HORNEOS DEL ARTÍCULO */
+
+div#editArticuloModal td.slot div {
+    background-color: grey;
+    height: 60px;
+    width: 60px;
+    border-width: 2px;
+    border-style: solid;
+}
+
+    div#editArticuloModal td.slot div img {
+        height: 55px;
+        width: 55px;
+    }
+
+div#editArticuloModal td.slot input {
+    width: 60px;
+}
+
+div#editArticuloModal div.smeltingPanel.form-row div.col:nth-child(1) {
+    max-width: 35%;
+}
+
+    div#editArticuloModal div.smeltingPanel.form-row div.col:nth-child(1) table {
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20%;
+    }
+
 /* CRAFTEOS */
 
 div#recetasModal div#crafteosList table tbody tr td img {
@@ -114,6 +181,8 @@ div#recetasModal td.slot input {
 div#recetasModal div#creafteoPanel.form-row div.col:nth-child(1) {
     max-width: 33%;
 }
+
+/* SMELTING */
 
 div#recetasModal div#smeltingPanel.form-row div.col:nth-child(1) {
     max-width: 33%;

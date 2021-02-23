@@ -114,6 +114,9 @@ namespace ERPCraft_Server.Models.DB.Almacen
         public int? idSmelting;
         public DateTime dateAdd;
         public DateTime? dateFinalizado;
+        /// <summary>
+        /// Q = Queued, R = Ready, D = Done, E = Error
+        /// </summary>
         public char estado;
         public int cantidad;
         public int cantidadFabricado;

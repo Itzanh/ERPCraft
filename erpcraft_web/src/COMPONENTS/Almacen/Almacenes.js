@@ -566,7 +566,7 @@ class AlmacenForm extends Component {
                         <div className="form-row">
                             <div className="col">
                                 <label>M&aacute;ximo de stacks</label>
-                                <input type="number" className="form-control" ref="maximoStacks" defaultValue={this.almacen != null ? this.almacen.maximoStacks : '0'} />
+                                <input type="number" className="form-control" ref="maximoStacks" defaultValue={this.almacen != null ? this.almacen.maximoStacks : '27'} />
                             </div>
                             <div className="col">
                                 <label>M&aacute;ximo de tipos</label>

@@ -189,6 +189,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="a1e13481235f776467c7c2bde4d041ac.ico" />
+    <EmbeddedResource Include="Embedded\smelting.sql" />
+    <EmbeddedResource Include="Embedded\crafting.sql" />
     <EmbeddedResource Include="Embedded\articulos.sql" />
     <EmbeddedResource Include="Embedded\db_upgrade_1.sql" />
     <EmbeddedResource Include="Embedded\db_create.sql" />

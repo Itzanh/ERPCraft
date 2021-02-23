@@ -37,10 +37,10 @@ class Recetas extends Component {
     renderMenu(pos = 0) {
         ReactDOM.render(<ul class="nav nav-tabs">
             <li class="nav-item">
-                <a class={pos == 0 ? "nav-link active" : "nav-link"} href="#" onClick={this.renderCrafteos}>Crafteos</a>
+                <a class={pos == 0 ? "nav-link active" : "nav-link"} onClick={this.renderCrafteos}>Crafteos</a>
             </li>
             <li class="nav-item">
-                <a class={pos == 1 ? "nav-link active" : "nav-link"} href="#" onClick={this.renderSmelting}>Smelting</a>
+                <a class={pos == 1 ? "nav-link active" : "nav-link"} onClick={this.renderSmelting}>Smelting</a>
             </li>
         </ul>, this.refs.renderMenu);
     }
@@ -119,7 +119,16 @@ class Crafteos extends Component {
     }
 
     async renderCrafting() {
-        const crafteos = await this.getCrafting();
+        const limit = 50;
+        var offset = 0;
+        var continuar = true;
+        var crafteos = [];
+        do {
+            const lista = await this.getCrafting(offset, limit);
+            continuar = lista.length > 0;
+            offset += lista.length;
+            crafteos = crafteos.concat(lista);
+        } while (continuar);
 
         const nameCache = {};
         const imgCache = {};
@@ -476,19 +485,19 @@ class EditCrafteo extends Component {
                                     <div onClick={() => { this.localizarArticulo(1); }}>
                                         <img ref="slot1" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant1" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot1} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant1" defaultValue={this.crafteo.cantidadArticuloSlot1} />
                                 </td>
                                 <td className="slot">
                                     <div onClick={() => { this.localizarArticulo(2); }}>
                                         <img ref="slot2" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant2" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot2} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant2" defaultValue={this.crafteo.cantidadArticuloSlot2} />
                                 </td>
                                 <td className="slot">
                                     <div onClick={() => { this.localizarArticulo(3); }}>
                                         <img ref="slot3" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant3" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot3} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant3" defaultValue={this.crafteo.cantidadArticuloSlot3} />
                                 </td>
                             </tr>
                             <tr>
@@ -496,19 +505,19 @@ class EditCrafteo extends Component {
                                     <div onClick={() => { this.localizarArticulo(4); }}>
                                         <img ref="slot4" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant4" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot4} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant4" defaultValue={this.crafteo.cantidadArticuloSlot4} />
                                 </td>
                                 <td className="slot">
                                     <div onClick={() => { this.localizarArticulo(5); }}>
                                         <img ref="slot5" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant5" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot5} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant5" defaultValue={this.crafteo.cantidadArticuloSlot5} />
                                 </td>
                                 <td className="slot">
                                     <div onClick={() => { this.localizarArticulo(6); }}>
                                         <img ref="slot6" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant6" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot6} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant6" defaultValue={this.crafteo.cantidadArticuloSlot6} />
                                 </td>
                             </tr>
                             <tr>
@@ -516,19 +525,19 @@ class EditCrafteo extends Component {
                                     <div onClick={() => { this.localizarArticulo(7); }}>
                                         <img ref="slot7" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant7" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot7} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant7" defaultValue={this.crafteo.cantidadArticuloSlot7} />
                                 </td>
                                 <td className="slot">
                                     <div onClick={() => { this.localizarArticulo(8); }}>
                                         <img ref="slot8" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant8" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot8} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant8" defaultValue={this.crafteo.cantidadArticuloSlot8} />
                                 </td>
                                 <td className="slot">
                                     <div onClick={() => { this.localizarArticulo(9); }}>
                                         <img ref="slot9" />
                                     </div>
-                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant9" defaultValue="0" defaultValue={this.crafteo.cantidadArticuloSlot9} />
+                                    <input type="number" className="form-control" placeholder="Cantidad" min="0" max="64" ref="cant9" defaultValue={this.crafteo.cantidadArticuloSlot9} />
                                 </td>
                             </tr>
                         </tbody>

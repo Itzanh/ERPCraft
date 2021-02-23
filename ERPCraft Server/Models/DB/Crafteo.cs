@@ -138,6 +138,12 @@ namespace ERPCraft_Server.Models.DB
         }
     }
 
+    public class CrafteoQuery
+    {
+        public int offset;
+        public int limit;
+    }
+
     public class Smelting
     {
         public int id;

@@ -170,7 +170,36 @@ namespace ERPCraft_Server.Storage
 
             Console.WriteLine("*** COPYING ITEMS INTO THE DATABASE ***");
 
+            // copy items
             stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ERPCraft_Server.Embedded.articulos.sql");
+            tr = new StreamReader(stream);
+            schema = tr.ReadToEnd();
+            rdr.Close();
+            stream.Close();
+
+            cmd = new NpgsqlCommand(schema, conn);
+            if (cmd.ExecuteNonQuery() == 0)
+            {
+                Console.WriteLine("THERE WAS AN ERROR COPYING THE MINECRAFT ITEMS INTO THE DATABASE.");
+                return;
+            }
+
+            // copy craftings
+            stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ERPCraft_Server.Embedded.crafting.sql");
+            tr = new StreamReader(stream);
+            schema = tr.ReadToEnd();
+            rdr.Close();
+            stream.Close();
+
+            cmd = new NpgsqlCommand(schema, conn);
+            if (cmd.ExecuteNonQuery() == 0)
+            {
+                Console.WriteLine("THERE WAS AN ERROR COPYING THE MINECRAFT ITEMS INTO THE DATABASE.");
+                return;
+            }
+
+            // copy smeltings
+            stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ERPCraft_Server.Embedded.smelting.sql");
             tr = new StreamReader(stream);
             schema = tr.ReadToEnd();
             rdr.Close();
@@ -1152,6 +1181,96 @@ namespace ERPCraft_Server.Storage
             }
             Program.websocketPubSub.onPush("articulosImg", serverHashes.SubscriptionChangeType.delete, id, string.Empty);
             return true;
+        }
+
+        // EXISTENCIAS
+
+        public List<AlmacenInventario> getInventarioArticulo(short idArticulo)
+        {
+            List<AlmacenInventario> inventario = new List<AlmacenInventario>();
+            List<AlmacenInventarioGet> inventarioGet = new List<AlmacenInventarioGet>();
+            string sql = "SELECT alm,id,art,cant,cant_disp FROM alm_inventario WHERE art = @art ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@art", idArticulo);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+            {
+                AlmacenInventarioGet slot = new AlmacenInventarioGet(rdr);
+                inventarioGet.Add(slot);
+            }
+            rdr.Close();
+
+            foreach (AlmacenInventarioGet invGet in inventarioGet)
+            {
+                inventario.Add(new AlmacenInventario(invGet.almacen, invGet.id, getArticuloSlot(invGet.articulo), invGet.cantidad, invGet.cantidadDisponible));
+            }
+
+            return inventario;
+        }
+
+        // CRAFTEOS
+
+        public List<Crafteo> getCrafteosByComponent(short idArticulo)
+        {
+            List<Crafteo> crafteos = new List<Crafteo>();
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_slot1, cant_slot1, art_slot2, cant_slot2, art_slot3, cant_slot3, art_slot4, cant_slot4, art_slot5, cant_slot5, art_slot6, cant_slot6, art_slot7, cant_slot7, art_slot8, cant_slot8, art_slot9, cant_slot9, date_add, date_upd, off FROM crafting WHERE (art_slot1 = @art OR art_slot2 = @art OR art_slot3 = @art OR art_slot4 = @art OR art_slot5 = @art OR art_slot6 = @art OR art_slot7 = @art OR art_slot8 = @art OR art_slot9 = @art) AND off = false ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@art", idArticulo);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                crafteos.Add(new Crafteo(rdr));
+            rdr.Close();
+
+            return crafteos;
+        }
+
+        public List<Crafteo> getCrafteosByResult(short idArticulo)
+        {
+            List<Crafteo> crafteos = new List<Crafteo>();
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_slot1, cant_slot1, art_slot2, cant_slot2, art_slot3, cant_slot3, art_slot4, cant_slot4, art_slot5, cant_slot5, art_slot6, cant_slot6, art_slot7, cant_slot7, art_slot8, cant_slot8, art_slot9, cant_slot9, date_add, date_upd, off FROM crafting WHERE art_resultado = @art AND off = false ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@art", idArticulo);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                crafteos.Add(new Crafteo(rdr));
+            rdr.Close();
+
+            return crafteos;
+        }
+
+        // HORNEOS
+
+        public List<Smelting> getSmeltingByComponent(short idArticulo)
+        {
+            List<Smelting> smeltings = new List<Smelting>();
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_entrada, cant_entrada, date_add, date_upd, off FROM smelting WHERE art_entrada = @art AND off = false ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@art", idArticulo);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                smeltings.Add(new Smelting(rdr));
+            rdr.Close();
+
+            return smeltings;
+        }
+
+        public List<Smelting> getSmeltingByResult(short idArticulo)
+        {
+            List<Smelting> smeltings = new List<Smelting>();
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_entrada, cant_entrada, date_add, date_upd, off FROM smelting WHERE art_resultado = @art AND off = false ORDER BY id ASC";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@art", idArticulo);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                smeltings.Add(new Smelting(rdr));
+            rdr.Close();
+
+            return smeltings;
         }
 
         /* ROBOTS */
@@ -4117,11 +4236,13 @@ namespace ERPCraft_Server.Storage
 
         /* CRAFTEOS */
 
-        public List<Crafteo> getCrafteos()
+        public List<Crafteo> getCrafteos(int offset, int limit)
         {
             List<Crafteo> crafteos = new List<Crafteo>();
-            string sql = "SELECT id, name, art_resultado, cant_resultado, art_slot1, cant_slot1, art_slot2, cant_slot2, art_slot3, cant_slot3, art_slot4, cant_slot4, art_slot5, cant_slot5, art_slot6, cant_slot6, art_slot7, cant_slot7, art_slot8, cant_slot8, art_slot9, cant_slot9, date_add, date_upd, off FROM crafting";
+            string sql = "SELECT id, name, art_resultado, cant_resultado, art_slot1, cant_slot1, art_slot2, cant_slot2, art_slot3, cant_slot3, art_slot4, cant_slot4, art_slot5, cant_slot5, art_slot6, cant_slot6, art_slot7, cant_slot7, art_slot8, cant_slot8, art_slot9, cant_slot9, date_add, date_upd, off FROM crafting ORDER BY id ASC OFFSET @offset LIMIT @limit";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@offset", offset);
+            cmd.Parameters.AddWithValue("@limit", limit);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
@@ -4274,7 +4395,7 @@ namespace ERPCraft_Server.Storage
         public List<CrafteoHead> getCrafteosHead()
         {
             List<CrafteoHead> crafteos = new List<CrafteoHead>();
-            string sql = "SELECT id,name,(SELECT name FROM articulos WHERE id = crafting.art_resultado) FROM crafting WHERE off = false";
+            string sql = "SELECT id,name,(SELECT name FROM articulos WHERE id = crafting.art_resultado) FROM crafting WHERE off = false ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -4358,7 +4479,7 @@ namespace ERPCraft_Server.Storage
         public List<SmeltingHead> getSmeltingHead()
         {
             List<SmeltingHead> smelting = new List<SmeltingHead>();
-            string sql = "SELECT id,name,(SELECT name FROM articulos WHERE id = smelting.art_resultado) FROM smelting WHERE off = false";
+            string sql = "SELECT id,name,(SELECT name FROM articulos WHERE id = smelting.art_resultado) FROM smelting WHERE off = false ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 

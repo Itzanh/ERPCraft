@@ -15,6 +15,9 @@ namespace ERPCraft_Server.Models.DB.Almacen
         public DateTime dateAdd;
         public DateTime dateLastUpdate;
         public short stacks;
+        /// <summary>
+        /// C = Cofre, D = Cofre Doble, M = Applied Energistics 2, O = Otro
+        /// </summary>
         public char almacenamiento;
         public short maximoStacks;
         public short maximoTipos;
@@ -44,7 +47,10 @@ namespace ERPCraft_Server.Models.DB.Almacen
 
         public bool isValid()
         {
-            return !(name == null || name.Length == 0 || descripcion == null);
+            if (almacenamiento != 'C' && almacenamiento != 'D' && almacenamiento != 'M' && almacenamiento != 'O')
+                return false;
+
+            return !(name == null || name.Length == 0 || descripcion == null || maximoItems < 0 || maximoTipos < 0 || maximoStacks < 0);
         }
     }
 

@@ -1,0 +1,21 @@
+
+INSERT INTO public.smelting VALUES (1, 'Stone', 1, 1, 7, 1, '2021-02-06 15:16:30.93', '2021-02-06 15:16:30.93', false);
+INSERT INTO public.smelting VALUES (2, 'Iron Ingot', 30, 1, 17, 1, '2021-02-13 11:47:46.665', '2021-02-13 11:47:46.665', false);
+INSERT INTO public.smelting VALUES (3, 'Gold Ingot', 31, 1, 16, 1, '2021-02-21 13:18:12.72', '2021-02-21 13:18:12.72', false);
+INSERT INTO public.smelting VALUES (4, 'Charcoal (Oak Wood)', 202, 1, 18, 1, '2021-02-21 13:27:14.574', '2021-02-21 13:50:34.936', false);
+INSERT INTO public.smelting VALUES (5, 'Charcoal (Spruce Wood)', 202, 1, 19, 1, '2021-02-21 13:27:30.386', '2021-02-21 13:52:02.923', false);
+INSERT INTO public.smelting VALUES (6, 'Charcoal (Birch Wood)', 202, 1, 20, 1, '2021-02-21 13:27:40.662', '2021-02-21 13:52:14.853', false);
+INSERT INTO public.smelting VALUES (7, 'Charcoal (Jungle Wood)', 202, 1, 21, 1, '2021-02-21 13:27:49.096', '2021-02-21 13:52:23.444', false);
+INSERT INTO public.smelting VALUES (8, 'Charcoal (Acacia Wood)', 202, 1, 22, 1, '2021-02-21 13:27:57.033', '2021-02-21 13:52:33.469', false);
+INSERT INTO public.smelting VALUES (9, 'Glass', 203, 1, 14, 1, '2021-02-21 13:50:16.323', '2021-02-21 13:50:16.323', false);
+INSERT INTO public.smelting VALUES (10, 'Baked Potato', 69, 1, 68, 1, '2021-02-22 15:52:06.795', '2021-02-22 15:52:06.795', false);
+INSERT INTO public.smelting VALUES (11, 'Dried Kelp', 145, 1, 75, 1, '2021-02-22 15:57:34.397', '2021-02-22 15:57:34.397', false);
+INSERT INTO public.smelting VALUES (12, 'Brick', 235, 1, 84, 1, '2021-02-22 19:40:16.902', '2021-02-22 19:40:16.902', false);
+INSERT INTO public.smelting VALUES (13, 'Nether Quartz', 120, 1, 119, 1, '2021-02-22 21:13:40.277', '2021-02-22 21:13:40.277', false);
+INSERT INTO public.smelting VALUES (14, 'Green Dye', 242, 1, 121, 1, '2021-02-22 21:23:09.906', '2021-02-22 21:23:09.906', false);
+INSERT INTO public.smelting VALUES (15, 'Steak', 130, 1, 129, 1, '2021-02-22 21:25:16.989', '2021-02-22 21:25:16.989', false);
+INSERT INTO public.smelting VALUES (16, 'Cooked Chicken', 132, 1, 131, 1, '2021-02-22 21:25:33.075', '2021-02-22 21:25:33.075', false);
+INSERT INTO public.smelting VALUES (17, 'Cooked Cod', 134, 1, 133, 1, '2021-02-22 21:26:04.081', '2021-02-22 21:26:04.081', false);
+INSERT INTO public.smelting VALUES (18, 'Cooked Porkchop', 136, 1, 135, 1, '2021-02-22 21:26:19.986', '2021-02-22 21:26:19.986', false);
+INSERT INTO public.smelting VALUES (19, 'Cooked Mutton', 142, 1, 141, 1, '2021-02-22 21:26:42.562', '2021-02-22 21:26:42.562', false);
+INSERT INTO public.smelting VALUES (20, 'Cooked Salmon', 144, 1, 143, 1, '2021-02-22 21:26:56.082', '2021-02-22 21:26:56.082', false);

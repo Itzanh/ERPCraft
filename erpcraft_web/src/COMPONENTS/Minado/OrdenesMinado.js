@@ -67,7 +67,8 @@ class OrdenesMinado extends Component {
 
             const name = await this.getRobotName(ordenes[i].robot);
             ordenes[i].robotName = name;
-            ReactDOM.render(ordenes.map((element, i) => {
+
+            const ordenesComponents = ordenes.map((element, i) => {
                 return <OrdenMinado
                     key={i}
 
@@ -76,7 +77,24 @@ class OrdenesMinado extends Component {
                         this.editar(element);
                     }}
                 />
-            }), document.getElementById("renderOrdenesMinado"));
+            });
+
+            var numeroItems = 0;
+            for (let i = 0; i < ordenes.length; i++) {
+                numeroItems += ordenes[i].numeroItems;
+            }
+
+            ordenesComponents.push(<tr className="tableFooter">
+                <th scope="row">{ordenes.length}</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{numeroItems}</td>
+            </tr>);
+            ReactDOM.render(ordenesComponents, document.getElementById("renderOrdenesMinado"));
         }
 
         this.tabOrdenesMinadoPush(async (changeType, pos, newOrdenMinado) => {
