@@ -85,6 +85,7 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 orden.descripcion = string.Empty;
                 orden.unidadRecarga = '%';
                 orden.energiaRecarga = 10;
+                orden.chestSide = '1';
 
                 if (!orden.isValid())
                     return "ERR";

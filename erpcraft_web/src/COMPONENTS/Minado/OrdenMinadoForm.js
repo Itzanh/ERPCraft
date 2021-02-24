@@ -222,6 +222,7 @@ class OrdenMinadoForm extends Component {
             return;
         }
         orden.notificacion = this.refs.notificacion.checked;
+        orden.chestSide = this.refs.chestSide.value;
 
         this.handleAdd(orden).then(() => {
             window.$('#ordenMinadoModal').modal('hide');
@@ -256,6 +257,7 @@ class OrdenMinadoForm extends Component {
             orden.modoMinado = this.orden.modoMinado;
         }
         orden.shutdown = this.refs.shutdown.checked;
+        orden.chestSide = this.refs.chestSide.value;
 
         if (orden.name == null || orden.name.length == 0) {
             this.showAlert("El nombre no puede estar vacío.");
@@ -381,6 +383,14 @@ class OrdenMinadoForm extends Component {
                             <div className="col">
                                 <label>Posici&oacute;n F</label>
                                 <input type="number" className="form-control" defaultValue={this.orden != null ? this.orden.facing : 0} readOnly={true} />
+                            </div>
+                            <div className="col">
+                                <label>Lado con cofre</label>
+                                <select class="form-control" ref="chestSide" defaultValue={this.orden != null ? this.orden.chestSide : "1"}>
+                                    <option value="0">Iquierda</option>
+                                    <option value="1">Delante</option>
+                                    <option value="2">Derecha</option>
+                                </select>
                             </div>
                         </div>
                         <div className="form-row">

@@ -2557,7 +2557,7 @@ namespace ERPCraft_Server.Storage
         public List<OrdenMinado> getOrdenesDeMinado(char[] estado, short robot)
         {
             List<OrdenMinado> ordenes = new List<OrdenMinado>();
-            StringBuilder sql = new StringBuilder("SELECT id,name,size,rob,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,num_items,date_add,date_upd,date_inicio,date_fin,dsc,estado,recarga_unidad,energia_recarga,modo_minado,shutdown,notif FROM public.ordenes_minado");
+            StringBuilder sql = new StringBuilder("SELECT id,name,size,rob,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,num_items,date_add,date_upd,date_inicio,date_fin,dsc,estado,recarga_unidad,energia_recarga,modo_minado,shutdown,notif,chest_side FROM public.ordenes_minado");
             if (estado.Length > 0 || robot > 0)
                 sql.Append(" WHERE ");
 
@@ -2596,7 +2596,7 @@ namespace ERPCraft_Server.Storage
 
         public OrdenMinado getOrdenMinado(int idOrden)
         {
-            string sql = "SELECT id,name,size,rob,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,num_items,date_add,date_upd,date_inicio,date_fin,dsc,estado,recarga_unidad,energia_recarga,modo_minado,shutdown,notif FROM public.ordenes_minado WHERE id = @id";
+            string sql = "SELECT id,name,size,rob,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,num_items,date_add,date_upd,date_inicio,date_fin,dsc,estado,recarga_unidad,energia_recarga,modo_minado,shutdown,notif,chest_side FROM public.ordenes_minado WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", idOrden);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -2696,7 +2696,7 @@ namespace ERPCraft_Server.Storage
             cmd.ExecuteNonQuery();
 
             // cargar orden para devolver
-            sql = "SELECT id,size,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,recarga_unidad,energia_recarga,modo_minado,shutdown FROM ordenes_minado WHERE id=@id";
+            sql = "SELECT id,size,pos_x,pos_y,pos_z,pos_f,gps_x,gps_y,gps_z,recarga_unidad,energia_recarga,modo_minado,shutdown,chest_side FROM ordenes_minado WHERE id=@id";
             cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", ordenMinadoId);
             rdr = cmd.ExecuteReader();
@@ -2765,7 +2765,7 @@ namespace ERPCraft_Server.Storage
 
         public bool addOrdenesDeMinado(OrdenMinado orden)
         {
-            string sql = "INSERT INTO public.ordenes_minado(name,size,rob,gps_x,gps_y,gps_z,dsc,recarga_unidad,energia_recarga,modo_minado,shutdown,notif) VALUES (@name,@size,@rob,@gps_x,@gps_y,@gps_z,@dsc,@recarga_unidad,@energia_recarga,@modo_minado,@shutdown,@notif) RETURNING id";
+            string sql = "INSERT INTO public.ordenes_minado(name,size,rob,gps_x,gps_y,gps_z,dsc,recarga_unidad,energia_recarga,modo_minado,shutdown,notif,chest_side) VALUES (@name,@size,@rob,@gps_x,@gps_y,@gps_z,@dsc,@recarga_unidad,@energia_recarga,@modo_minado,@shutdown,@notif,@chest_side) RETURNING id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", orden.name);
             cmd.Parameters.AddWithValue("@size", orden.size);
@@ -2782,6 +2782,7 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@modo_minado", orden.modoMinado);
             cmd.Parameters.AddWithValue("@shutdown", orden.shutdown);
             cmd.Parameters.AddWithValue("@notif", orden.notificacion);
+            cmd.Parameters.AddWithValue("@chest_side", orden.chestSide);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
             rdr.Read();
             int id = rdr.GetInt32(0);
@@ -2810,7 +2811,7 @@ namespace ERPCraft_Server.Storage
 
         public bool updateOrdenesDeMinado(OrdenMinado orden)
         {
-            string sql = "UPDATE public.ordenes_minado SET name=@name,size=@size,rob=@rob,gps_x=@gps_x,gps_y=@gps_y,gps_z=@gps_z,dsc=@dsc,recarga_unidad=@recarga_unidad,energia_recarga=@energia_recarga,modo_minado=@modo_minado,shutdown=@shutdown,notif=@notif,date_upd = CURRENT_TIMESTAMP(3) WHERE id=@id";
+            string sql = "UPDATE public.ordenes_minado SET name=@name,size=@size,rob=@rob,gps_x=@gps_x,gps_y=@gps_y,gps_z=@gps_z,dsc=@dsc,recarga_unidad=@recarga_unidad,energia_recarga=@energia_recarga,modo_minado=@modo_minado,shutdown=@shutdown,notif=@notif,date_upd = CURRENT_TIMESTAMP(3), chest_side = @chest_side WHERE id=@id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", orden.id);
             cmd.Parameters.AddWithValue("@name", orden.name);
@@ -2828,6 +2829,7 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@modo_minado", orden.modoMinado);
             cmd.Parameters.AddWithValue("@shutdown", orden.shutdown);
             cmd.Parameters.AddWithValue("@notif", orden.notificacion);
+            cmd.Parameters.AddWithValue("@chest_side", orden.chestSide);
             bool ok = cmd.ExecuteNonQuery() > 0;
 
             if (ok)

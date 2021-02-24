@@ -28,6 +28,7 @@ namespace ERPCraft_Server.Models.DB.Robots
         public char modoMinado;
         public bool shutdown;
         public bool notificacion;
+        public char chestSide;
 
         public OrdenMinado()
         {
@@ -67,6 +68,7 @@ namespace ERPCraft_Server.Models.DB.Robots
             this.modoMinado = rdr.GetChar(20);
             this.shutdown = rdr.GetBoolean(21);
             this.notificacion = rdr.GetBoolean(22);
+            this.chestSide = rdr.GetChar(23);
         }
 
         /// <summary>
@@ -89,6 +91,7 @@ namespace ERPCraft_Server.Models.DB.Robots
             this.energiaRecarga = rdr.GetInt16(10);
             this.modoMinado = rdr.GetChar(11);
             this.shutdown = rdr.GetBoolean(12);
+            this.chestSide = rdr.GetChar(13);
         }
 
         public bool isValid()
@@ -97,6 +100,9 @@ namespace ERPCraft_Server.Models.DB.Robots
                 return false;
 
             if (modoMinado != 'O' && modoMinado != 'E')
+                return false;
+
+            if (chestSide != '0' && chestSide != '1' && chestSide != '2')
                 return false;
 
             return !(this.name == null || this.name.Length == 0 || this.size <= 0 || (this.robot != null && this.robot <= 0) || this.facing < 0 || this.facing > 4

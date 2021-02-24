@@ -551,7 +551,8 @@ namespace ERPCraft_Server.Controller
                 return;
 
             string str = "MSG$$" + uuid + "&&" + orden.size + ";" + orden.posX + ";" + orden.posY + ";" + orden.posZ + ";" + orden.facing + ";"
-                + orden.gpsX + ";" + orden.gpsY + ";" + orden.gpsZ + ";" + energiaRecarga + ";" + orden.modoMinado + ";" + (orden.shutdown ? 1 : 0);
+                + orden.gpsX + ";" + orden.gpsY + ";" + orden.gpsZ + ";" + energiaRecarga + ";" + orden.modoMinado + ";" + (orden.shutdown ? 1 : 0)
+                + ";" + orden.chestSide;
             enviarMensaje(client, str);
         }
 
