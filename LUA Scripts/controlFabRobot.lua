@@ -165,9 +165,14 @@ local function smelt(cantidad, articulo, lado)
 	  if robot.count(pos) > 0 then
 	    -- comprobar si hay items y buscar un slot disponible en el cofre
 		local numSlots = inv.getInventorySize(SIDE) -- forward
+		local internalStackName = inv.getStackInInternalSlot(pos).name
 	    for freePos=1,numSlots,1 do
-	      if inv.getStackInSlot(SIDE, freePos) == nil or inv.getStackInSlot(SIDE, freePos).name == inv.getStackInInternalSlot(pos).name then
+		  local stackInSlot = inv.getStackInSlot(SIDE, freePos)
+	      if stackInSlot == nil or (stackInSlot.name == internalStackName and stackInSlot.size < 64) then
 	        inv.dropIntoSlot(SIDE, freePos)
+			if robot.count(pos) > 0 then
+			  pos = pos - 1
+			end
 	        break
 	      end
 	    end

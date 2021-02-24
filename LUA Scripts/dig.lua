@@ -167,6 +167,7 @@ local ordenGPS = {}
 local energiaRecarga = 0 -- declarado al recibir orden del servidor, con bateria por debajo de este limite recargar
 local updateOrden -- forward declaration
 local modoMinado = "O" -- modos de recarga del arma O = Optimo, E = Economico
+local dropSide = "1" -- "0" = left, "1" = forward, "3" = right
 local dropping = false -- avoid recursing into drop()
 local delta = {[0] = function() x = x + 1 updateOrden() end, [1] = function() y = y + 1 updateOrden() end,
                [2] = function() x = x - 1 updateOrden() end, [3] = function() y = y - 1 updateOrden() end}
@@ -207,6 +208,7 @@ local function getOrdenMinado()
     if tonumber(str[11]) == 1 then
       options.s = true
     end
+	dropSide = str[12]
   
     print("size " .. size .. " x " .. x .. " y " .. y .. " z " .. z .. " f " .. f .. " modoMinado " .. modoMinado)
 	return true
@@ -448,7 +450,7 @@ function checkedDrop(force)
 	if modoMinado == "E" then
 	  numSlots = 15
 	end
-    for slot = 1, numSlots do
+    --[[for slot = 1, numSlots do
       if robot.count(slot) > 0 then
         robot.select(slot)
         local wait = 1
@@ -459,8 +461,36 @@ function checkedDrop(force)
           end
         until robot.count(slot) == 0
       end
-    end
+    end]]--
+	if dropSide == "0" then
+	  robot.turnLeft()
+	elseif dropSide == "2" then
+	  robot.turnRight()
+	end
+	for pos=1,numSlots,1 do
+	  robot.select(pos)
+	  if robot.count(pos) > 0 then
+	    -- comprobar si hay items y buscar un slot disponible en el cofre
+		local numSlots = inv.getInventorySize(3) -- forward
+		local internalStackName = inv.getStackInInternalSlot(pos).name
+	    for freePos=1,numSlots,1 do
+		  local stackInSlot = inv.getStackInSlot(3, freePos)
+	      if stackInSlot == nil or (stackInSlot.name == internalStackName and stackInSlot.size < 64) then
+	        inv.dropIntoSlot(3, freePos)
+			if robot.count(pos) > 0 then
+			  pos = pos - 1
+			end
+	        break
+	      end
+	    end
+	  end
+	end
     robot.select(1)
+	if dropSide == "0" then
+	  robot.turnRight()
+	elseif dropSide == "2" then
+	  robot.turnLeft()
+	end
     
     -- intercambiar la herramienta si es necesario
 	if checkTool() then
