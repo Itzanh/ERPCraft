@@ -21,7 +21,6 @@ SOFTWARE.
 ]]--
 
 
-
 local component = require("component")
 
 local m = component.modem
@@ -33,33 +32,26 @@ SIDE = 2
 
 -- Generar cadena con el inventario
 
-local function inventarioToString(inventario)
-  local str = ""
-  for key,value in pairs(inventario) do
-    str = str .. key .. "@" .. value .. ";"
-  end
-  return str
-end
 
-local function setRobotInventario()
-  local inventario = {}
+local function setChestInventario()
+  local str = ""
   for i = 1,inv.getInventorySize(SIDE),1 do
     local slot = inv.getStackInSlot(SIDE, i)
     if slot ~= nil then
-	  if (inventario[slot.name] == nil) then
-	    inventario[slot.name] = math.floor(slot.size)
+	  if (slot.oreNames.n > 0) then
+		str = str .. slot.name .. "@" .. math.floor(slot.size) .."@" .. slot.oreNames[1] .. ";"
 	  else
-	    inventario[slot.name] = math.floor(inventario[slot.name] + slot.size)
+	    str = str .. slot.name .. "@" .. math.floor(slot.size) .. "@;"
 	  end
     end
   end
 
-  return inventarioToString(inventario)
+  return str
 end
 
 -- Ir enviando el estado del inventario
 
 while true do
-  m.send(SERVER_ADDR, SERVER_PORT, "almacenSetInv--" ..setRobotInventario())
+  m.send(SERVER_ADDR, SERVER_PORT, "almacenChestSetInv--" ..setChestInventario())
   os.sleep(1)
 end

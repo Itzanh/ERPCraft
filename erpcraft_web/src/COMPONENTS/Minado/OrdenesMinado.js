@@ -84,17 +84,9 @@ class OrdenesMinado extends Component {
                 numeroItems += ordenes[i].numeroItems;
             }
 
-            ordenesComponents.push(<tr className="tableFooter">
-                <th scope="row">{ordenes.length}</th>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>{numeroItems}</td>
-            </tr>);
             ReactDOM.render(ordenesComponents, document.getElementById("renderOrdenesMinado"));
+            this.refs.ordenesLength.innerText = ordenes.length;
+            this.refs.numeroItems.innerText = numeroItems;
         }
 
         this.tabOrdenesMinadoPush(async (changeType, pos, newOrdenMinado) => {
@@ -315,6 +307,18 @@ class OrdenesMinado extends Component {
                 </thead>
                 <tbody id="renderOrdenesMinado">
                 </tbody>
+                <tfoot>
+                    <tr className="tableFooter">
+                        <th scope="row" ref="ordenesLength"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td ref="numeroItems"></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>;
     }

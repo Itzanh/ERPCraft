@@ -162,17 +162,21 @@ local function smelt(cantidad, articulo, lado)
   -- devolver items al inventario
 	for pos=1,16,1 do
 	  robot.select(pos)
-	  if robot.count(pos) > 0 then
+	  while robot.count(pos) > 0 do
 	    -- comprobar si hay items y buscar un slot disponible en el cofre
-		local numSlots = inv.getInventorySize(SIDE) -- forward
 		local internalStackName = inv.getStackInInternalSlot(pos).name
-	    for freePos=1,numSlots,1 do
-		  local stackInSlot = inv.getStackInSlot(SIDE, freePos)
-	      if stackInSlot == nil or (stackInSlot.name == internalStackName and stackInSlot.size < 64) then
-	        inv.dropIntoSlot(SIDE, freePos)
-			if robot.count(pos) > 0 then
-			  pos = pos - 1
-			end
+		local oreName = ""
+		if (inv.getStackInInternalSlot(pos).oreNames.n > 0) then
+		  oreName = inv.getStackInInternalSlot(pos).oreNames[1]
+		end
+	    for freePos=1,27,1 do
+		  local stackInSlot = inv.getStackInSlot(3, freePos)
+		  local oreNameInSlot = ""
+		  if (stackInSlot ~= nil and inv.getStackInSlot(3, freePos).oreNames.n > 0) then
+		    oreNameInSlot = inv.getStackInSlot(3, freePos).oreNames[1]
+		  end
+	      if stackInSlot == nil or (stackInSlot.name == internalStackName and oreName == oreNameInSlot and stackInSlot.size < 64) then
+	        inv.dropIntoSlot(3, freePos)
 	        break
 	      end
 	    end

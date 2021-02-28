@@ -129,6 +129,16 @@ class MovimientosAlmacen extends Component {
                     </tr>
                 </thead>
                 <tbody id="renderMovimientos"></tbody>
+                <tfoot>
+                    <tr>
+                        <th></th>
+                        <td id="MovAlmCountRows"></td>
+                        <td></td>
+                        <td id="MovAlmSumaCant"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>;
     }

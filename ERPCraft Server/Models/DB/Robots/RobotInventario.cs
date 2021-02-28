@@ -37,11 +37,13 @@ namespace ERPCraft_Server.Models.DB.Robots
     {
         public string idArticulo;
         public short cant;
+        public string oreName;
 
-        public RobotInventarioSet(string idArticulo, short cant)
+        public RobotInventarioSet(string idArticulo, short cant, string oreName)
         {
             this.idArticulo = idArticulo;
             this.cant = cant;
+            this.oreName = oreName;
         }
     }
 

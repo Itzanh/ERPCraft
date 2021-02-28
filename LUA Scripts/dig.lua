@@ -90,14 +90,19 @@ end
 
 --- Envía el contenido del inventario al servidor
 -- @param drop true = para la orden de minado (terminado, dropeando), false = para el robot (minando)
-local function setRobotInventario(drop)
+local function setRobotInventario(drop, numSlots)
   local str = ""
-  for i = 1,16,1 do
+  numSlots = numSlots or 16
+  for i = 1,numSlots,1 do
     local slot = inv.getStackInInternalSlot(i)
     if slot == nil then
-      str = str .. "@0;"
+      str = str .. "@0@;"
     else
-      str = str .. slot.name .. "@" .. math.floor(slot.size) .. ";"
+	  if (slot.oreNames.n > 0) then
+        str = str .. slot.name .. "@" .. math.floor(slot.size) .. "@" .. slot.oreNames[1] .. ";"
+	  else
+	    str = str .. slot.name .. "@" .. math.floor(slot.size) .. "@;"
+	  end
     end
   end
   
@@ -138,21 +143,6 @@ end
 
 robotOnline()
 l("ONLINE", "Robot online!")
-setRobotInventario()
-setRobotGps()
-
-thread.create(function()
-  responderPing()
-end)
-
-thread.create(function()
-  while true do
-    robotBateria()
-    setRobotInventario()
-	setRobotGps()
-    os.sleep(1)
-  end
-end)
 
 --[[ /ERPCraft ]]--
 
@@ -231,7 +221,21 @@ if not getOrdenMinado() then
 end
 print("Iniciando orden de minado size " .. size)
 setRobotInventario()
+setRobotGps()
 --os.exit()																												---- QUITAR!!!! -----
+
+thread.create(function()
+  responderPing()
+end)
+
+thread.create(function()
+  while true do
+    robotBateria()
+    setRobotInventario()
+	setRobotGps()
+    os.sleep(1)
+  end
+end)
 
 local function turnRight()
   robot.turnRight()
@@ -394,7 +398,9 @@ local function recargarTool()
   if modoMinado == "O" then -- Optimo
     for i = 1, numSlots, 1 do
 	  if (inv.getStackInSlot(1, i) ~= nil) then
+	    robot.select(1)
 	    inv.suckFromSlot(1, i)
+		inv.equip()
 		break
 	  end
 	end
@@ -409,7 +415,7 @@ local function recargarTool()
 	      inv.suckFromSlot(1, i)
 		  robot.select(1)
 		  inv.equip()
-		  robot.drop()
+		  robot.dropDown()
 	  	  break
 	    end
 	  end
@@ -442,26 +448,14 @@ function checkedDrop(force)
     moveTo(0, 0, 0)
     turnTowards(2)
 
-    -- antes de tirar tot el inventari, enviarlo al servidor,
-    -- es el resultat de la ordre de minat
-	setRobotInventario(true)
-    -- tirar tot el inventari
 	local numSlots = 16
 	if modoMinado == "E" then
 	  numSlots = 15
 	end
-    --[[for slot = 1, numSlots do
-      if robot.count(slot) > 0 then
-        robot.select(slot)
-        local wait = 1
-        repeat
-          if not robot.drop() then
-            os.sleep(wait)
-            wait = math.min(10, wait + 1)
-          end
-        until robot.count(slot) == 0
-      end
-    end]]--
+	-- antes de tirar tot el inventari, enviarlo al servidor,
+    -- es el resultat de la ordre de minat
+	setRobotInventario(true, numSlots)
+    -- tirar tot el inventari
 	if dropSide == "0" then
 	  robot.turnLeft()
 	elseif dropSide == "2" then
@@ -469,17 +463,21 @@ function checkedDrop(force)
 	end
 	for pos=1,numSlots,1 do
 	  robot.select(pos)
-	  if robot.count(pos) > 0 then
+	  while robot.count(pos) > 0 do
 	    -- comprobar si hay items y buscar un slot disponible en el cofre
-		local numSlots = inv.getInventorySize(3) -- forward
 		local internalStackName = inv.getStackInInternalSlot(pos).name
-	    for freePos=1,numSlots,1 do
+		local oreName = ""
+		if (inv.getStackInInternalSlot(pos).oreNames.n > 0) then
+		  oreName = inv.getStackInInternalSlot(pos).oreNames[1]
+		end
+	    for freePos=1,27,1 do
 		  local stackInSlot = inv.getStackInSlot(3, freePos)
-	      if stackInSlot == nil or (stackInSlot.name == internalStackName and stackInSlot.size < 64) then
+		  local oreNameInSlot = ""
+		  if (stackInSlot ~= nil and inv.getStackInSlot(3, freePos).oreNames.n > 0) then
+		    oreNameInSlot = inv.getStackInSlot(3, freePos).oreNames[1]
+		  end
+	      if stackInSlot == nil or (stackInSlot.name == internalStackName and oreName == oreNameInSlot and stackInSlot.size < 64) then
 	        inv.dropIntoSlot(3, freePos)
-			if robot.count(pos) > 0 then
-			  pos = pos - 1
-			end
 	        break
 	      end
 	    end
@@ -516,7 +514,7 @@ local function step()
   clearBlock(sides.up)
   
   --setRobotInventario()
-  l('Benchmark', 'Tiempo de step ' .. (os.clock() - x))
+  --l('Benchmark', 'Tiempo de step ' .. (os.clock() - x))
   return true
 end
 

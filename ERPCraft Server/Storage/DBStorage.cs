@@ -929,7 +929,7 @@ namespace ERPCraft_Server.Storage
         public List<Articulo> getArticulos()
         {
             List<Articulo> articulos = new List<Articulo>();
-            string sql = "SELECT id, name, mine_id, cant, dsc FROM articulos ORDER BY id ASC";
+            string sql = "SELECT id, name, mine_id, cant, dsc, ore_name FROM articulos ORDER BY id ASC";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -949,11 +949,11 @@ namespace ERPCraft_Server.Storage
                 string sql;
                 if (texto.IndexOf(':') >= 0)
                 {
-                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE mine_id ILIKE @txt ORDER BY id ASC";
+                    sql = "SELECT id, name, mine_id, cant, dsc, ore_name FROM articulos WHERE mine_id ILIKE @txt ORDER BY id ASC";
                 }
                 else
                 {
-                    sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE name ILIKE @txt ORDER BY id ASC";
+                    sql = "SELECT id, name, mine_id, cant, dsc, ore_name FROM articulos WHERE name ILIKE @txt ORDER BY id ASC";
                 }
                 NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@txt", "%" + texto + "%");
@@ -986,7 +986,7 @@ namespace ERPCraft_Server.Storage
 
         public Articulo getArticulo(short id)
         {
-            string sql = "SELECT id, name, mine_id, cant, dsc FROM articulos WHERE id = @id";
+            string sql = "SELECT id, name, mine_id, cant, dsc, ore_name FROM articulos WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -1038,31 +1038,110 @@ namespace ERPCraft_Server.Storage
             return articulo;
         }
 
-        public short getArticulo(string minecraftID)
+        public short getArticulo(string minecraftID, string oreName)
         {
-            string sql = "SELECT id FROM articulos WHERE mine_id = @mine_id";
+            string sql = "SELECT COUNT(id) FROM articulos WHERE mine_id = @mine_id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@mine_id", minecraftID);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
-            if (!rdr.HasRows)
+            rdr.Read();
+            int rowCount = rdr.GetInt32(0);
+            rdr.Close();
+            if (rowCount == 0)
             {
-                rdr.Close();
                 return 0;
             }
+            else if (rowCount == 1)
+            {
+                sql = "SELECT id FROM articulos WHERE mine_id = @mine_id";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@mine_id", minecraftID);
+                rdr = cmd.ExecuteReader();
+
+                rdr.Read();
+                short id = rdr.GetInt16(0);
+                rdr.Close();
+                return id;
+            }
+            else
+            {
+                sql = "SELECT id FROM articulos WHERE (mine_id = @mine_id) AND (ore_name = @ore_name)";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@mine_id", minecraftID);
+                cmd.Parameters.AddWithValue("@ore_name", oreName);
+                rdr = cmd.ExecuteReader();
+
+                if (!rdr.HasRows)
+                {
+                    rdr.Close();
+                    return 0;
+                }
+
+                rdr.Read();
+                short id = rdr.GetInt16(0);
+                rdr.Close();
+                return id;
+            }
+
+        }
+
+        public short getArticuloByName(string minecraftID, string articuloName)
+        {
+            string sql = "SELECT COUNT(id) FROM articulos WHERE mine_id = @mine_id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@mine_id", minecraftID);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
             rdr.Read();
-            short id = rdr.GetInt16(0);
+            int rowCount = rdr.GetInt32(0);
             rdr.Close();
-            return id;
+            if (rowCount == 0)
+            {
+                return 0;
+            }
+            else if (rowCount == 1)
+            {
+                sql = "SELECT id FROM articulos WHERE mine_id = @mine_id";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@mine_id", minecraftID);
+                rdr = cmd.ExecuteReader();
+
+                rdr.Read();
+                short id = rdr.GetInt16(0);
+                rdr.Close();
+                return id;
+            }
+            else
+            {
+                sql = "SELECT id FROM articulos WHERE (mine_id = @mine_id) AND (name = @name)";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@mine_id", minecraftID);
+                cmd.Parameters.AddWithValue("@name", articuloName);
+                rdr = cmd.ExecuteReader();
+
+                if (!rdr.HasRows)
+                {
+                    rdr.Close();
+                    return 0;
+                }
+
+                rdr.Read();
+                short id = rdr.GetInt16(0);
+                rdr.Close();
+                return id;
+            }
+
         }
 
         public bool addArticulo(Articulo articulo)
         {
-            string sql = "INSERT INTO articulos (name, mine_id, dsc) VALUES (@name,@mine_id,@dsc) RETURNING id";
+            string sql = "INSERT INTO articulos (name, mine_id, dsc,ore_name) VALUES (@name,@mine_id,@dsc,@ore_name) RETURNING id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", articulo.name);
             cmd.Parameters.AddWithValue("@mine_id", articulo.minecraftID);
             cmd.Parameters.AddWithValue("@dsc", articulo.descripcion);
+            cmd.Parameters.AddWithValue("@ore_name", articulo.oreName);
             NpgsqlDataReader rdr;
             try
             {
@@ -1084,12 +1163,13 @@ namespace ERPCraft_Server.Storage
 
         public bool updateArticulo(Articulo articulo)
         {
-            string sql = "UPDATE articulos SET name = @name, mine_id = @mine_id, dsc = @dsc WHERE id = @id";
+            string sql = "UPDATE articulos SET name = @name, mine_id = @mine_id, dsc = @dsc, ore_name = @ore_name WHERE id = @id";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", articulo.id);
             cmd.Parameters.AddWithValue("@name", articulo.name);
             cmd.Parameters.AddWithValue("@mine_id", articulo.minecraftID);
             cmd.Parameters.AddWithValue("@dsc", articulo.descripcion);
+            cmd.Parameters.AddWithValue("@ore_name", articulo.oreName);
             try
             {
                 if (cmd.ExecuteNonQuery() == 0)
@@ -1782,13 +1862,21 @@ namespace ERPCraft_Server.Storage
 
         public void setRobotInventario(Guid uuid, List<RobotInventarioSet> setInventario)
         {
+            NpgsqlTransaction trans = conn.BeginTransaction();
+            short id = getRobot(uuid).id;
+
+            string sql = "UPDATE rob_inventario SET art = NULL, cant = 0 WHERE rob = @rob";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@rob", id);
+            cmd.ExecuteNonQuery();
+
             for (int i = 0; i < setInventario.Count; i++)
             {
                 RobotInventarioSet inv = setInventario[i];
 
-                string sql = "UPDATE rob_inventario SET art = @art, cant = @cant WHERE rob = (SELECT id FROM robots WHERE uuid = @uuid) AND num_slot = @num_slot";
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@uuid", uuid);
+                sql = "UPDATE rob_inventario SET art = @art, cant = @cant WHERE rob = @rob AND num_slot = @num_slot";
+                cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@rob", id);
                 cmd.Parameters.AddWithValue("@num_slot", (i + 1));
                 if (inv.idArticulo.Equals(string.Empty))
                 {
@@ -1797,17 +1885,23 @@ namespace ERPCraft_Server.Storage
                 }
                 else
                 {
-                    short art = getArticulo(inv.idArticulo);
+                    short art = getArticulo(inv.idArticulo, inv.oreName);
                     if (art > 0)
+                    {
                         cmd.Parameters.AddWithValue("@art", art);
+                        cmd.Parameters.AddWithValue("@cant", inv.cant);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@art", DBNull.Value);
-                    cmd.Parameters.AddWithValue("@cant", inv.cant);
+                        cmd.Parameters.AddWithValue("@cant", 0);
+                    }
                 }
                 cmd.ExecuteNonQuery();
             }
 
-            short id = getRobot(uuid).id;
+            trans.Commit();
+
             Program.websocketPubSub.addTopic("robotInv#" + id);
             Program.websocketPubSub.onPush("robotInv#" + id, serverHashes.SubscriptionChangeType.update, 0, JsonConvert.SerializeObject(getRobotInventario(id)));
         }
@@ -2579,6 +2673,7 @@ namespace ERPCraft_Server.Storage
                     sql.Append(" AND");
                 sql.Append(" rob = @rob");
             }
+            sql.Append(" ORDER BY id ASC");
             NpgsqlCommand cmd = new NpgsqlCommand(sql.ToString(), conn);
             for (int i = 0; i < estado.Length; i++)
                 cmd.Parameters.AddWithValue("@estado" + i, estado[i]);
@@ -2616,7 +2711,7 @@ namespace ERPCraft_Server.Storage
         {
             bool ordenAsociada = false;
             // ver si el robot tenia una orden de minado establecida
-            string sql = "SELECT ord_min, id FROM robots WHERE off = false AND uuid = @uuid";
+            string sql = "SELECT ord_min, id FROM robots WHERE off = false AND uuid = @uuid LIMIT 1";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("uuid", uuid);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
@@ -2690,7 +2785,7 @@ namespace ERPCraft_Server.Storage
             }
 
             // ajustar el estado a En curso en la orden de minado
-            sql = "UPDATE ordenes_minado SET date_inicio=CURRENT_TIMESTAMP(3),estado='E' WHERE id=@id";
+            sql = "UPDATE ordenes_minado SET date_inicio=COALESCE(date_inicio,CURRENT_TIMESTAMP(3)),estado='E' WHERE id=@id";
             cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", ordenMinadoId);
             cmd.ExecuteNonQuery();
@@ -2896,20 +2991,34 @@ namespace ERPCraft_Server.Storage
             return inventario;
         }
 
-        public void setOrdenMinadoInventario(int idOrden, List<OrdenMinadoInventarioSet> setInventario)
+        public void setOrdenMinadoInventario(Guid uuid, List<OrdenMinadoInventarioSet> setInventario)
         {
+            string sql = "SELECT ord_min FROM robots WHERE uuid=@uuid";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@uuid", uuid);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+            if (!rdr.HasRows)
+            {
+                rdr.Close();
+                return;
+            }
+
+            rdr.Read();
+            int idOrden = rdr.GetInt32(0);
+            rdr.Close();
+
             for (int i = 0; i < setInventario.Count; i++)
             {
                 OrdenMinadoInventarioSet inv = setInventario[i];
-                short articulo = getArticulo(inv.idArticulo);
+                short articulo = getArticulo(inv.idArticulo, inv.oreName);
                 if (articulo == 0)
                     continue;
 
-                string sql = "SELECT id, cant FROM public.ord_min_inventario WHERE ord_min = @ord_min AND art = @art AND cant < 64";
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                sql = "SELECT id, cant FROM public.ord_min_inventario WHERE ord_min = @ord_min AND art = @art AND cant < 64";
+                cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ord_min", idOrden);
                 cmd.Parameters.AddWithValue("@art", articulo);
-                NpgsqlDataReader rdr = cmd.ExecuteReader();
+                rdr = cmd.ExecuteReader();
                 if (rdr.HasRows) // ya hay un slot que tiene de estos items
                 {
                     rdr.Read();
@@ -2955,6 +3064,7 @@ namespace ERPCraft_Server.Storage
             string sqlOrden = "UPDATE ordenes_minado SET num_items = num_items + @cantidad WHERE id = @id";
             NpgsqlCommand cmdOrden = new NpgsqlCommand(sqlOrden, conn);
             cmdOrden.Parameters.AddWithValue("@cantidad", cantidad);
+            cmdOrden.Parameters.AddWithValue("@id", idOrden);
             cmdOrden.ExecuteNonQuery();
 
             // enviar actualizaciones a la web
@@ -3169,7 +3279,7 @@ namespace ERPCraft_Server.Storage
             return inventario;
         }
 
-        public void setInventarioAlmacen(short idAlmacen, List<AlmacenInventarioSet> inventario)
+        public void setInventarioAlmacen(short idAlmacen, List<AlmacenInventarioSet> inventario, bool searchByMinecraftId)
         {
             if (idAlmacen <= 0)
                 return;
@@ -3179,7 +3289,11 @@ namespace ERPCraft_Server.Storage
             for (int i = (inventario.Count - 1); i >= 0; i--)
             {
                 AlmacenInventarioSet slot = inventario[i];
-                short articulo = getArticulo(slot.articulo);
+                short articulo;
+                if (searchByMinecraftId)
+                    articulo = getArticulo(slot.articulo, slot.oreName);
+                else
+                    articulo = getArticuloByName(slot.articulo, slot.oreName);
                 if (articulo == 0)
                 {
                     inventario.RemoveAt(i);
@@ -3700,11 +3814,13 @@ namespace ERPCraft_Server.Storage
 
         /* MOVIMIENTOS DE ALMACÉN */
 
-        public List<MovimientoAlmacen> getMovimientosAlmacen()
+        public List<MovimientoAlmacen> getMovimientosAlmacen(long offset, int limit)
         {
             List<MovimientoAlmacen> movimientoAlmacen = new List<MovimientoAlmacen>();
-            string sql = "SELECT alm, id, art, cant, origen, date_add, dsc FROM mov_inventario ORDER BY date_add DESC";
+            string sql = "SELECT alm, id, art, cant, origen, date_add, dsc FROM mov_inventario ORDER BY date_add DESC, id DESC OFFSET @offset LIMIT @limit";
             NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@offset", offset);
+            cmd.Parameters.AddWithValue("@limit", limit);
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
@@ -3717,7 +3833,7 @@ namespace ERPCraft_Server.Storage
         public List<MovimientoAlmacen> getMovimientosAlmacen(MovimientoAlmacenQuery query)
         {
             if (query.isDefault())
-                return getMovimientosAlmacen();
+                return getMovimientosAlmacen(query.offset, query.limit);
             List<MovimientoAlmacen> movimientoAlmacen = new List<MovimientoAlmacen>();
             StringBuilder sql = new StringBuilder("SELECT alm, id, art, cant, origen, date_add, dsc FROM mov_inventario WHERE");
 
@@ -3751,7 +3867,7 @@ namespace ERPCraft_Server.Storage
                 sql.Append(" date_add <= @dateFin");
             }
 
-            sql.Append(" ORDER BY date_add DESC");
+            sql.Append(" ORDER BY date_add DESC OFFSET @offset LIMIT @limit");
 
             NpgsqlCommand cmd = new NpgsqlCommand(sql.ToString(), conn);
 
@@ -3763,6 +3879,8 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@dateInicio", query.dateInicio);
             if (query.dateFin != DateTime.MinValue)
                 cmd.Parameters.AddWithValue("@dateFin", query.dateFin);
+            cmd.Parameters.AddWithValue("@offset", query.offset);
+            cmd.Parameters.AddWithValue("@limit", query.limit);
 
             NpgsqlDataReader rdr = cmd.ExecuteReader();
 
@@ -4006,7 +4124,7 @@ namespace ERPCraft_Server.Storage
                 }
                 else
                 {
-                    short art = getArticulo(inv.idArticulo);
+                    short art = getArticulo(inv.idArticulo, inv.oreName);
                     if (art > 0)
                         cmd.Parameters.AddWithValue("@art", art);
                     else

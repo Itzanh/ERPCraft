@@ -28,6 +28,7 @@ class AddArticulo extends Component {
         articulo.name = this.refs.name.value;
         articulo.minecraftID = this.refs.mine_id.value;
         articulo.descripcion = this.refs.dsc.value;
+        articulo.oreName = this.refs.oreName.value;
 
         if (articulo.name == null || articulo.name.length == "") {
             this.showAlert("El nombre del articulo no puede estar vacío.");
@@ -65,6 +66,10 @@ class AddArticulo extends Component {
                                 <div className="col">
                                     <label>ID de Minecraft</label>
                                     <input type="text" className="form-control" placeholder="ID de Minecraft" ref="mine_id" />
+                                </div>
+                                <div className="col">
+                                    <label>Ore Name</label>
+                                    <input type="text" className="form-control" placeholder="Ore Name" ref="oreName" />
                                 </div>
                                 <div className="col">
                                     <label>Cantidad</label>

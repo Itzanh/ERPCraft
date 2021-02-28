@@ -57,8 +57,14 @@ end
 
 -- Enviar un dos bytes de tamaño + mensaje
 local function enviarSocket(str)
-  handle:write(("").char( string.len(str) ))
-  handle:write(("").char(0))
+  local strLen = string.len(str)
+  if (strLen < 256) then
+    handle:write(("").char(strLen))
+    handle:write(("").char(0))
+  else
+    handle:write(("").char(strLen % 256))
+	handle:write(("").char(strLen / 256))
+  end
   handle:write(str)
   handle:flush()
 end

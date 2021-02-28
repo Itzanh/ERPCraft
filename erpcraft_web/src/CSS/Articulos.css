@@ -32,17 +32,17 @@ div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(4
     width: 20%;
 }
 
-div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(5) {
-    width: 5%;
+div#tabArticulos table#tableTabArticulos tbody#renderArticulos tr td:nth-child(6) {
+    max-width: 5%;
 }
 
 /* ARTICULO MODAL */
 
-div#addArticuloModal div.form-row div.col:nth-child(3) {
+div#addArticuloModal div.form-row div.col:nth-child(4) {
     max-width: 10%;
 }
 
-div#editArticuloModal div#editArtMainForm div#editArtDetails div.form-row div.col:nth-child(3) {
+div#editArticuloModal div#editArtMainForm div#editArtDetails div.form-row div.col:nth-child(4) {
     max-width: 10%;
 }
 

@@ -1,5 +1,4 @@
 ﻿using Npgsql;
-using System;
 
 namespace ERPCraft_Server.Models.DB
 {
@@ -10,6 +9,7 @@ namespace ERPCraft_Server.Models.DB
         public string minecraftID;
         public int cantidad;
         public string descripcion;
+        public string oreName;
 
         public Articulo()
         {
@@ -22,6 +22,7 @@ namespace ERPCraft_Server.Models.DB
             this.minecraftID = rdr.GetString(2);
             this.cantidad = rdr.GetInt32(3);
             this.descripcion = rdr.GetString(4);
+            this.oreName = rdr.GetString(5);
         }
 
         private static bool minecraftIDisValid(string minecraftID)
@@ -39,16 +40,8 @@ namespace ERPCraft_Server.Models.DB
 
         internal bool isValid()
         {
-            if (this.name == null || this.name.Equals(string.Empty))
-                return false;
-
-            if (this.minecraftID == null || this.minecraftID.Length == 0 || !minecraftIDisValid(this.minecraftID))
-                return false;
-
-            if (cantidad < 0)
-                return false;
-
-            if (this.descripcion == null)
+            if (this.name == null || this.name.Equals(string.Empty) || this.minecraftID == null || this.minecraftID.Length == 0 || !minecraftIDisValid(this.minecraftID)
+                || cantidad < 0 || this.descripcion == null || oreName == null)
                 return false;
 
             return true;

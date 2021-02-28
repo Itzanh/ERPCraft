@@ -34,12 +34,26 @@ namespace ERPCraft_Server.Models.DB.Almacen
         }
     }
 
+    public class MovimientoAlmacenGet
+    {
+        public long offset;
+        public int limit;
+
+        public MovimientoAlmacenGet()
+        {
+            this.offset = 0;
+            this.limit = 0;
+        }
+    }
+
     public class MovimientoAlmacenQuery
     {
         public short almacen;
         public short articulo;
         public DateTime dateInicio;
         public DateTime dateFin;
+        public long offset;
+        public int limit;
 
         public MovimientoAlmacenQuery()
         {

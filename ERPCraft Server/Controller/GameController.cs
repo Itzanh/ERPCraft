@@ -388,9 +388,14 @@ namespace ERPCraft_Server.Controller
                         break;
                     }
                 /* ALMACÉN */
-                case "almacenSetInv":
+                case "almacenChestSetInv":
                     {
-                        comandoAlmacenSetInventario(uuid, msg, server.db);
+                        comandoAlmacenSetInventario(uuid, msg, server.db, true);
+                        break;
+                    }
+                case "almacenMESetInv":
+                    {
+                        comandoAlmacenSetInventario(uuid, msg, server.db, false);
                         break;
                     }
                 /*  DRONES */
@@ -470,21 +475,19 @@ namespace ERPCraft_Server.Controller
 
         private static void comandoRobInventario(string uuid, string msg, DBStorage db)
         {
-            // articulo:cantidad;articulo:cantidad;articulo:cantidad...
+            // articulo@cantidad@oreName;articulo@cantidad@oreName;articulo@cantidad@oreName...
             string[] data = msg.Split(';');
             List<RobotInventarioSet> setInventario = new List<RobotInventarioSet>();
 
             foreach (string slot in data)
             {
                 string[] slotInfo = slot.Split('@');
-                if (slotInfo.Length == 2)
+                if (slotInfo.Length == 3)
                 {
                     short cantidad = Int16.Parse(slotInfo[1]);
-                    if (slotInfo[0].Length == 0 || cantidad < 0)
-                        continue;
                     try
                     {
-                        setInventario.Add(new RobotInventarioSet(slotInfo[0], cantidad));
+                        setInventario.Add(new RobotInventarioSet(slotInfo[0], cantidad, slotInfo[2]));
                     }
                     catch (Exception) { }
                 }
@@ -629,50 +632,78 @@ namespace ERPCraft_Server.Controller
 
         private static void comandoOrdenMinadoInventario(string uuid, string msg, DBStorage db)
         {
-            // articulo@cantidad;articulo@cantidad;articulo@cantidad...
+            // articulo@cantidad@oreName;articulo@cantidad@oreName;articulo@cantidad@oreName...
             string[] data = msg.Split(';');
             List<OrdenMinadoInventarioSet> setInventario = new List<OrdenMinadoInventarioSet>();
 
             foreach (string slot in data)
             {
                 string[] slotInfo = slot.Split('@');
-                if (slotInfo.Length == 2)
+                if (slotInfo.Length == 3)
                 {
-                    short cantidad = Int16.Parse(slotInfo[1]);
                     try
                     {
-                        setInventario.Add(new OrdenMinadoInventarioSet(slotInfo[0], cantidad));
+                        short cantidad = Int16.Parse(slotInfo[1]);
+                        if (cantidad == 0)
+                            continue;
+                        setInventario.Add(new OrdenMinadoInventarioSet(slotInfo[0], cantidad, slotInfo[2]));
                     }
                     catch (Exception) { }
                 }
             }
 
-            db.setOrdenMinadoInventario(db.getRobotOrdenMinado(Guid.Parse(uuid)).id, setInventario);
+            db.setOrdenMinadoInventario(Guid.Parse(uuid), setInventario);
         }
 
-        private static void comandoAlmacenSetInventario(string uuid, string msg, DBStorage db)
+        private static void comandoAlmacenSetInventario(string uuid, string msg, DBStorage db, bool searchByMinecraftId)
         {
-            // articulo@cantidad;articulo@cantidad;articulo@cantidad...
+            // articulo@cantidad@oreName;articulo@cantidad@oreName;articulo@cantidad@oreName...
             string[] data = msg.Split(';');
             List<AlmacenInventarioSet> setInventario = new List<AlmacenInventarioSet>();
 
             foreach (string slot in data)
             {
                 string[] slotInfo = slot.Split('@');
-                if (slotInfo.Length == 2)
+                if (slotInfo.Length == 3)
                 {
                     short cantidad = Int16.Parse(slotInfo[1]);
                     if (slotInfo[0].Length == 0 || cantidad < 0)
                         continue;
                     try
                     {
-                        setInventario.Add(new AlmacenInventarioSet(slotInfo[0], cantidad));
+                        setInventario.Add(new AlmacenInventarioSet(slotInfo[0], cantidad, slotInfo[2]));
                     }
                     catch (Exception) { }
                 }
             }
 
-            db.setInventarioAlmacen(db.getAlmacenId(Guid.Parse(uuid)), setInventario);
+            if (searchByMinecraftId)
+            {
+                // this is a chest, and not an ME network, so the items are in stacks that repeat, por example,
+                // one slot with 64 cobblestone and another stack with 32, not a single stack with 96 as an ME network would send
+                reducirStacks(setInventario);
+            }
+
+            db.setInventarioAlmacen(db.getAlmacenId(Guid.Parse(uuid)), setInventario, searchByMinecraftId);
+        }
+
+        /// <summary>
+        /// Deja un solo slot por item, desde los stacks repetidos de 64 items
+        /// </summary>
+        /// <param name="setInventario"></param>
+        private static void reducirStacks(List<AlmacenInventarioSet> setInventario)
+        {
+            for (int i = (setInventario.Count - 1); i >= 0; i--)
+            {
+                for (int j = (setInventario.Count - 1); j >= 0; j--)
+                {
+                    if (i != j && setInventario[i].articulo.Equals(setInventario[j].articulo) && setInventario[i].oreName.Equals(setInventario[j].oreName))
+                    {
+                        setInventario[i].cantidad += setInventario[j].cantidad;
+                        setInventario.RemoveAt(j);
+                    }
+                }
+            }
         }
 
         /*  DRONES */
@@ -701,14 +732,14 @@ namespace ERPCraft_Server.Controller
             foreach (string slot in data)
             {
                 string[] slotInfo = slot.Split('@');
-                if (slotInfo.Length == 2)
+                if (slotInfo.Length == 3)
                 {
                     short cantidad = Int16.Parse(slotInfo[1]);
                     if (slotInfo[0].Length == 0 || cantidad < 0)
                         continue;
                     try
                     {
-                        setInventario.Add(new DroneInventarioSet(slotInfo[0], cantidad));
+                        setInventario.Add(new DroneInventarioSet(slotInfo[0], cantidad, slotInfo[2]));
                     }
                     catch (Exception) { }
                 }

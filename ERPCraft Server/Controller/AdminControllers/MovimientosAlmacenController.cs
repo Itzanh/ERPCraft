@@ -13,7 +13,7 @@ namespace ERPCraft_Server.Controller.AdminControllers
             {
                 case "get":
                     {
-                        return getMovimientosAlmacen(db);
+                        return getMovimientosAlmacen(db, message);
                     }
                 case "search":
                     {
@@ -32,9 +32,18 @@ namespace ERPCraft_Server.Controller.AdminControllers
             return "ERR";
         }
 
-        private static string getMovimientosAlmacen(DBStorage db)
+        private static string getMovimientosAlmacen(DBStorage db, string message)
         {
-            return JsonConvert.SerializeObject(db.getMovimientosAlmacen());
+            MovimientoAlmacenGet query;
+            try
+            {
+                query = (MovimientoAlmacenGet)JsonConvert.DeserializeObject(message, typeof(MovimientoAlmacenGet));
+            }
+            catch (Exception) { return "ERR"; }
+            if (query == null || query.offset < 0 || query.limit <= 0)
+                return "ERR";
+
+            return JsonConvert.SerializeObject(db.getMovimientosAlmacen(query.offset, query.limit));
         }
 
         private static string searchMovimientosAlmacen(DBStorage db, string message)
@@ -45,7 +54,7 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 query = (MovimientoAlmacenQuery)JsonConvert.DeserializeObject(message, typeof(MovimientoAlmacenQuery));
             }
             catch (Exception) { return "ERR"; }
-            if (query == null)
+            if (query == null || query.offset < 0 || query.limit <= 0)
                 return "ERR";
 
             return JsonConvert.SerializeObject(db.getMovimientosAlmacen(query));

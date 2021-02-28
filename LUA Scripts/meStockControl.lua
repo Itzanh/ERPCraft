@@ -31,34 +31,22 @@ SERVER_PORT = 32325
 
 -- Generar cadena con el inventario
 
-local function inventarioToString(inventario)
-  local str = ""
-  for key,value in pairs(inventario) do
-    str = str .. key .. "@" .. value .. ";"
-  end
-  return str
-end
-
 local function setMEInventario()
-  local inventario = {}
+  local str = ""
   local slots = me.getItemsInNetwork()
   for i=1,slots.n,1 do
     local slot = slots[i]
     if slot ~= nil then
-	  if (inventario[slot.name] == nil) then
-	    inventario[slot.name] = math.floor(slot.size)
-	  else
-	    inventario[slot.name] = math.floor(inventario[slot.name] + slot.size)
-	  end
+	  str = str .. slot.name .. "@" .. math.floor(slot.size) .. "@" .. slot.label .. ";"
     end
   end
-
-  return inventarioToString(inventario)
+  
+  return str
 end
 
 -- Ir enviando el estado del inventario
 
 while true do
-  m.send(SERVER_ADDR, SERVER_PORT, "almacenSetInv--" ..setMEInventario())
+  m.send(SERVER_ADDR, SERVER_PORT, "almacenMESetInv--" ..setMEInventario())
   os.sleep(1)
 end

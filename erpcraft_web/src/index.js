@@ -747,17 +747,19 @@ async function tabArticulos() {
     getArticulos();
 };
 
-function getArticulos(busqueda) {
+function getArticulos(busqueda, columna, invertir) {
     if (busqueda && busqueda.length > 0) {
         client.emit('articulos', 'search', busqueda, async (_, response) => {
             const articulos = JSON.parse(response);
 
+            ordenarArticulos(articulos, columna, invertir);
             renderArticulos(articulos);
         });
     } else {
         client.emit('articulos', 'get', '', async (_, response) => {
             const articulos = JSON.parse(response);
 
+            ordenarArticulos(articulos, columna, invertir);
             renderArticulos(articulos);
 
             client.unsubscribeAll();
@@ -795,6 +797,7 @@ function getArticulos(busqueda) {
                     }
                 }
 
+                ordenarArticulos(articulos, columna, invertir);
                 renderArticulos(articulos);
             });
 
@@ -834,6 +837,49 @@ function getArticulos(busqueda) {
     }
 };
 
+function ordenarArticulos(articulos, columna, invertir) {
+    if (columna == 0 && invertir == false) {
+        return;
+    }
+
+    if (columna == 0) {
+        articulos.sort((a, b) => {
+            if (a.id > b.id) {
+                return -1;
+            }
+            if (a.id < b.id) {
+                return 1;
+            }
+            // a debe ser igual b
+            return 0;
+        });
+    } else if (columna == 1) {
+        if (invertir == false) {
+            articulos.sort((a, b) => {
+                if (a.cantidad < b.cantidad) {
+                    return -1;
+                }
+                if (a.cantidad > b.cantidad) {
+                    return 1;
+                }
+                // a debe ser igual b
+                return 0;
+            });
+        } else {
+            articulos.sort((a, b) => {
+                if (a.cantidad > b.cantidad) {
+                    return -1;
+                }
+                if (a.cantidad < b.cantidad) {
+                    return 1;
+                }
+                // a debe ser igual b
+                return 0;
+            });
+        }
+    }
+};
+
 async function renderArticulos(articulos) {
     await ReactDOM.unmountComponentAtNode(document.getElementById('renderArticulos'));
     ReactDOM.render(
@@ -844,6 +890,7 @@ async function renderArticulos(articulos) {
                 id={element.id}
                 name={element.name}
                 minecraftID={element.minecraftID}
+                oreName={element.oreName}
                 cantidad={element.cantidad}
 
                 editarArticulo={() => { editArticulo(element) }}
@@ -2491,19 +2538,57 @@ async function tabMovimientoAlmacen() {
     getMovimientosAlmacen();
 };
 
-function getMovimientosAlmacen() {
-    client.emit('movAlmacen', 'get', '', (_, response) => {
-        renderMovimientosAlmacen(JSON.parse(response));
-    });
+async function getMovimientosAlmacen() {
+    const limit = 200;
+    var offset = 0;
+    var continuar = true;
+    var movimientosAlmacen = [];
+
+    do {
+        await new Promise((resolve) => {
+            client.emit('movAlmacen', 'get', JSON.stringify({ limit, offset }), (_, response) => {
+                const movimientos = JSON.parse(response);
+                if (movimientos.length == 0) {
+                    continuar = false;
+                } else {
+                    offset += movimientos.length;
+                    movimientosAlmacen = movimientosAlmacen.concat(movimientos);
+                    renderMovimientosAlmacen(movimientosAlmacen);
+                }
+                resolve();
+            });
+        });
+    } while (continuar);
+
 };
 
-function searchMovimientosAlmacen(query) {
-    client.emit('movAlmacen', 'search', JSON.stringify(query), (_, response) => {
-        renderMovimientosAlmacen(JSON.parse(response));
-    });
+async function searchMovimientosAlmacen(query) {
+    const limit = 200;
+    var offset = 0;
+    var continuar = true;
+    var movimientosAlmacen = [];
+
+    do {
+        await new Promise((resolve) => {
+            query.offset = offset;
+            query.limit = limit;
+            client.emit('movAlmacen', 'search', JSON.stringify(query), (_, response) => {
+                const movimientos = JSON.parse(response);
+                if (movimientos.length == 0) {
+                    continuar = false;
+                } else {
+                    offset += movimientos.length;
+                    movimientosAlmacen = movimientosAlmacen.concat(movimientos);
+                    renderMovimientosAlmacen(movimientosAlmacen);
+                }
+                resolve();
+            });
+        });
+    } while (continuar);
 };
 
 async function renderMovimientosAlmacen(movimientos) {
+    // render movimientos
     ReactDOM.unmountComponentAtNode(document.getElementById('renderMovimientos'));
     await ReactDOM.render(movimientos.map((element, i) => {
         return <MovimientoAlmacen
@@ -2516,6 +2601,7 @@ async function renderMovimientosAlmacen(movimientos) {
         />
     }), document.getElementById('renderMovimientos'));
 
+    // obtener nombres de almacenes
     const almNameCache = {};
     for (let i = 0; i < movimientos.length; i++) {
         if (almNameCache[movimientos[i].almacen]) {
@@ -2527,6 +2613,7 @@ async function renderMovimientosAlmacen(movimientos) {
         }
     }
 
+    // obtener nombres de artículos
     const artNameCache = {};
     for (let i = 0; i < movimientos.length; i++) {
         if (artNameCache[movimientos[i].articulo]) {
@@ -2538,6 +2625,7 @@ async function renderMovimientosAlmacen(movimientos) {
         }
     }
 
+    // render movimientos
     ReactDOM.render(movimientos.map((element, i) => {
         return <MovimientoAlmacen
             key={i}
@@ -2548,6 +2636,14 @@ async function renderMovimientosAlmacen(movimientos) {
             }}
         />
     }), document.getElementById('renderMovimientos'));
+
+    // render footer
+    document.getElementById("MovAlmCountRows").innerText = "" + movimientos.length;
+    var sumaCant = 0;
+    for (let i = 0; i < movimientos.length; i++) {
+        sumaCant += movimientos[i].cantidad;
+    }
+    document.getElementById("MovAlmSumaCant").innerText = "" + sumaCant;
 };
 
 function editMovimientoAlmacen(movimiento) {

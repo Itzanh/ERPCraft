@@ -35,11 +35,16 @@ class Articulos extends Component {
         this.deleteSmelting = deleteSmelting;
 
         this.busTimer = null;
+        this.orden = {
+            columna: 0,
+            invertir: false
+        };
 
         this.addArticulo = this.addArticulo.bind(this);
         this.buscar = this.buscar.bind(this);
         this.buscarAuto = this.buscarAuto.bind(this);
         this.recetas = this.recetas.bind(this);
+        this.ordenar = this.ordenar.bind(this);
     }
 
     addArticulo() {
@@ -76,7 +81,7 @@ class Articulos extends Component {
             this.busTimer = null;
         }
 
-        this.handleSearch(this.refs.bus.value);
+        this.handleSearch(this.refs.bus.value, this.orden.columna, this.orden.invertir);
     }
 
     buscarAuto() {
@@ -88,6 +93,17 @@ class Articulos extends Component {
         this.busTimer = setTimeout(() => {
             this.buscar();
         }, 400);
+    }
+
+    ordenar(columna) {
+        if (this.orden.columna == columna) {
+            this.orden.invertir = !this.orden.invertir;
+        } else {
+            this.orden.columna = columna;
+            this.orden.invertir = false;
+        }
+
+        this.buscar();
     }
 
     render() {
@@ -106,11 +122,12 @@ class Articulos extends Component {
             <table className="table table-dark" id="tableTabArticulos">
                 <thead>
                     <tr>
-                        <th scope="col">#</th>
+                        <th scope="col" onClick={() => { this.ordenar(0); }}>#</th>
                         <th scope="col"></th>
                         <th scope="col">Nombre</th>
                         <th scope="col">ID Minecraft</th>
-                        <th scope="col">Cantidad</th>
+                        <th scope="col">Ore Name</th>
+                        <th scope="col" onClick={() => { this.ordenar(1); }}>Cantidad</th>
                     </tr>
                 </thead>
                 <tbody id="renderArticulos">

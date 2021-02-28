@@ -102,11 +102,13 @@ namespace ERPCraft_Server.Models.DB.Almacen
         public string articulo;
         public short articuloId;
         public int cantidad;
+        public string oreName;
 
-        public AlmacenInventarioSet(string articulo, int cantidad)
+        public AlmacenInventarioSet(string articulo, int cantidad, string oreName)
         {
             this.articulo = articulo;
             this.cantidad = cantidad;
+            this.oreName = oreName;
         }
 
         public AlmacenInventarioSet(short articuloId, int cantidad)
