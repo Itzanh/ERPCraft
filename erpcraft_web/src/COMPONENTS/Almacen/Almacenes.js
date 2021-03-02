@@ -53,7 +53,7 @@ class Almacenes extends Component {
         getAlmacenNotificaciones, addAlmacenNotificaciones, deleteAlmacenNotificaciones, getArticulos,
         getAlmacenStorageCells, addAlmacenStorageCell, deleteAlmacenStorageCell,
         getFabricaciones, addFabricacion, editFabricacion, deleteFabricacion,
-        localizarCrafteos, localizarSmeltings, addOrdenFabricacion, getOrdenFabricacion, searchOrdenesFabricacion, previewCrafteo, deleteOrdenFabricacion }) {
+        localizarCrafteos, localizarSmeltings, addOrdenFabricacion, addAdvancedOrdenFabricacion, getOrdenFabricacion, searchOrdenesFabricacion, previewCrafteo, deleteOrdenFabricacion }) {
         super();
         this.almacen = null;
         this.imgCache = {};
@@ -90,6 +90,7 @@ class Almacenes extends Component {
         this.localizarCrafteos = localizarCrafteos;
         this.localizarSmeltings = localizarSmeltings;
         this.addOrdenFabricacion = addOrdenFabricacion;
+        this.addAdvancedOrdenFabricacion = addAdvancedOrdenFabricacion;
         this.getOrdenFabricacion = getOrdenFabricacion;
         this.searchOrdenesFabricacion = searchOrdenesFabricacion;
         this.previewCrafteo = previewCrafteo;
@@ -307,6 +308,7 @@ class Almacenes extends Component {
             localizarCrafteos={this.localizarCrafteos}
             localizarSmeltings={this.localizarSmeltings}
             addOrdenFabricacion={this.addOrdenFabricacion}
+            addAdvancedOrdenFabricacion={this.addAdvancedOrdenFabricacion}
             getOrdenFabricacion={this.getOrdenFabricacion}
             searchOrdenesFabricacion={this.searchOrdenesFabricacion}
             previewCrafteo={this.previewCrafteo}

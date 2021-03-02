@@ -1901,6 +1901,7 @@ function tabAlmacen() {
         localizarCrafteos={localizarCrafteos}
         localizarSmeltings={localizarSmeltings}
         addOrdenFabricacion={addOrdenFabricacion}
+        addAdvancedOrdenFabricacion={addAdvancedOrdenFabricacion}
         getOrdenFabricacion={getOrdenFabricacion}
         searchOrdenesFabricacion={searchOrdenesFabricacion}
         previewCrafteo={previewCrafteo}
@@ -2122,9 +2123,21 @@ function addOrdenFabricacion(ordenFabricacion) {
     });
 };
 
-function previewCrafteo(idAlmacen, idReceta, tipo) {
+function addAdvancedOrdenFabricacion(ordenFabricacion) {
+    return new Promise((resolve, reject) => {
+        client.emit('almacen', 'addAdvancedOrdenFabricacion', JSON.stringify(ordenFabricacion), (_, response) => {
+            if (response == "OK") {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+function previewCrafteo(idAlmacen, idReceta, tipo, avanzado) {
     return new Promise((resolve) => {
-        client.emit('almacen', 'previewCrafteo', JSON.stringify({ idAlmacen: idAlmacen, idReceta: idReceta, tipo: tipo }), (_, response) => {
+        client.emit('almacen', 'previewCrafteo', JSON.stringify({ idAlmacen: idAlmacen, idReceta: idReceta, tipo: tipo, avanzado: avanzado }), (_, response) => {
             resolve(JSON.parse(response));
         });
     });

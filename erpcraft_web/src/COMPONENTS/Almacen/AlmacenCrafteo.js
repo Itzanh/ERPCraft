@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 
 import flashlightIco from './../../IMG/flashlight.svg';
 import trashIco from './../../IMG/trash.svg';
+import crafingIco from './../../IMG/crafting.png';
 
 import CrafteoLocalizador from "./CrafteoLocalizador";
 import SmeltingLocalizador from "./SmeltingLocalizador";
@@ -16,7 +17,7 @@ const ordenMinadoEstado = {
 
 class AlmacenCrafteo extends Component {
     constructor({ idAlmacen, getFabricaciones, addFabricacion, editFabricacion, deleteFabricacion,
-        localizarCrafteos, localizarSmeltings, addOrdenFabricacion, getOrdenFabricacion, searchOrdenesFabricacion, previewCrafteo, deleteOrdenFabricacion }) {
+        localizarCrafteos, localizarSmeltings, addOrdenFabricacion, addAdvancedOrdenFabricacion, getOrdenFabricacion, searchOrdenesFabricacion, previewCrafteo, deleteOrdenFabricacion }) {
         super();
 
         this.idAlmacen = idAlmacen;
@@ -31,6 +32,7 @@ class AlmacenCrafteo extends Component {
         this.localizarCrafteos = localizarCrafteos;
         this.localizarSmeltings = localizarSmeltings;
         this.addOrdenFabricacion = addOrdenFabricacion;
+        this.addAdvancedOrdenFabricacion = addAdvancedOrdenFabricacion;
         this.getOrdenFabricacion = getOrdenFabricacion;
         this.searchOrdenesFabricacion = searchOrdenesFabricacion;
         this.previewCrafteo = previewCrafteo;
@@ -40,6 +42,7 @@ class AlmacenCrafteo extends Component {
         this.idRecetaBuscar = 0;
 
         this.fabricacion = this.fabricacion.bind(this);
+        this.calcularName = this.calcularName.bind(this);
         this.localizar = this.localizar.bind(this);
         this.clearLocalizar = this.clearLocalizar.bind(this);
         this.clearLocalizarBuscar = this.clearLocalizarBuscar.bind(this);
@@ -133,23 +136,21 @@ class AlmacenCrafteo extends Component {
     }
 
     calcularName(name) {
-        if (name == null || name == '') {
-            return;
-        }
+        if (name != null && name != '') {
+            if (this.refs.name.value.length == 0) {
+                name += ' ';
+                const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                for (let i = 0; i < 6; i++) {
+                    name += charset.charAt(Math.random() * charset.length);
+                }
 
-        if (this.refs.name.value.length == 0) {
-            name += ' ';
-            const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            for (let i = 0; i < 6; i++) {
-                name += charset.charAt(Math.random() * charset.length);
+                this.refs.name.value = name;
             }
-
-            this.refs.name.value = name;
         }
 
         if (this.idReceta != 0) {
             const tipo = this.refs.radioCraftC.checked ? 'C' : 'S';
-            this.previewCrafteo(this.idAlmacen, this.idReceta, tipo).then((preview) => {
+            this.previewCrafteo(this.idAlmacen, this.idReceta, tipo, this.refs.multiCraft.checked).then((preview) => {
                 this.refs.cant.value = preview.cantidadCrafteo;
                 this.refs.cant.step = preview.cantidadCrafteo;
                 this.refs.cant.min = preview.cantidadCrafteo;
@@ -222,6 +223,11 @@ class AlmacenCrafteo extends Component {
     };
 
     add() {
+        if (this.refs.multiCraft.checked) {
+            this.addMultiCraft();
+            return;
+        }
+
         const ordenFabricacion = {};
         ordenFabricacion.idAlmacen = this.idAlmacen;
         ordenFabricacion.name = this.refs.name.value;
@@ -234,7 +240,27 @@ class AlmacenCrafteo extends Component {
             return;
         }
         ordenFabricacion.cantidad = parseInt(this.refs.cant.value);
+
         this.addOrdenFabricacion(ordenFabricacion).then(() => {
+            this.renderOrdenesFabricacion();
+        });
+    }
+
+    addMultiCraft() {
+        const ordenFabricacion = {};
+        ordenFabricacion.idAlmacen = this.idAlmacen;
+        ordenFabricacion.idFabricacion = parseInt(this.refs.fabricacion.value);
+        ordenFabricacion.idReceta = this.idReceta;
+        if (this.refs.radioCraftC.checked) {
+            ordenFabricacion.tipo = "C";
+        } else if (this.refs.radioCraftS.checked) {
+            ordenFabricacion.tipo = "S";
+        } else {
+            return;
+        }
+        ordenFabricacion.cantidadPedida = parseInt(this.refs.cant.value);
+
+        this.addAdvancedOrdenFabricacion(ordenFabricacion).then(() => {
             this.renderOrdenesFabricacion();
         });
     }
@@ -337,6 +363,16 @@ class AlmacenCrafteo extends Component {
                                         <label>Max. cant.</label>
                                         <input type="number" className="form-control" defaultValue="0" ref="cantMax" readOnly={true} />
                                     </div>
+                                </div>
+                            </div>
+                            <div className="col">
+                                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                    <label class="btn btn-secondary active">
+                                        <input type="radio" name="algoCraft" id="simpleCraft" checked /><img src={crafingIco} onClick={this.calcularName} />
+                                    </label>
+                                    <label class="btn btn-secondary">
+                                        <input type="radio" name="algoCraft" id="multiCraft" ref="multiCraft" onClick={this.calcularName} /><img src={crafingIco} /><img src={crafingIco} />
+                                    </label>
                                 </div>
                             </div>
                             <div className="col">

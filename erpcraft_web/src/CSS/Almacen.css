@@ -184,6 +184,14 @@ div#almacenCrafteo div#formAddOrdenFabricacion > div.col:nth-child(5) {
     max-width: 10%;
 }
 
+    div#almacenCrafteo div#formAddOrdenFabricacion > div.col:nth-child(5) img {
+        max-height: 25px;
+    }
+
+div#almacenCrafteo div#formAddOrdenFabricacion > div.col:nth-child(6) {
+    max-width: 8%;
+}
+
 div#almacenCrafteo table#ordenesFabricacion tr td:nth-child(11) {
     padding: 0;
 }

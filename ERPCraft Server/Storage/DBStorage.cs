@@ -4876,7 +4876,10 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@cant", ordenFabricacion.cantidad);
 
             if (cmd.ExecuteNonQuery() == 0)
+            {
+                trans.Rollback();
                 return false;
+            }
 
             bool ok;
             if (ordenFabricacion.idCrafteo != null)
@@ -4898,6 +4901,248 @@ namespace ERPCraft_Server.Storage
             }
         }
 
+        public bool addMultiOrdenFabricacion(OrdenFabricacionGenerateQuery query)
+        {
+            NpgsqlTransaction trans = conn.BeginTransaction();
+
+            List<OrdenFabricacion> ordenesGeneradas = new List<OrdenFabricacion>();
+
+            if (query.tipo == 'C')
+            {
+                Crafteo crafteo = getCrafteo(query.idReceta);
+                if (crafteo == null)
+                    return false;
+                generarMultiCrafteo(query.idAlmacen, (short)(query.cantidadPedida / crafteo.cantidadResultado), crafteo, new List<int>(), new List<int>(), ref ordenesGeneradas);
+            }
+            else if (query.tipo == 'S')
+            {
+                Smelting smelting = getSmelting(query.idReceta);
+                if (smelting == null)
+                    return false;
+                generarMultiSmelting(query.idAlmacen, (short)(query.cantidadPedida / smelting.cantidadResultado), smelting, new List<int>(), new List<int>(), ref ordenesGeneradas);
+            }
+            else
+            {
+                return false;
+            }
+
+            for (int i = 0; i < ordenesGeneradas.Count; i++)
+            {
+                string sql = "INSERT INTO alm_ordenes_fab(alm, name, fab, craft, smelt, cant) VALUES (@alm, @name, @fab, @craft, @smelt, @cant)";
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@alm", query.idAlmacen);
+                cmd.Parameters.AddWithValue("@fab", query.idFabricacion);
+                cmd.Parameters.AddWithValue("@name", ordenesGeneradas[i].name);
+                cmd.Parameters.AddWithValue("@cant", ordenesGeneradas[i].cantidad);
+                if (ordenesGeneradas[i].idCrafteo == null)
+                    cmd.Parameters.AddWithValue("@craft", DBNull.Value);
+                else
+                    cmd.Parameters.AddWithValue("@craft", ordenesGeneradas[i].idCrafteo);
+                if (ordenesGeneradas[i].idSmelting == null)
+                    cmd.Parameters.AddWithValue("@smelt", DBNull.Value);
+                else
+                    cmd.Parameters.AddWithValue("@smelt", ordenesGeneradas[i].idSmelting);
+                if (cmd.ExecuteNonQuery() == 0)
+                {
+                    trans.Rollback();
+                    return false;
+                }
+
+                bool ok;
+                if (ordenesGeneradas[i].idCrafteo != null)
+                    ok = this.manageStockAvailableCrafteo(query.idAlmacen, (int)(ordenesGeneradas[i].idCrafteo), ordenesGeneradas[i].cantidad, true);
+                else if (ordenesGeneradas[i].idSmelting != null)
+                    ok = this.manageStockAvailableSmelting(query.idAlmacen, (int)(ordenesGeneradas[i].idSmelting), ordenesGeneradas[i].cantidad, true);
+                else
+                    ok = false;
+
+                if (!ok)
+                {
+                    trans.Rollback();
+                    return false;
+                }
+            }
+            trans.Commit();
+
+            return true;
+        }
+
+        private OrdenFabricacionPreview generarMultiCrafteo(short idAlmacen, short cantidadPedida, Crafteo crafteo, List<int> crafteosUsados, List<int> horneosUsados, ref List<OrdenFabricacion> ordenesGeneradas)
+        {
+            // generar lista de requisitos del crafteo
+            List<FabricacionCrafteo> articulosCrafteo = generarArticulosCrafteo(crafteo);
+
+            short maxCantidadCrafteo = Int16.MaxValue;
+
+            // recorrer artículos buscando el mínimo crafteable
+            for (int i = 0; i < articulosCrafteo.Count; i++)
+            {
+                // guardar la cantidad ya disponible en stock
+                articulosCrafteo[i].cantidadDisponible = getInventarioAlmacen(idAlmacen, articulosCrafteo[i].idArticulo).cantidadDisponible;
+                short cantidadCrafteo = ((short)(articulosCrafteo[i].cantidadDisponible / articulosCrafteo[i].cantidadCrafteo * cantidadPedida));
+                if (cantidadCrafteo > cantidadPedida)
+                    cantidadCrafteo = cantidadPedida;
+
+                if (cantidadCrafteo < cantidadPedida)
+                {
+                    // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de horneos que obtienen este artículo componente
+                    List<Smelting> horneos = getSmeltingByResult(articulosCrafteo[i].idArticulo);
+                    if (horneos.Count > 0)
+                    {
+                        for (int j = (horneos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                        {
+                            for (int k = 0; k < horneosUsados.Count; k++)
+                            {
+                                if (j < horneos.Count && (horneos[j].id == horneosUsados[k]))
+                                    horneos.RemoveAt(j);
+                            }
+                        }
+                    }
+
+                    // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de otros crafteos que obtienen este artículo componente
+                    List<Crafteo> crafteos = getCrafteosByResult(articulosCrafteo[i].idArticulo);
+                    if (crafteos.Count > 0)
+                    {
+                        for (int j = (crafteos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                        {
+                            for (int k = 0; k < crafteosUsados.Count; k++)
+                            {
+                                if (j < crafteos.Count && (crafteos[j].id == crafteosUsados[k]))
+                                    crafteos.RemoveAt(j);
+                            }
+                        }
+                    }
+
+                    for (int j = 0; j < crafteos.Count; j++)
+                    {
+                        crafteosUsados.Add(crafteos[j].id);
+                    }
+                    for (int j = 0; j < horneos.Count; j++)
+                    {
+                        horneosUsados.Add(horneos[j].id);
+                    }
+
+                    for (int j = 0; j < crafteos.Count; j++)
+                    {
+                        if (cantidadCrafteo >= cantidadPedida)
+                            break;
+                        cantidadCrafteo += generarMultiCrafteo(idAlmacen, ((short)(cantidadPedida - cantidadCrafteo)), crafteos[j], crafteosUsados, horneosUsados, ref ordenesGeneradas).maxCantidadCrafteo;
+                    }
+                    if (cantidadCrafteo < cantidadPedida)
+                    {
+                        for (int j = 0; j < horneos.Count; j++)
+                        {
+                            if (cantidadCrafteo >= cantidadPedida)
+                                break;
+                            cantidadCrafteo += generarMultiSmelting(idAlmacen, ((short)(cantidadPedida - cantidadCrafteo)), horneos[j], horneosUsados, crafteosUsados, ref ordenesGeneradas).maxCantidadCrafteo;
+                        }
+                    }
+                }
+
+                maxCantidadCrafteo = Math.Min(maxCantidadCrafteo, cantidadCrafteo);
+            }
+
+            if (maxCantidadCrafteo > 0)
+                ordenesGeneradas.Add(new OrdenFabricacion(crafteo.id, null, (maxCantidadCrafteo / crafteo.cantidadResultado), getArticuloName(crafteo.idArticuloResultado)));
+            return new OrdenFabricacionPreview(null, crafteo.cantidadResultado, (short)(crafteo.cantidadResultado));
+        }
+
+        private OrdenFabricacionPreview generarMultiSmelting(short idAlmacen, short cantidadPedida, Smelting smelting, List<int> horneosUsados, List<int> crafteosUsados, ref List<OrdenFabricacion> ordenesGeneradas)
+        {
+            // guardar la cantidad ya disponible en stock
+            int cantidadDisponible = getInventarioAlmacen(idAlmacen, smelting.idArticuloEntrada).cantidadDisponible;
+            short cantidadCrafteo = ((short)(cantidadDisponible / smelting.cantidadEntrada));
+            if (cantidadCrafteo > cantidadPedida)
+                cantidadCrafteo = cantidadPedida;
+
+            if (cantidadCrafteo < cantidadPedida)
+            {
+                // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de otros horneos que obtienen este artículo componente
+                List<Smelting> horneos = getSmeltingByResult(smelting.idArticuloEntrada);
+                if (horneos.Count > 0)
+                {
+                    for (int j = (horneos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                    {
+                        for (int k = 0; k < horneosUsados.Count; k++)
+                        {
+                            if (j < horneos.Count && (horneos[j].id == horneosUsados[k]))
+                                horneos.RemoveAt(j);
+                        }
+                    }
+                }
+
+                // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de otros crafteos que obtienen este artículo componente
+                List<Crafteo> crafteos = getCrafteosByResult(smelting.idArticuloEntrada);
+                if (crafteos.Count > 0)
+                {
+                    for (int j = (crafteos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                    {
+                        for (int k = 0; k < crafteosUsados.Count; k++)
+                        {
+                            if (j < crafteos.Count && (crafteos[j].id == crafteosUsados[k]))
+                                crafteos.RemoveAt(j);
+                        }
+                    }
+                }
+
+                for (int j = 0; j < horneos.Count; j++)
+                {
+                    horneosUsados.Add(horneos[j].id);
+                }
+                for (int j = 0; j < crafteos.Count; j++)
+                {
+                    crafteosUsados.Add(crafteos[j].id);
+                }
+
+                for (int j = 0; j < horneos.Count; j++)
+                {
+                    if (cantidadCrafteo >= cantidadPedida)
+                        break;
+                    cantidadCrafteo += generarMultiSmelting(idAlmacen, ((short)(cantidadPedida - cantidadCrafteo)), horneos[j], horneosUsados, crafteosUsados, ref ordenesGeneradas).maxCantidadCrafteo;
+                }
+                if (cantidadCrafteo < cantidadPedida)
+                {
+                    for (int j = 0; j < crafteos.Count; j++)
+                    {
+                        if (cantidadCrafteo >= cantidadPedida)
+                            break;
+                        cantidadCrafteo += generarMultiCrafteo(idAlmacen, ((short)(cantidadPedida - cantidadCrafteo)), crafteos[j], crafteosUsados, horneosUsados, ref ordenesGeneradas).maxCantidadCrafteo;
+                    }
+                }
+            }
+
+            if (cantidadCrafteo > 0)
+                ordenesGeneradas.Add(new OrdenFabricacion(null, smelting.id, (cantidadCrafteo / smelting.cantidadResultado), getArticuloName(smelting.idArticuloResultado)));
+            return new OrdenFabricacionPreview(null, smelting.cantidadResultado, (short)(cantidadCrafteo * smelting.cantidadResultado));
+        }
+
+        private bool manageStockAvailableSlot(short idAlmacen, short idArticulo, int cantidad, bool restarStock)
+        {
+            string sql = "SELECT * FROM alm_inventario WHERE alm = @alm AND art = @id";
+            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@id", idArticulo);
+            NpgsqlDataReader rdr = cmd.ExecuteReader();
+
+            if (rdr.HasRows)
+            {
+                rdr.Close();
+                return false;
+            }
+            rdr.Close();
+
+            sql = "INSERT INTO alm_inventario (alm,art,cant,cant_disp) VALUES (@alm,@art,@cant,@cant_disp)";
+            cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@alm", idAlmacen);
+            cmd.Parameters.AddWithValue("@art", idArticulo);
+            cmd.Parameters.AddWithValue("@cant", 0);
+            if (restarStock)
+                cmd.Parameters.AddWithValue("@cant_disp", -cantidad);
+            else
+                cmd.Parameters.AddWithValue("@cant_disp", cantidad);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
         private bool manageStockAvailableCrafteo(short idAlmacen, int idCrafteo, int cantidad, bool restarStock)
         {
             Crafteo crafteo = getCrafteo(idCrafteo);
@@ -4914,7 +5159,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot1);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot1 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot1, crafteo.cantidadArticuloSlot1 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot2 != null)
@@ -4922,7 +5167,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot2);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot2 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot2, crafteo.cantidadArticuloSlot2 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot3 != null)
@@ -4930,7 +5175,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot3);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot3 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot3, crafteo.cantidadArticuloSlot3 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot4 != null)
@@ -4938,7 +5183,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot4);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot4 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot4, crafteo.cantidadArticuloSlot4 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot5 != null)
@@ -4946,7 +5191,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot5);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot5 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot5, crafteo.cantidadArticuloSlot5 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot6 != null)
@@ -4954,7 +5199,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot6);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot6 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot6, crafteo.cantidadArticuloSlot6 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot7 != null)
@@ -4962,7 +5207,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot7);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot7 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot7, crafteo.cantidadArticuloSlot7 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot8 != null)
@@ -4970,7 +5215,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot8);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot8 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot8, crafteo.cantidadArticuloSlot8 * cantidad, restarStock);
             }
 
             if (crafteo.idArticuloSlot9 != null)
@@ -4978,7 +5223,7 @@ namespace ERPCraft_Server.Storage
                 cmd.Parameters.AddWithValue("@id", crafteo.idArticuloSlot9);
                 cmd.Parameters.AddWithValue("@cant", crafteo.cantidadArticuloSlot9 * cantidad);
                 if (cmd.ExecuteNonQuery() == 0)
-                    return false;
+                    return manageStockAvailableSlot(idAlmacen, (short)crafteo.idArticuloSlot9, crafteo.cantidadArticuloSlot9 * cantidad, restarStock);
             }
 
             return true;
@@ -4996,7 +5241,11 @@ namespace ERPCraft_Server.Storage
             cmd.Parameters.AddWithValue("@alm", idAlmacen);
             cmd.Parameters.AddWithValue("@cant", smelting.cantidadEntrada * cantidad);
             cmd.Parameters.AddWithValue("@id", smelting.idArticuloEntrada);
-            return cmd.ExecuteNonQuery() > 0;
+            if (cmd.ExecuteNonQuery() == 0)
+            {
+                return manageStockAvailableSlot(idAlmacen, smelting.idArticuloEntrada, smelting.cantidadEntrada * cantidad, restarStock);
+            }
+            return true;
         }
 
         public bool deleteOrdenFabricacion(OrdenFabricacionDelete ordenFabricacion)
@@ -5061,12 +5310,8 @@ namespace ERPCraft_Server.Storage
             return true;
         }
 
-        public OrdenFabricacionPreview previewCrafteo(short idAlmacen, int idCrafteo)
+        private static List<FabricacionCrafteo> generarArticulosCrafteo(Crafteo crafteo)
         {
-            Crafteo crafteo = getCrafteo(idCrafteo);
-            if (crafteo == null)
-                return null;
-
             List<FabricacionCrafteo> articulosCrafteo = new List<FabricacionCrafteo>();
             if (crafteo.idArticuloSlot1 != null)
                 FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot1, crafteo.cantidadArticuloSlot1);
@@ -5086,8 +5331,17 @@ namespace ERPCraft_Server.Storage
                 FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot8, crafteo.cantidadArticuloSlot8);
             if (crafteo.idArticuloSlot9 != null)
                 FabricacionCrafteo.agregarArticulo(ref articulosCrafteo, (short)crafteo.idArticuloSlot9, crafteo.cantidadArticuloSlot9);
+            return articulosCrafteo;
+        }
 
-            if (articulosCrafteo.Count < 0)
+        public OrdenFabricacionPreview previewCrafteo(short idAlmacen, int idCrafteo)
+        {
+            Crafteo crafteo = getCrafteo(idCrafteo);
+            if (crafteo == null)
+                return null;
+            List<FabricacionCrafteo> articulosCrafteo = generarArticulosCrafteo(crafteo);
+
+            if (articulosCrafteo.Count == 0)
                 return null;
             short maxCantidadCrafteo = Int16.MaxValue;
             for (int i = 0; i < articulosCrafteo.Count; i++)
@@ -5100,7 +5354,152 @@ namespace ERPCraft_Server.Storage
                 }
             }
 
-            return new OrdenFabricacionPreview(articulosCrafteo, crafteo.cantidadResultado, maxCantidadCrafteo);
+            return new OrdenFabricacionPreview(articulosCrafteo, crafteo.cantidadResultado, (short)(maxCantidadCrafteo * crafteo.cantidadResultado));
+        }
+
+        public OrdenFabricacionPreview previewMultiCrafteo(short idAlmacen, int idCrafteo)
+        {
+            // obtener el crafteo por ID
+            Crafteo crafteo = getCrafteo(idCrafteo);
+            if (crafteo == null)
+                return null;
+            List<int> crafteosUsados = new List<int>();
+            crafteosUsados.Add(crafteo.id);
+            OrdenFabricacionPreview ordenFabricacionPreview = previewMultiCrafteo(idAlmacen, crafteo, crafteosUsados, new List<int>());
+            return ordenFabricacionPreview;
+        }
+
+        private OrdenFabricacionPreview previewMultiCrafteo(short idAlmacen, Crafteo crafteo, List<int> crafteosUsados, List<int> horneosUsados)
+        {
+            // generar lista de requisitos del crafteo
+            List<FabricacionCrafteo> articulosCrafteo = generarArticulosCrafteo(crafteo);
+
+            short maxCantidadCrafteo = Int16.MaxValue;
+
+            // recorrer artículos buscando el mínimo crafteable
+            for (int i = 0; i < articulosCrafteo.Count; i++)
+            {
+                // guardar la cantidad ya disponible en stock
+                articulosCrafteo[i].cantidadDisponible = getInventarioAlmacen(idAlmacen, articulosCrafteo[i].idArticulo).cantidadDisponible;
+                short cantidadCrafteo = ((short)(articulosCrafteo[i].cantidadDisponible / articulosCrafteo[i].cantidadCrafteo));
+
+                // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de horneos que obtienen este artículo componente
+                List<Smelting> horneos = getSmeltingByResult(articulosCrafteo[i].idArticulo);
+                if (horneos.Count > 0)
+                {
+                    for (int j = (horneos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                    {
+                        for (int k = 0; k < horneosUsados.Count; k++)
+                        {
+                            if (j < horneos.Count && (horneos[j].id == horneosUsados[k]))
+                                horneos.RemoveAt(j);
+                        }
+                    }
+                }
+
+                // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de otros crafteos que obtienen este artículo componente
+                List<Crafteo> crafteos = getCrafteosByResult(articulosCrafteo[i].idArticulo);
+                if (crafteos.Count > 0)
+                {
+                    for (int j = (crafteos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                    {
+                        for (int k = 0; k < crafteosUsados.Count; k++)
+                        {
+                            if (j < crafteos.Count && (crafteos[j].id == crafteosUsados[k]))
+                                crafteos.RemoveAt(j);
+                        }
+                    }
+                }
+
+                for (int j = 0; j < crafteos.Count; j++)
+                {
+                    crafteosUsados.Add(crafteos[j].id);
+                }
+                for (int j = 0; j < horneos.Count; j++)
+                {
+                    horneosUsados.Add(horneos[j].id);
+                }
+
+                for (int j = 0; j < crafteos.Count; j++)
+                {
+                    cantidadCrafteo += previewMultiCrafteo(idAlmacen, crafteos[j], crafteosUsados, horneosUsados).maxCantidadCrafteo;
+                }
+
+                for (int j = 0; j < horneos.Count; j++)
+                {
+                    cantidadCrafteo += previewMultiSmelting(idAlmacen, horneos[j], horneosUsados, crafteosUsados).maxCantidadCrafteo;
+                }
+
+                maxCantidadCrafteo = Math.Min(maxCantidadCrafteo, cantidadCrafteo);
+            }
+
+            return new OrdenFabricacionPreview(articulosCrafteo, crafteo.cantidadResultado, (short)(maxCantidadCrafteo * crafteo.cantidadResultado));
+        }
+
+        public OrdenFabricacionPreview previewMultiSmelting(short idAlmacen, int idSmelting)
+        {
+            // obtener el crafteo por ID
+            Smelting smelting = getSmelting(idSmelting);
+            if (smelting == null)
+                return null;
+            List<int> horneosUsados = new List<int>();
+            horneosUsados.Add(smelting.id);
+            return previewMultiSmelting(idAlmacen, smelting, horneosUsados, new List<int>());
+        }
+
+        private OrdenFabricacionPreview previewMultiSmelting(short idAlmacen, Smelting smelting, List<int> horneosUsados, List<int> crafteosUsados)
+        {
+            // guardar la cantidad ya disponible en stock
+            int cantidadDisponible = getInventarioAlmacen(idAlmacen, smelting.idArticuloEntrada).cantidadDisponible;
+            short cantidadCrafteo = ((short)(cantidadDisponible / smelting.cantidadEntrada));
+
+            // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de otros horneos que obtienen este artículo componente
+            List<Smelting> horneos = getSmeltingByResult(smelting.idArticuloEntrada);
+            if (horneos.Count > 0)
+            {
+                for (int j = (horneos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                {
+                    for (int k = 0; k < horneosUsados.Count; k++)
+                    {
+                        if (j < horneos.Count && (horneos[j].id == horneosUsados[k]))
+                            horneos.RemoveAt(j);
+                    }
+                }
+            }
+
+            // buscar RECURSIVAMENTE la cantidad que se puede obtener a través de otros crafteos que obtienen este artículo componente
+            List<Crafteo> crafteos = getCrafteosByResult(smelting.idArticuloEntrada);
+            if (crafteos.Count > 0)
+            {
+                for (int j = (crafteos.Count - 1); j >= 0; j--) // quitar los crafteos ya revisados, evitar la recursión infinita
+                {
+                    for (int k = 0; k < crafteosUsados.Count; k++)
+                    {
+                        if (j < crafteos.Count && (crafteos[j].id == crafteosUsados[k]))
+                            crafteos.RemoveAt(j);
+                    }
+                }
+            }
+
+            for (int j = 0; j < horneos.Count; j++)
+            {
+                horneosUsados.Add(horneos[j].id);
+            }
+            for (int j = 0; j < crafteos.Count; j++)
+            {
+                crafteosUsados.Add(crafteos[j].id);
+            }
+
+            for (int j = 0; j < horneos.Count; j++)
+            {
+                cantidadCrafteo += previewMultiSmelting(idAlmacen, horneos[j], horneosUsados, crafteosUsados).maxCantidadCrafteo;
+            }
+            for (int j = 0; j < crafteos.Count; j++)
+            {
+                cantidadCrafteo += previewMultiCrafteo(idAlmacen, crafteos[j], crafteosUsados, horneosUsados).maxCantidadCrafteo;
+            }
+
+            return new OrdenFabricacionPreview(new List<FabricacionCrafteo>(), smelting.cantidadResultado, (short)(cantidadCrafteo * smelting.cantidadResultado));
         }
 
         public OrdenFabricacionPreview previewSmelting(short idAlmacen, int idSmelting)

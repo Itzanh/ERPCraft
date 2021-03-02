@@ -126,6 +126,14 @@ namespace ERPCraft_Server.Models.DB.Almacen
         {
         }
 
+        public OrdenFabricacion(int? idCrafteo, int? idSmelting, int cantidad, string name)
+        {
+            this.idCrafteo = idCrafteo;
+            this.idSmelting = idSmelting;
+            this.cantidad = cantidad;
+            this.name = generateOrderName(name);
+        }
+
         public OrdenFabricacion(NpgsqlDataReader rdr)
         {
             this.id = rdr.GetInt32(0);
@@ -149,6 +157,19 @@ namespace ERPCraft_Server.Models.DB.Almacen
             this.cantidad = rdr.GetInt32(9);
             this.cantidadFabricado = rdr.GetInt32(10);
             this.errorCode = rdr.GetInt16(11);
+        }
+
+        private static string generateOrderName(string name)
+        {
+            name += " ";
+            const string charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            Random r = new Random();
+            for (int i = 0; i < 6; i++)
+            {
+                name += charset[(r.Next(0, charset.Length))];
+            }
+
+            return name;
         }
 
         public bool isValid()
@@ -228,15 +249,46 @@ namespace ERPCraft_Server.Models.DB.Almacen
     {
         public short idAlmacen;
         public int idReceta;
+        /// <summary>
+        /// C = Craft, S = Smelt
+        /// </summary>
         public char tipo;
+        /// <summary>
+        /// MultiCraft
+        /// </summary>
+        public bool avanzado;
 
         public OrdenFabricacionPreviewQuery()
         {
+            this.avanzado = false;
         }
 
         public bool isValid()
         {
+            if (tipo != 'C' && tipo != 'S')
+                return false;
+
             return !(idAlmacen <= 0 || idReceta <= 0);
+        }
+    }
+
+    public class OrdenFabricacionGenerateQuery
+    {
+        public short idAlmacen;
+        public short idFabricacion;
+        public int idReceta;
+        /// <summary>
+        /// C = Craft, S = Smelt
+        /// </summary>
+        public char tipo;
+        public short cantidadPedida;
+
+        public bool isValid()
+        {
+            if (tipo != 'C' && tipo != 'S')
+                return false;
+
+            return !(idAlmacen <= 0 || idReceta <= 0 || idFabricacion <= 0 || cantidadPedida <= 0);
         }
     }
 

@@ -98,6 +98,10 @@ namespace ERPCraft_Server.Controller.AdminControllers
                     {
                         return addOrdenFabricacion(db, message);
                     }
+                case "addAdvancedOrdenFabricacion":
+                    {
+                        return addAdvancedOrdenFabricacion(db, message);
+                    }
                 case "deleteOrdenFabricacion":
                     {
                         return deleteOrdenFabricacion(db, message);
@@ -391,6 +395,20 @@ namespace ERPCraft_Server.Controller.AdminControllers
             return db.addOrdenFabricacion(ordenFabricacion) ? "OK" : "ERR";
         }
 
+        private static string addAdvancedOrdenFabricacion(DBStorage db, string message)
+        {
+            OrdenFabricacionGenerateQuery ordenFabricacion;
+            try
+            {
+                ordenFabricacion = (OrdenFabricacionGenerateQuery)JsonConvert.DeserializeObject(message, typeof(OrdenFabricacionGenerateQuery));
+            }
+            catch (Exception) { return "ERR"; }
+            if (ordenFabricacion == null || !ordenFabricacion.isValid())
+                return "ERR";
+
+            return db.addMultiOrdenFabricacion(ordenFabricacion) ? "OK" : "ERR";
+        }
+
         private static string deleteOrdenFabricacion(DBStorage db, string message)
         {
             OrdenFabricacionDelete ordenFabricacion;
@@ -417,11 +435,23 @@ namespace ERPCraft_Server.Controller.AdminControllers
                 return "ERR";
 
             if (query.tipo == 'C')
-                return JsonConvert.SerializeObject(db.previewCrafteo(query.idAlmacen, query.idReceta));
+            {
+                if (query.avanzado)
+                    return JsonConvert.SerializeObject(db.previewMultiCrafteo(query.idAlmacen, query.idReceta));
+                else
+                    return JsonConvert.SerializeObject(db.previewCrafteo(query.idAlmacen, query.idReceta));
+            }
             else if (query.tipo == 'S')
-                return JsonConvert.SerializeObject(db.previewSmelting(query.idAlmacen, query.idReceta));
+            {
+                if (query.avanzado)
+                    return JsonConvert.SerializeObject(db.previewMultiSmelting(query.idAlmacen, query.idReceta));
+                else
+                    return JsonConvert.SerializeObject(db.previewSmelting(query.idAlmacen, query.idReceta));
+            }
             else
+            {
                 return "ERR";
+            }
         }
     }
 }
